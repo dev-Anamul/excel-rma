@@ -49,7 +49,7 @@ export class PrintAggregateService {
       await this.generateFooter(
         doc,
         serverSettings,
-        'https://www.excelbd.com/wp-content/uploads/2021/02/Warranty-Claim-Footer.jpg',
+        serverSettings.footerImageURL,
       );
       doc.end();
     });
