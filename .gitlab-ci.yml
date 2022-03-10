@@ -31,7 +31,7 @@ test_rma_frontend:
     # Test backend unit tests
     - npm run test
     # Test backend e2e
-    - npm run e2e
+    # - npm run e2e
     - npm run build -- --prod
   tags:
     - docker
@@ -89,7 +89,7 @@ test_rma_warranty:
     # Test backend unit tests
     - npm run test
     # Test backend e2e
-    - npm run e2e
+    # - npm run e2e
     - npm run build -- --prod
   tags:
     - docker
