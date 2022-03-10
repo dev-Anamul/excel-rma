@@ -384,6 +384,7 @@ export class AddWarrantyClaimPage implements OnInit {
       'delivery_date',
       'receiving_branch',
       'category',
+      'warranty_end_date',
     ];
     this.clearAllControlValidators();
     common_control.forEach(element => {

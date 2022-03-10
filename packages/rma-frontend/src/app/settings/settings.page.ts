@@ -51,6 +51,7 @@ export class SettingsPage implements OnInit {
     footerWidth: new FormControl(),
     faviconURL: new FormControl(),
     backdatedInvoices: new FormControl(),
+    posAppURL: new FormControl(),
   });
   validateInput: any = ValidateInputSelected;
 
@@ -161,6 +162,7 @@ export class SettingsPage implements OnInit {
         this.companySettingsForm
           .get('warrantyAppURL')
           .setValue(res.warrantyAppURL);
+        this.companySettingsForm.get('posAppURL').setValue(res.posAppURL);
         this.companySettingsForm.get('posProfile').setValue(res.posProfile);
         this.companySettingsForm
           .get('headerImageURL')
@@ -205,6 +207,7 @@ export class SettingsPage implements OnInit {
       .updateSettings(
         this.companySettingsForm.get('authServerURL').value,
         this.companySettingsForm.get('appURL').value,
+        this.companySettingsForm.get('posAppURL').value,
         this.companySettingsForm.get('defaultCompany').value,
         this.companySettingsForm.get('frontendClientId').value,
         this.companySettingsForm.get('backendClientId').value,
