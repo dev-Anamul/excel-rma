@@ -353,6 +353,7 @@ export class WarrantyStockEntryAggregateService {
             warehouse: deliveryNote.set_warehouse,
           },
           $unset: {
+            'warranty.soldOn': undefined,
             sales_invoice_name: undefined,
           },
         },

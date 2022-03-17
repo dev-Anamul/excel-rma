@@ -25,6 +25,7 @@ import {
   WARRANTY_CLAIM_DOCTYPE,
   CATEGORY,
   APPLICATION_JSON_CONTENT_TYPE,
+  STOCK_ENTRY_STATUS,
 } from '../../../constants/app-strings';
 import {
   BulkWarrantyClaimInterface,
@@ -732,6 +733,18 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
       switchMap(res => {
         warrantyState = res;
         statusHistoryPayload.doc_name = res.claim_no;
+        if (res.progress_state) {
+          return from(res.progress_state).pipe(
+            concatMap(eachEntry => {
+              return this.addSerialNoStatusHistory(
+                statusHistoryPayload,
+                [eachEntry.serial_no],
+                clientHttpRequest.token,
+              );
+            }),
+            toArray(),
+          );
+        }
         return this.addSerialNoStatusHistory(
           statusHistoryPayload,
           [res.serial_no],
@@ -743,6 +756,38 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           warrantyState.claim_status === CLAIM_STATUS.DELIVERED ||
           warrantyState.claim_status === CLAIM_STATUS.UNSOLVED
         ) {
+          if (warrantyState.progress_state) {
+            return from(warrantyState.progress_state).pipe(
+              concatMap(eachEntry => {
+                if (
+                  eachEntry.stock_entry_type === STOCK_ENTRY_STATUS.returned
+                ) {
+                  return from(
+                    this.serialNoService.updateOne(
+                      { serial_no: warrantyState.serial_no },
+                      {
+                        $unset: { claim_no: undefined },
+                      },
+                    ),
+                  );
+                }
+                return from(
+                  this.serialNoService.updateOne(
+                    { serial_no: warrantyState.serial_no },
+                    {
+                      $set: {
+                        'warranty.soldOn': new DateTime(
+                          settings.timeZone,
+                        ).toJSDate(),
+                      },
+                      $unset: { claim_no: undefined },
+                    },
+                  ),
+                );
+              }),
+              toArray(),
+            );
+          }
           return from(
             this.serialNoService.updateOne(
               { serial_no: warrantyState.serial_no },
@@ -1034,21 +1079,6 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           );
         }),
         switchMap(() => {
-          if (cancelPayload.type === WARRANTY_TYPE.THIRD_PARTY) {
-            return from(
-              this.serialNoHistoryService.deleteMany({
-                serial_no: cancelPayload.serial_no,
-                parent_document: cancelPayload.uuid,
-              }),
-            );
-          }
-          return from(
-            this.serialNoHistoryService.deleteOne({
-              parent_document: cancelPayload.uuid,
-            }),
-          );
-        }),
-        switchMap(() => {
           return forkJoin({
             claim: this.warrantyClaimService.findOne({
               uuid: cancelPayload.uuid,
@@ -1059,7 +1089,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           });
         }),
         switchMap(claim => {
-          if (cancelPayload.serial_no && !claim.serialHistory) {
+          if (cancelPayload.serial_no && claim.serialHistory) {
             if (claim.claim.claim_type === WARRANTY_TYPE.THIRD_PARTY) {
               cancelPayload.type = claim.claim.claim_type;
               return from(
@@ -1073,13 +1103,28 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                 { serial_no: cancelPayload.serial_no },
                 {
                   $unset: {
-                    claim_no: '',
+                    claim_no: undefined,
                   },
                 },
               ),
             );
           }
           return of({});
+        }),
+        switchMap(() => {
+          if (cancelPayload.type === WARRANTY_TYPE.THIRD_PARTY) {
+            return from(
+              this.serialNoHistoryService.deleteMany({
+                serial_no: cancelPayload.serial_no,
+                parent_document: cancelPayload.uuid,
+              }),
+            );
+          }
+          return from(
+            this.serialNoHistoryService.deleteOne({
+              parent_document: cancelPayload.uuid,
+            }),
+          );
         }),
       );
   }
