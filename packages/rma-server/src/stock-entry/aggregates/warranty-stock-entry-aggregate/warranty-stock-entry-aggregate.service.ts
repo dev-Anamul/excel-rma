@@ -347,16 +347,17 @@ export class WarrantyStockEntryAggregateService {
     return from(
       this.serialService.updateOne(
         { serial_no: deliveryNote.items[0].excel_serials },
-        {
-          $set: {
-            delivery_note: deliveryNote.stock_voucher_number,
-            warehouse: deliveryNote.set_warehouse,
+        [
+          {
+            $set: {
+              delivery_note: deliveryNote.stock_voucher_number,
+              warehouse: deliveryNote.set_warehouse,
+            },
           },
-          $unset: {
-            'warranty.soldOn': undefined,
-            sales_invoice_name: undefined,
+          {
+            $unset: ['sales_invoice_name', 'warranty.soldOn'],
           },
-        },
+        ],
       ),
     );
   }

@@ -738,7 +738,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
             concatMap(eachEntry => {
               return this.addSerialNoStatusHistory(
                 statusHistoryPayload,
-                [eachEntry.serial_no],
+                [eachEntry.items[0].excel_serials],
                 clientHttpRequest.token,
               );
             }),
@@ -766,7 +766,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                     this.serialNoService.updateOne(
                       { serial_no: warrantyState.serial_no },
                       {
-                        $unset: { claim_no: undefined },
+                        $unset: ['warranty.soldOn', 'claim_no'],
                       },
                     ),
                   );
@@ -774,14 +774,18 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                 return from(
                   this.serialNoService.updateOne(
                     { serial_no: warrantyState.serial_no },
-                    {
-                      $set: {
-                        'warranty.soldOn': new DateTime(
-                          settings.timeZone,
-                        ).toJSDate(),
+                    [
+                      {
+                        $set: {
+                          'warranty.soldOn': new DateTime(
+                            settings.timeZone,
+                          ).toJSDate(),
+                        },
                       },
-                      $unset: { claim_no: undefined },
-                    },
+                      {
+                        $unset: ['claim_no'],
+                      },
+                    ],
                   ),
                 );
               }),
