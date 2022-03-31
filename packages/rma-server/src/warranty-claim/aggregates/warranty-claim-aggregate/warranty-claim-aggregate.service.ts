@@ -417,34 +417,6 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
               ),
             });
           }),
-          catchError(err => {
-            return from(
-              this.warrantyClaimService.generateErrorNamingSeries(
-                draftClaim.set,
-              ),
-            ).pipe(
-              switchMap((name: string) => {
-                return forkJoin({
-                  warrantyService: from(
-                    this.warrantyClaimService.updateOne(
-                      { uuid: draftClaim.uuid },
-                      { $set: { claim_no: name } },
-                    ),
-                  ),
-                  serialHistoryEvent: from(
-                    this.serialNoHistoryService.updateMany(
-                      { parent_document: draftClaim.uuid },
-                      {
-                        $set: {
-                          document_no: name,
-                        },
-                      },
-                    ),
-                  ),
-                });
-              }),
-            );
-          }),
         );
       }),
       toArray(),
