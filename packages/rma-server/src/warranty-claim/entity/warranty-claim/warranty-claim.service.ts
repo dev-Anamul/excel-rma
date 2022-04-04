@@ -2,7 +2,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { WarrantyClaim } from './warranty-claim.entity';
 import { Injectable } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
-import { CATEGORY } from '../../../constants/app-strings';
+import {
+  CATEGORY,
+  DEFAULT_NAMING_SERIES,
+} from '../../../constants/app-strings';
 import { PARSE_REGEX } from '../../../constants/app-strings';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { DateTime } from 'luxon';
@@ -255,6 +258,9 @@ export class WarrantyClaimService {
             },
           },
         ).toPromise();
+        if (!sortedDocument.length) {
+          return DEFAULT_NAMING_SERIES.bulk_warranty_claim + date + '-' + '1';
+        }
         return this.generateClaimString(sortedDocument.find(x => x).claim_no);
 
       default:
@@ -282,11 +288,20 @@ export class WarrantyClaimService {
             },
           },
         ).toPromise();
-        return this.generateClaimString(sortedDocument.find(x => x).claim_no);
+        if (!sortedDocument.length) {
+          return DEFAULT_NAMING_SERIES.warranty_claim + date + '-' + '1';
+        }
+        return this.generateClaimString(
+          sortedDocument.find(x => x).claim_no,
+          date,
+        );
     }
   }
 
-  generateClaimString(claim_no) {
+  generateClaimString(claim_no, date?) {
+    if (!claim_no) {
+      return DEFAULT_NAMING_SERIES.warranty_claim;
+    }
     claim_no = claim_no.split('-');
     claim_no[2] = parseInt(claim_no[2], 10) + 1;
     claim_no = claim_no.join('-');
