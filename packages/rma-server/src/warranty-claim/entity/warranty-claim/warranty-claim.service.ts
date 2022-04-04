@@ -240,6 +240,7 @@ export class WarrantyClaimService {
           [
             {
               $match: {
+                claim_no: { $regex: PARSE_REGEX('RMA-'), $options: 'i' },
                 $expr: { $eq: [{ $year: '$createdOn' }, date] },
                 set: type,
               },
@@ -261,6 +262,7 @@ export class WarrantyClaimService {
           [
             {
               $match: {
+                claim_no: { $regex: PARSE_REGEX('RMA-'), $options: 'i' },
                 $expr: {
                   $and: [
                     { $eq: [{ $year: '$createdOn' }, date] },
