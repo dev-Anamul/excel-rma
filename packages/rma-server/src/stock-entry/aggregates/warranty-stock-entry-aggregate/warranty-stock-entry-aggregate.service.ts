@@ -355,7 +355,10 @@ export class WarrantyStockEntryAggregateService {
             },
           },
           {
-            $unset: ['sales_invoice_name', 'warranty.soldOn'],
+            $unset: {
+              sales_invoice_name: '',
+              'warranty.soldOn': '',
+            },
           },
         ],
       ),
