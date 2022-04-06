@@ -489,7 +489,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
         return from(
           this.warrantyClaimService.updateMany(
             { parent: claimsPayload.uuid, subclaim_state: 'Draft' },
-            { $unset: ['subclaim_state'] },
+            { $unset: { subclaim_state: undefined } },
           ),
         );
       }),
@@ -738,7 +738,10 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                     this.serialNoService.updateOne(
                       { serial_no: warrantyState.serial_no },
                       {
-                        $unset: ['warranty.soldOn', 'claim_no'],
+                        $unset: {
+                          warranty: { soldOn: undefined },
+                          claim_no: undefined,
+                        },
                       },
                     ),
                   );
@@ -755,7 +758,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                         },
                       },
                       {
-                        $unset: ['claim_no'],
+                        $unset: { claim_no: undefined },
                       },
                     ],
                   ),
@@ -771,7 +774,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                 $set: {
                   'warranty.soldOn': new DateTime(settings.timeZone).toJSDate(),
                 },
-                $unset: ['claim_no'],
+                $unset: { claim_no: undefined },
               },
             ),
           );
@@ -1078,7 +1081,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
               this.serialNoService.updateOne(
                 { serial_no: cancelPayload.serial_no },
                 {
-                  $unset: ['claim_no'],
+                  $unset: { claim_no: undefined },
                 },
               ),
             );
