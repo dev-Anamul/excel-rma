@@ -355,10 +355,7 @@ export class WarrantyStockEntryAggregateService {
             },
           },
           {
-            $unset: {
-              sales_invoice_name: '',
-              'warranty.soldOn': '',
-            },
+            $unset: ['sales_invoice_name', 'warranty.soldOn'],
           },
         ],
       ),
@@ -560,13 +557,13 @@ export class WarrantyStockEntryAggregateService {
                 this.serialService.updateOne(
                   { serial_no: stockEntry.items[0]?.serial_no },
                   {
-                    $unset: {
-                      customer: '',
-                      'warranty.salesWarrantyDate': '',
-                      'warranty.soldOn': '',
-                      delivery_note: '',
-                      sales_invoice_name: '',
-                    },
+                    $unset: [
+                      'customer',
+                      'warranty.salesWarrantyDate',
+                      'warranty.soldOn',
+                      'delivery_note',
+                      'sales_invoice_name',
+                    ],
                   },
                 ),
               );
@@ -586,11 +583,11 @@ export class WarrantyStockEntryAggregateService {
               this.warrantyService.updateOne(
                 { uuid: stockEntry.warrantyClaimUuid },
                 {
-                  $unset: {
-                    replace_warehouse: '',
-                    replace_product: '',
-                    replace_serial: '',
-                  },
+                  $unset: [
+                    'replace_warehouse',
+                    'replace_product',
+                    'replace_serial',
+                  ],
                 },
               ),
             );
@@ -705,9 +702,7 @@ export class WarrantyStockEntryAggregateService {
                 'warranty.salesWarrantyDate': warranty.received_on,
                 'warranty.soldOn': warranty.received_on,
               },
-              $unset: {
-                delivery_note: '',
-              },
+              $unset: ['delivery_note'],
             },
           ),
         );
