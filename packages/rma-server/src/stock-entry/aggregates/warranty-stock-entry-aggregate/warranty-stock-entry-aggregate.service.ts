@@ -355,10 +355,7 @@ export class WarrantyStockEntryAggregateService {
             },
           },
           {
-            $unset: {
-              sales_invoice_name: undefined,
-              warranty: { soldOn: undefined },
-            },
+            $unset: ['sales_invoice_name', 'warranty.soldOn'],
           },
         ],
       ),
@@ -560,15 +557,13 @@ export class WarrantyStockEntryAggregateService {
                 this.serialService.updateOne(
                   { serial_no: stockEntry.items[0]?.serial_no },
                   {
-                    $unset: {
-                      customer: undefined,
-                      warranty: {
-                        salesWarrantyDate: undefined,
-                        soldOn: undefined,
-                        delivery_note: undefined,
-                        sales_invoice_name: undefined,
-                      },
-                    },
+                    $unset: [
+                      'customer',
+                      'warranty.salesWarrantyDate',
+                      'warranty.soldOn',
+                      'delivery_note',
+                      'sales_invoice_name',
+                    ],
                   },
                 ),
               );
@@ -588,11 +583,11 @@ export class WarrantyStockEntryAggregateService {
               this.warrantyService.updateOne(
                 { uuid: stockEntry.warrantyClaimUuid },
                 {
-                  $unset: {
-                    replace_warehouse: undefined,
-                    replace_product: undefined,
-                    replace_serial: undefined,
-                  },
+                  $unset: [
+                    'replace_warehouse',
+                    'replace_product',
+                    'replace_serial',
+                  ],
                 },
               ),
             );
@@ -707,7 +702,7 @@ export class WarrantyStockEntryAggregateService {
                 'warranty.salesWarrantyDate': warranty.received_on,
                 'warranty.soldOn': warranty.received_on,
               },
-              $unset: { delivery_note: undefined },
+              $unset: ['delivery_note'],
             },
           ),
         );
