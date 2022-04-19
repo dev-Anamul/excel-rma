@@ -489,7 +489,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
         return from(
           this.warrantyClaimService.updateMany(
             { parent: claimsPayload.uuid, subclaim_state: 'Draft' },
-            { $unset: ['subclaim_state'] },
+            { $unset: { subclaim_state: 1 } },
           ),
         );
       }),
@@ -536,7 +536,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           switchMap(() => {
             return throwError(
               new BadRequestException(
-                `Claim No ${count + 1} is Invalid.Please Add Valid Claim`,
+                `Claim No ${count} is Invalid.Please Add Valid Claim`,
               ),
             );
           }),
@@ -738,7 +738,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                     this.serialNoService.updateOne(
                       { serial_no: warrantyState.serial_no },
                       {
-                        $unset: ['warranty.soldOn', 'claim_no'],
+                        $unset: { claim_no: 1, 'warranty.soldOn': 1 },
                       },
                     ),
                   );
@@ -771,7 +771,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                 $set: {
                   'warranty.soldOn': new DateTime(settings.timeZone).toJSDate(),
                 },
-                $unset: ['claim_no'],
+                $unset: { claim_no: 1 },
               },
             ),
           );
@@ -1078,7 +1078,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
               this.serialNoService.updateOne(
                 { serial_no: cancelPayload.serial_no },
                 {
-                  $unset: ['claim_no'],
+                  $unset: { claim_no: 1 },
                 },
               ),
             );
@@ -1099,6 +1099,9 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
               parent_document: cancelPayload.uuid,
             }),
           );
+        }),
+        catchError(err => {
+          return throwError(new BadRequestException(err));
         }),
       );
   }

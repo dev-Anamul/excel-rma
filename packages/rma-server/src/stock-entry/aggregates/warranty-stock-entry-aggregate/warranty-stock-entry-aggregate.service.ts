@@ -557,13 +557,13 @@ export class WarrantyStockEntryAggregateService {
                 this.serialService.updateOne(
                   { serial_no: stockEntry.items[0]?.serial_no },
                   {
-                    $unset: [
-                      'customer',
-                      'warranty.salesWarrantyDate',
-                      'warranty.soldOn',
-                      'delivery_note',
-                      'sales_invoice_name',
-                    ],
+                    $unset: {
+                      customer: 1,
+                      'warranty.salesWarrantyDate': 1,
+                      'warranty.soldOn': 1,
+                      delivery_note: 1,
+                      sales_invoice_name: 1,
+                    },
                   },
                 ),
               );
@@ -583,11 +583,11 @@ export class WarrantyStockEntryAggregateService {
               this.warrantyService.updateOne(
                 { uuid: stockEntry.warrantyClaimUuid },
                 {
-                  $unset: [
-                    'replace_warehouse',
-                    'replace_product',
-                    'replace_serial',
-                  ],
+                  $unset: {
+                    replace_warehouse: 1,
+                    replace_product: 1,
+                    replace_serial: 1,
+                  },
                 },
               ),
             );
@@ -639,6 +639,9 @@ export class WarrantyStockEntryAggregateService {
           }
           return of(true);
         }),
+        catchError(err => {
+          return throwError(new BadRequestException(err));
+        }),
       );
   }
 
@@ -678,17 +681,20 @@ export class WarrantyStockEntryAggregateService {
         if (!warranty) {
           return from(
             this.serialService.updateOne(
-              { serial_no: stockEntryObject.items[0]?.serial_no },
+              { serial_no: stockEntryObject.items.find(x => x)?.serial_no },
               {
                 $set: {
-                  customer: stockEntryObject.items[0].customer,
-                  warehouse: stockEntryObject.items[0].warehouse,
-                  'warranty.salesWarrantyDate':
-                    stockEntryObject.items[0].warranty.salesWarrantyDate,
-                  'warranty.soldOn': stockEntryObject.items[0].warranty.soldOn,
-                  sales_invoice_name:
-                    stockEntryObject.items[0].sales_invoice_name,
-                  delivery_note: stockEntryObject.items[0].delivery_note,
+                  customer: stockEntryObject.items.find(x => x).customer,
+                  warehouse: stockEntryObject.items.find(x => x).warehouse,
+                  'warranty.salesWarrantyDate': stockEntryObject.items?.find(
+                    x => x,
+                  )?.warranty?.salesWarrantyDate,
+                  'warranty.soldOn': stockEntryObject.items?.find(x => x)
+                    ?.warranty?.soldOn,
+                  sales_invoice_name: stockEntryObject.items.find(x => x)
+                    .sales_invoice_name,
+                  delivery_note: stockEntryObject.items.find(x => x)
+                    .delivery_note,
                 },
               },
             ),
@@ -696,7 +702,7 @@ export class WarrantyStockEntryAggregateService {
         }
         return from(
           this.serialService.updateOne(
-            { serial_no: stockEntryObject.items[0]?.serial_no },
+            { serial_no: stockEntryObject.items.find(x => x)?.serial_no },
             {
               $set: {
                 'warranty.salesWarrantyDate': warranty.received_on,
