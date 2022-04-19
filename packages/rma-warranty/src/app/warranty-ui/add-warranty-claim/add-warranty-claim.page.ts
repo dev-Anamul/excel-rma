@@ -604,6 +604,10 @@ export class AddWarrantyClaimPage implements OnInit {
           );
           return of(false);
         }
+        if (res.delivery_note.split('-')[0] === 'WSDR') {
+          this.getMessage('Cannot Create Claim of  Stocked Serial');
+          return of(false);
+        }
         return of(true);
       }),
       catchError(err => {
@@ -628,14 +632,19 @@ export class AddWarrantyClaimPage implements OnInit {
         this.getSerialData = res;
         if (res.claim_no) {
           this.getMessage(`Claim already exists serial no ${res.serial_no}`);
-          return;
+          return false;
         }
         if (!res.customer) {
           this.getMessage(
             'Serial not sold or serials is not linked to customer.',
           );
-          return;
+          return false;
         }
+        if (res.delivery_note.split('-')[0] === 'WSDR') {
+          this.getMessage('Cannot Create Claim of  Stocked Serial');
+          return false;
+        }
+
         if (!this.getSerialData.warranty.salesWarrantyDate) {
           this.warrantyClaimForm.controls.claim_type.setValue(
             WARRANTY_TYPE.NON_WARRANTY,
