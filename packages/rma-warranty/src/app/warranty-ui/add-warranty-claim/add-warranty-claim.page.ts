@@ -604,7 +604,9 @@ export class AddWarrantyClaimPage implements OnInit {
           );
           return of(false);
         }
-        if (res.delivery_note.split('-')[0] === 'WSDR') {
+        if (
+          res.delivery_note ? res.delivery_note.split('-')[0] === 'WSDR' : false
+        ) {
           this.getMessage('Cannot Create Claim of  Stocked Serial');
           return of(false);
         }
@@ -640,7 +642,9 @@ export class AddWarrantyClaimPage implements OnInit {
           );
           return false;
         }
-        if (res.delivery_note.split('-')[0] === 'WSDR') {
+        if (
+          res.delivery_note ? res.delivery_note.split('-')[0] === 'WSDR' : false
+        ) {
           this.getMessage('Cannot Create Claim of  Stocked Serial');
           return false;
         }

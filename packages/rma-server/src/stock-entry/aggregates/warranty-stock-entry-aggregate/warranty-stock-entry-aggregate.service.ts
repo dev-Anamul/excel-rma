@@ -708,7 +708,7 @@ export class WarrantyStockEntryAggregateService {
                 'warranty.salesWarrantyDate': warranty.received_on,
                 'warranty.soldOn': warranty.received_on,
               },
-              $unset: ['delivery_note'],
+              $unset: { delivery_note: 1 },
             },
           ),
         );
