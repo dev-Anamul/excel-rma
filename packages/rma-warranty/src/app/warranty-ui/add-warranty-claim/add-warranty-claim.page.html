@@ -323,7 +323,7 @@
                   {{ row[column] }}
                 </ng-container>
                 <ng-container *ngIf="column==='remove'">
-                  <button mat-mini-fab color="warn" 
+                  <button type="button" mat-mini-fab color="warn" 
                   (click)="removeSubclaim(i)"
                   aria-label="">
                     <mat-icon>delete_forever</mat-icon>

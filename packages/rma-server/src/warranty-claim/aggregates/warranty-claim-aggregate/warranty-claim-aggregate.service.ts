@@ -536,7 +536,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           switchMap(() => {
             return throwError(
               new BadRequestException(
-                `Claim No ${count} is Invalid.Please Add Valid Claim`,
+                `Claim No ${count + 1} is Invalid.Please Add Valid Claim`,
               ),
             );
           }),
