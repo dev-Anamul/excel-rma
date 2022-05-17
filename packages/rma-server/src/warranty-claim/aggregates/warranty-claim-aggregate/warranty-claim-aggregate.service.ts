@@ -736,30 +736,31 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                 ) {
                   return from(
                     this.serialNoService.updateOne(
-                      { serial_no: warrantyState.serial_no },
+                      { serial_no: eachEntry.items.find(x => x).excel_serials },
                       {
                         $unset: { claim_no: 1, 'warranty.soldOn': 1 },
                       },
                     ),
                   );
-                }
-                return from(
-                  this.serialNoService.updateOne(
-                    { serial_no: warrantyState.serial_no },
-                    [
-                      {
-                        $set: {
-                          'warranty.soldOn': new DateTime(
-                            settings.timeZone,
-                          ).toJSDate(),
+                } else {
+                  return from(
+                    this.serialNoService.updateOne(
+                      { serial_no: eachEntry.items.find(x => x).excel_serials },
+                      [
+                        {
+                          $set: {
+                            'warranty.soldOn': new DateTime(
+                              settings.timeZone,
+                            ).toJSDate(),
+                          },
                         },
-                      },
-                      {
-                        $unset: ['claim_no'],
-                      },
-                    ],
-                  ),
-                );
+                        {
+                          $unset: ['claim_no'],
+                        },
+                      ],
+                    ),
+                  );
+                }
               }),
               toArray(),
             );

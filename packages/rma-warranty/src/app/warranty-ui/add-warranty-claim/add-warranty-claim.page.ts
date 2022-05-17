@@ -37,6 +37,7 @@ import { WarrantyService } from '../warranty-tabs/warranty.service';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import { Observable, of } from 'rxjs';
 import { MatTable } from '@angular/material/table';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-add-warranty-claim',
@@ -102,6 +103,7 @@ export class AddWarrantyClaimPage implements OnInit {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly warrantyClaim: WarrantyService,
+    private readonly dialog: MatDialog,
   ) {}
 
   async ngOnInit() {
@@ -445,6 +447,7 @@ export class AddWarrantyClaimPage implements OnInit {
               this.snackbar.open(err?.error?.message, 'Close', {
                 duration: 3000,
               });
+              this.openDialog();
             },
           });
       }
@@ -463,6 +466,13 @@ export class AddWarrantyClaimPage implements OnInit {
         loading.dismiss();
         this.getMessage(error?.error?.message || 'Error in creating claim.');
       },
+    });
+  }
+
+  openDialog() {
+    const dialogRef = this.dialog.open(RetryDialogComponent);
+    dialogRef.afterClosed().subscribe(next => {
+      if (dialogRef.componentInstance.retryCheck) return this.createClaim();
     });
   }
 
@@ -894,5 +904,23 @@ export class AddWarrantyClaimPage implements OnInit {
   removeSubclaim(index: number) {
     this.bulkProducts.splice(index, 1);
     this.table.renderRows();
+  }
+}
+
+@Component({
+  selector: 'retry-dialog-component',
+  templateUrl: 'retry-dialog-component.html',
+})
+export class RetryDialogComponent {
+  retryCheck: boolean = false;
+  constructor(private matDialogRef: MatDialogRef<RetryDialogComponent>) {}
+  onNoClick() {
+    this.retryCheck = false;
+    this.matDialogRef.close();
+  }
+
+  Retry() {
+    this.retryCheck = true;
+    this.matDialogRef.close();
   }
 }
