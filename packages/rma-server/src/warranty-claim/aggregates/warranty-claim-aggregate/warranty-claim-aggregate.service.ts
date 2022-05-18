@@ -705,7 +705,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
       switchMap(res => {
         warrantyState = res;
         statusHistoryPayload.doc_name = res.claim_no;
-        if (res.progress_state) {
+        if (res?.progress_state?.length) {
           return from(res.progress_state).pipe(
             concatMap(eachEntry => {
               return this.addSerialNoStatusHistory(
