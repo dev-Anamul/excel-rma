@@ -11,6 +11,7 @@ import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.s
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { ItemService } from '../../../item/entity/item/item.service';
 import { ItemAggregateService } from '../../../item/aggregates/item-aggregate/item-aggregate.service';
+import { SerialNoHistoryPoliciesService } from '../../../serial-no/policies/serial-no-history-policies/serial-no-history-policies.service';
 
 describe('SalesInvoiceAggregateService', () => {
   let service: SalesInvoiceAggregateService;
@@ -61,6 +62,10 @@ describe('SalesInvoiceAggregateService', () => {
         },
         {
           provide: ItemAggregateService,
+          useValue: {},
+        },
+        {
+          provide: SerialNoHistoryPoliciesService,
           useValue: {},
         },
       ],

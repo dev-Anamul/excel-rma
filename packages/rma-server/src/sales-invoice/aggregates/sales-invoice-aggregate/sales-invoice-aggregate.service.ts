@@ -67,6 +67,7 @@ import { ItemService } from '../../../item/entity/item/item.service';
 import { ItemAggregateService } from '../../../item/aggregates/item-aggregate/item-aggregate.service';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { Item } from '../../../item/entity/item/item.entity';
+import { SerialNoHistoryPoliciesService } from '../../../serial-no/policies/serial-no-history-policies/serial-no-history-policies.service';
 @Injectable()
 export class SalesInvoiceAggregateService extends AggregateRoot {
   constructor(
@@ -74,6 +75,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     private readonly settingsService: SettingsService,
     private readonly http: HttpService,
     private readonly validateSalesInvoicePolicy: SalesInvoicePoliciesService,
+    private readonly validateSerialNoHistoryPolicy: SerialNoHistoryPoliciesService,
     private readonly serialNoService: SerialNoService,
     private readonly errorLogService: ErrorLogService,
     private readonly clientToken: ClientTokenManagerService,
@@ -408,6 +410,9 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
             createReturnPayload,
           ),
           valid: this.validateSalesInvoicePolicy.validateReturnSerials(
+            createReturnPayload,
+          ),
+          validSerialHistory: this.validateSerialNoHistoryPolicy.validateSerialHistory(
             createReturnPayload,
           ),
         }).pipe(

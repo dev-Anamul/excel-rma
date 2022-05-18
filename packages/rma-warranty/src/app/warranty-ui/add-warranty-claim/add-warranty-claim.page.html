@@ -130,7 +130,7 @@
                 </button>
               </mat-form-field>
             </ion-col>
-            <ion-col *ngIf="warrantyState?.serial_no?.active && route =='edit'">
+            <ion-col *ngIf="warrantyState?.serial_no?.active && route =='edit' && warrantyObject?.set !='Bulk'">
               <mat-form-field class="example-full-width">
                 <input
                   matInput
@@ -141,6 +141,29 @@
                   oninput="this.value = this.value.toUpperCase()"
                 />
               </mat-form-field>
+            </ion-col>
+            <ion-col *ngIf="warrantyState?.serial_no?.active && route =='edit' && warrantyObject?.set=='Bulk'">
+              <mat-form-field class="example-full-width">
+                <input
+                  matInput
+                  type="text"
+                  placeholder="Serial no"
+                  formControlName="serial_no"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              <mat-error *ngIf="f.serial_no.hasError('required')">
+                Serial no is <strong>required</strong>
+              </mat-error>
+              <button
+                matSuffix
+                mat-raised-button
+                color="primary"
+                fill="outline"
+                (click)="serialChanged(f.serial_no.value)"
+              >
+                Search
+              </button>
+            </mat-form-field>
             </ion-col>
             <ion-col *ngIf="warrantyState?.warranty_end_date?.active">
               <mat-form-field class="example-full-width">

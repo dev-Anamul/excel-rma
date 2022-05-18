@@ -507,7 +507,8 @@ export class PurchaseAssignSerialsComponent implements OnInit {
   }
 
   checkIfDuplicateExists(arr) {
-    return new Set(arr).size !== arr.length;
+    const array = arr.filter(value => value !== 'Non Serial Item');
+    return new Set(array).size !== array.length;
   }
 
   async getWarrantyDate(purchaseWarrantyMonths: number) {
@@ -620,7 +621,10 @@ export class PurchaseAssignSerialsComponent implements OnInit {
         ? `${notFoundMessage}, expected ${expected} found ${found}`
         : `${notFoundMessage}`,
       CLOSE,
-      { verticalPosition: 'top', duration: 2500 },
+      {
+        verticalPosition: 'top',
+        duration: 2500,
+      },
     );
   }
 
