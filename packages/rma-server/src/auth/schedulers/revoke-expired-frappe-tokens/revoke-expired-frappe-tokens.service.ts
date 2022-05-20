@@ -88,8 +88,8 @@ export class RevokeExpiredFrappeTokensService implements OnModuleInit {
               .catch(err => {});
           })
           .catch(error => {
-            done(this.getPureError(error));
             Logger.error(REVOKE_FRAPPE_TOKEN_ERROR, this.constructor.name);
+            done();
           });
       },
     );
