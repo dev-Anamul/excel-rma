@@ -156,6 +156,10 @@ export class ResetCreditLimitService implements OnModuleInit {
           .catch((error: Error) => {
             Logger.error(RESET_CREDIT_LIMIT_ERROR, this.constructor.name);
             done();
+            job
+              .remove()
+              .then(removed => {})
+              .catch(err => {});
           });
       },
     );
