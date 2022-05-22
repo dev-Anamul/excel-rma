@@ -48,7 +48,7 @@ import { INVALID_FILE } from '../../../constants/app-strings';
 import { PurchaseReceiptSyncService } from '../../schedular/purchase-receipt-sync/purchase-receipt-sync.service';
 import { PurchaseOrderService } from '../../../purchase-order/entity/purchase-order/purchase-order.service';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
-
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class PurchaseReceiptAggregateService extends AggregateRoot {
   constructor(
@@ -364,13 +364,20 @@ export class PurchaseReceiptAggregateService extends AggregateRoot {
             }),
             bufferCount(PURCHASE_RECEIPT_INSERT_MANY_BATCH_COUNT),
             concatMap(receipt => {
-              this.prSyncService.addToQueueNow({
-                payload: receipt,
-                token: clientHttpRequest.token,
+              return this.prSyncService.linkPurchaseWarranty(
+                receipt,
+                { name: uuidv4() },
+                clientHttpRequest.token,
                 settings,
                 purchase_invoice_name,
-              });
-              return of({});
+              );
+              // this.prSyncService.addToQueueNow({
+              //   payload: receipt,
+              //   token: clientHttpRequest.token,
+              //   settings,
+              //   purchase_invoice_name,
+              // });
+              // return of({});
             }),
           );
         }),

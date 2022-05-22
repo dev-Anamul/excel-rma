@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { throwError, of, from, forkJoin } from 'rxjs';
-import { switchMap, map, catchError, concatMap, retry } from 'rxjs/operators';
+import { switchMap, map, catchError, concatMap } from 'rxjs/operators';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { ClientTokenManagerService } from '../../../auth/aggregates/client-token-manager/client-token-manager.service';
 import {
@@ -158,16 +158,23 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
     return from(itemBatch).pipe(
       concatMap(item => {
         payload.items = [item];
-        return from(
-          this.deliveryNoteJobService.addToQueueNow({
-            payload,
-            token,
-            sales_invoice_name,
-            settings,
-          }),
+        return this.deliveryNoteJobService.linkDeliveryNote(
+          payload,
+          { name: uuidv4() },
+          token,
+          settings,
+          sales_invoice_name,
         );
+        // return from(
+        //   this.deliveryNoteJobService.addToQueueNow({
+        //     payload,
+        //     token,
+        //     sales_invoice_name,
+        //     settings,
+        //   }),
+        // );
       }),
-      retry(3),
+      // retry(3),
       switchMap(success => {
         return of(true);
       }),
