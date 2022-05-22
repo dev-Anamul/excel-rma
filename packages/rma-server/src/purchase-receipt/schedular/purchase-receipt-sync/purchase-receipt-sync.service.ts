@@ -1,3 +1,5 @@
+purchaseee;
+
 import { Injectable, Inject } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import * as Agenda from 'agenda';
@@ -243,7 +245,7 @@ export class PurchaseReceiptSyncService {
       };
     } = {};
     const purchase_receipts: PurchaseReceipt[] = this.mapPurchaseReceiptMetaData(
-      doc,
+      { items: payload.map(item => item.items), ...doc },
       token,
       parent,
     );
