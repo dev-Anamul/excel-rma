@@ -7,6 +7,7 @@ import { HttpService } from '@nestjs/common';
 import { ClientTokenManagerService } from '../../../auth/aggregates/client-token-manager/client-token-manager.service';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('SalesInvoicePoliciesService', () => {
   let service: SalesInvoicePoliciesService;
@@ -15,6 +16,10 @@ describe('SalesInvoicePoliciesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SalesInvoicePoliciesService,
+        {
+          provide: StockLedgerService,
+          useValue: {},
+        },
         {
           provide: SalesInvoiceService,
           useValue: {},

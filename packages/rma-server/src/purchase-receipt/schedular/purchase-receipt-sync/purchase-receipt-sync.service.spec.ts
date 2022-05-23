@@ -9,6 +9,7 @@ import { AgendaJobService } from '../../../sync/entities/agenda-job/agenda-job.s
 import { DataImportService } from '../../../sync/aggregates/data-import/data-import.service';
 import { JsonToCSVParserService } from '../../../sync/entities/agenda-job/json-to-csv-parser.service';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('PurchaseReceiptSyncService', () => {
   let service: PurchaseReceiptSyncService;
@@ -18,6 +19,10 @@ describe('PurchaseReceiptSyncService', () => {
       providers: [
         PurchaseReceiptSyncService,
         { provide: AGENDA_TOKEN, useValue: {} },
+        {
+          provide: StockLedgerService,
+          useValue: {},
+        },
         {
           provide: DirectService,
           useValue: {},

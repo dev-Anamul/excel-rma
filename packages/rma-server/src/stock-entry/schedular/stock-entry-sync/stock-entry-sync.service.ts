@@ -1,5 +1,5 @@
-import { Injectable, HttpService, BadRequestException } from '@nestjs/common';
-import { switchMap, mergeMap, catchError, retry, map } from 'rxjs/operators';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { switchMap, mergeMap, catchError, concatMap } from 'rxjs/operators';
 import {
   VALIDATE_AUTH_STRING,
   STOCK_ENTRY,
@@ -9,11 +9,9 @@ import {
   ACCEPT_STOCK_ENTRY_JOB,
   REJECT_STOCK_ENTRY_JOB,
   STOCK_ENTRY_STATUS,
+  STOCK_MATERIAL_TRANSFER,
 } from '../../../constants/app-strings';
-import {
-  POST_DELIVERY_NOTE_ENDPOINT,
-  STOCK_ENTRY_API_ENDPOINT,
-} from '../../../constants/routes';
+// import { POST_DELIVERY_NOTE_ENDPOINT, STOCK_ENTRY_API_ENDPOINT } from '../../../constants/routes';
 import { DirectService } from '../../../direct/aggregates/direct/direct.service';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
@@ -31,17 +29,21 @@ import { TokenCache } from '../../../auth/entities/token-cache/token-cache.entit
 import { StockEntryItem } from '../../entities/stock-entry.entity';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
+import { v4 as uuidv4 } from 'uuid';
+import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 @Injectable()
 export class StockEntrySyncService {
   constructor(
     private readonly tokenService: DirectService,
-    private readonly http: HttpService,
+    // private readonly http: HttpService,
     private readonly settingsService: SettingsService,
     private readonly serialNoService: SerialNoService,
     private readonly stockEntryService: StockEntryService,
     private readonly jobService: AgendaJobService,
     private readonly serialNoHistoryService: SerialNoHistoryService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   execute(job) {
@@ -207,18 +209,20 @@ export class StockEntrySyncService {
           delete item.serial_no;
           return item;
         });
-        const frappePayload = this.parseFrappePayload(payload);
-        const endpoint =
-          frappePayload.stock_entry_type === STOCK_ENTRY_TYPE.RnD_PRODUCTS
-            ? POST_DELIVERY_NOTE_ENDPOINT
-            : STOCK_ENTRY_API_ENDPOINT;
-        return this.http.post(
-          settings.authServerURL + endpoint,
-          frappePayload,
-          {
-            headers: this.settingsService.getAuthorizationHeaders(job.token),
-          },
-        );
+        return of({ name: uuidv4() });
+
+        // const frappePayload = this.parseFrappePayload(payload);
+        // const endpoint =
+        //   frappePayload.stock_entry_type === STOCK_ENTRY_TYPE.RnD_PRODUCTS
+        //     ? POST_DELIVERY_NOTE_ENDPOINT
+        //     : STOCK_ENTRY_API_ENDPOINT;
+        // return this.http.post(
+        //   settings.authServerURL + endpoint,
+        //   frappePayload,
+        //   {
+        //     headers: this.settingsService.getAuthorizationHeaders(job.token),
+        //   },
+        // );
       }),
       catchError(err => {
         payload.items.filter((item: any) => {
@@ -252,14 +256,15 @@ export class StockEntrySyncService {
         // new approach, we wont reset state let the user retry it from agenda UI.
         return throwError(err);
       }),
-      retry(3),
-      map((data: any) => data.data.data),
+      // retry(3),
+      // map((data: any) => data.data.data),
       switchMap(response => {
         payload.items.filter((item: any) => {
           if (item.has_serial_no) {
             item.serial_no = serialHash[item.item_code];
           }
         });
+
         this.updateSerials(
           payload,
           job.token,
@@ -284,7 +289,135 @@ export class StockEntrySyncService {
         });
         return throwError(err);
       }),
+
+      switchMap(() => {
+        if (payload.stock_entry_type === STOCK_MATERIAL_TRANSFER) {
+          ['t_warehouse', 's_warehouse'].forEach(warehouse => {
+            return this.createTransferStockEntryLedger(
+              payload,
+              job.token,
+              job.settings,
+              job.type,
+              warehouse,
+            );
+          });
+        }
+        return this.createTransferStockEntryLedger(
+          payload,
+          job.token,
+          job.settings,
+          job.type,
+        );
+      }),
     );
+  }
+
+  createTransferStockEntryLedger(
+    payload: StockEntry,
+    token,
+    settings,
+    type?,
+    warehouse_type?,
+  ) {
+    if (type === ACCEPT_STOCK_ENTRY_JOB) {
+      warehouse_type = 't_warehouse';
+    }
+    if (type === REJECT_STOCK_ENTRY_JOB) {
+      warehouse_type = 's_warehouse';
+    }
+    return from(payload.items).pipe(
+      concatMap((item: StockEntryItem) => {
+        return this.stockLedgerService
+          .asyncAggregate([
+            {
+              $match: {
+                item_code: item.item_code,
+                warehouse: item.s_warehouse.length
+                  ? item.s_warehouse
+                  : item.t_warehouse,
+              },
+            },
+            {
+              $sort: { _id: -1 },
+            },
+            { $limit: 1 },
+          ])
+          .pipe(
+            switchMap((agg: StockLedger[]) => {
+              if (type === CREATE_STOCK_ENTRY_JOB) {
+                if (payload.stock_entry_type === 'Material Issue') {
+                  warehouse_type = 's_warehouse';
+                }
+                if (payload.stock_entry_type === 'Material Receipt') {
+                  warehouse_type = 't_warehouse';
+                }
+                if (payload.stock_entry_type === 'Material Transfer') {
+                  warehouse_type = 's_warehouse';
+                }
+              }
+              return of(
+                this.createStockLedgerPayload(
+                  {
+                    stock_entry_no: payload.naming_series,
+                    deliveryNoteItem: item,
+                  },
+                  token,
+                  settings,
+                  agg.find(x => x),
+                  warehouse_type,
+                ),
+              );
+            }),
+            switchMap((response: StockLedger) => {
+              return from(this.stockLedgerService.create(response));
+            }),
+          );
+      }),
+    );
+  }
+
+  createStockLedgerPayload(
+    payload: { stock_entry_no: string; deliveryNoteItem: StockEntryItem },
+    token,
+    settings: ServerSettings,
+    oldPayload?: StockLedger,
+    warehouse_type?,
+  ) {
+    const date = new DateTime(settings.timeZone).toJSDate();
+    const stockPayload = new StockLedger();
+    stockPayload.name = uuidv4();
+    stockPayload.modified = date;
+    stockPayload.modified_by = token.fullName;
+    stockPayload.item_code = payload.deliveryNoteItem.item_code;
+    stockPayload.actual_qty = payload.deliveryNoteItem.qty;
+    stockPayload.valuation_rate = payload.deliveryNoteItem.basic_rate;
+    stockPayload.batch_no = '';
+    stockPayload.posting_date = date;
+    stockPayload.posting_time = date;
+    stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
+    stockPayload.voucher_no = payload.stock_entry_no;
+    stockPayload.voucher_detail_no = '';
+    stockPayload.incoming_rate = 0;
+    stockPayload.outgoing_rate = 0;
+    if (warehouse_type === 't_warehouse') {
+      stockPayload.qty_after_transaction = oldPayload
+        ? oldPayload.qty_after_transaction + stockPayload.actual_qty
+        : stockPayload.actual_qty;
+      stockPayload.warehouse = payload.deliveryNoteItem.t_warehouse;
+    }
+    if (warehouse_type === 's_warehouse') {
+      stockPayload.warehouse = payload.deliveryNoteItem.s_warehouse;
+      stockPayload.qty_after_transaction = oldPayload
+        ? oldPayload.qty_after_transaction - stockPayload.actual_qty
+        : stockPayload.actual_qty;
+    }
+    stockPayload.stock_value =
+      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+    stockPayload.stock_value_difference =
+      stockPayload.actual_qty * stockPayload.valuation_rate;
+    stockPayload.company = settings.defaultCompany;
+    stockPayload.fiscal_year = '2022';
+    return stockPayload;
   }
 
   parseFrappePayload(payload: StockEntry) {

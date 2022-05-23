@@ -160,7 +160,7 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
         payload.items = [item];
         return this.deliveryNoteJobService.linkDeliveryNote(
           payload,
-          { name: uuidv4() },
+          { name: uuidv4(), items: payload.items.map(value => value) },
           token,
           settings,
           sales_invoice_name,

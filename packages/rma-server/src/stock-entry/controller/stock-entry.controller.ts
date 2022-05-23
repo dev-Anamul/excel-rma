@@ -149,4 +149,13 @@ export class StockEntryController {
       clientHttpRequest,
     );
   }
+
+  @Get('v1/get_stock_balance')
+  @UseGuards(TokenGuard)
+  getStockBalance(
+    @Query('item_code') item_code = '',
+    @Query('warehouse') warehouse = '',
+  ) {
+    return this.aggregate.getStockBalance({ item_code, warehouse });
+  }
 }

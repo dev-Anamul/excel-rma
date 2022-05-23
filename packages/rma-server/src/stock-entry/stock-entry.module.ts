@@ -12,11 +12,13 @@ import { SerialBatchService } from '../sync/aggregates/serial-batch/serial-batch
 import { WarrantyStockEntryAggregateService } from './aggregates/warranty-stock-entry-aggregate/warranty-stock-entry-aggregate.service';
 import { SerialNoModule } from '../serial-no/serial-no.module';
 import { WarrantyClaimModule } from '../warranty-claim/warranty-claim.module';
+import { StockLedgerEntitiesModule } from '../stock-ledger/entity/entity.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([StockEntry]),
     SerialNoEntitiesModule,
+    StockLedgerEntitiesModule,
     DirectModule,
     SerialNoModule,
     WarrantyClaimModule,
