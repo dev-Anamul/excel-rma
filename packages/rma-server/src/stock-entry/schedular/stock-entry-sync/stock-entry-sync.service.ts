@@ -291,17 +291,6 @@ export class StockEntrySyncService {
       }),
 
       switchMap(() => {
-        if (payload.stock_entry_type === STOCK_MATERIAL_TRANSFER) {
-          ['t_warehouse', 's_warehouse'].forEach(warehouse => {
-            return this.createTransferStockEntryLedger(
-              payload,
-              job.token,
-              job.settings,
-              job.type,
-              warehouse,
-            );
-          });
-        }
         return this.createTransferStockEntryLedger(
           payload,
           job.token,
@@ -319,105 +308,86 @@ export class StockEntrySyncService {
     type?,
     warehouse_type?,
   ) {
-    if (type === ACCEPT_STOCK_ENTRY_JOB) {
-      warehouse_type = 't_warehouse';
-    }
-    if (type === REJECT_STOCK_ENTRY_JOB) {
-      warehouse_type = 's_warehouse';
-    }
     return from(payload.items).pipe(
       concatMap((item: StockEntryItem) => {
-        return this.stockLedgerService
-          .asyncAggregate([
-            {
-              $match: {
-                item_code: item.item_code,
-                warehouse: item.s_warehouse.length
-                  ? item.s_warehouse
-                  : item.t_warehouse,
-              },
-            },
-            {
-              $sort: { _id: -1 },
-            },
-            { $limit: 1 },
-          ])
-          .pipe(
-            switchMap((agg: StockLedger[]) => {
-              if (type === CREATE_STOCK_ENTRY_JOB) {
-                if (payload.stock_entry_type === 'Material Issue') {
-                  warehouse_type = 's_warehouse';
-                }
-                if (payload.stock_entry_type === 'Material Receipt') {
-                  warehouse_type = 't_warehouse';
-                }
-                if (payload.stock_entry_type === 'Material Transfer') {
-                  warehouse_type = 's_warehouse';
-                }
-              }
-              return of(
-                this.createStockLedgerPayload(
-                  {
-                    stock_entry_no: payload.naming_series,
-                    deliveryNoteItem: item,
-                  },
-                  token,
-                  settings,
-                  agg.find(x => x),
-                  warehouse_type,
-                ),
-              );
-            }),
-            switchMap((response: StockLedger) => {
-              return from(this.stockLedgerService.create(response));
-            }),
-          );
+        if (type === ACCEPT_STOCK_ENTRY_JOB) {
+          warehouse_type = 't_warehouse';
+        }
+        if (type === REJECT_STOCK_ENTRY_JOB) {
+          warehouse_type = 's_warehouse';
+          item.qty = -item.qty;
+        }
+        if (type === CREATE_STOCK_ENTRY_JOB) {
+          if (payload.stock_entry_type === 'Material Issue') {
+            warehouse_type = 's_warehouse';
+            item.qty = -item.qty;
+          }
+          if (payload.stock_entry_type === 'Material Receipt') {
+            warehouse_type = 't_warehouse';
+          }
+          if (payload.stock_entry_type === 'Material Transfer') {
+            warehouse_type = 's_warehouse';
+            item.qty = -item.qty;
+          }
+        }
+        return this.createStockLedgerPayload(
+          payload.naming_series,
+          item,
+          token,
+          settings,
+          warehouse_type,
+        ).pipe(
+          switchMap((response: StockLedger) => {
+            return from(this.stockLedgerService.create(response));
+          }),
+        );
       }),
     );
   }
 
   createStockLedgerPayload(
-    payload: { stock_entry_no: string; deliveryNoteItem: StockEntryItem },
+    stock_entry_no: string,
+    deliveryNoteItem: StockEntryItem,
     token,
     settings: ServerSettings,
-    oldPayload?: StockLedger,
     warehouse_type?,
   ) {
-    const date = new DateTime(settings.timeZone).toJSDate();
-    const stockPayload = new StockLedger();
-    stockPayload.name = uuidv4();
-    stockPayload.modified = date;
-    stockPayload.modified_by = token.fullName;
-    stockPayload.item_code = payload.deliveryNoteItem.item_code;
-    stockPayload.actual_qty = payload.deliveryNoteItem.qty;
-    stockPayload.valuation_rate = payload.deliveryNoteItem.basic_rate;
-    stockPayload.batch_no = '';
-    stockPayload.posting_date = date;
-    stockPayload.posting_time = date;
-    stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
-    stockPayload.voucher_no = payload.stock_entry_no;
-    stockPayload.voucher_detail_no = '';
-    stockPayload.incoming_rate = 0;
-    stockPayload.outgoing_rate = 0;
-    if (warehouse_type === 't_warehouse') {
-      stockPayload.qty_after_transaction = oldPayload
-        ? oldPayload.qty_after_transaction + stockPayload.actual_qty
-        : stockPayload.actual_qty;
-      stockPayload.warehouse = payload.deliveryNoteItem.t_warehouse;
-    }
-    if (warehouse_type === 's_warehouse') {
-      stockPayload.warehouse = payload.deliveryNoteItem.s_warehouse;
-      stockPayload.qty_after_transaction = oldPayload
-        ? oldPayload.qty_after_transaction - stockPayload.actual_qty
-        : stockPayload.actual_qty;
-    }
-    stockPayload.stock_value =
-      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
-    stockPayload.stock_value_difference =
-      stockPayload.actual_qty * stockPayload.valuation_rate;
-    stockPayload.company = settings.defaultCompany;
-    stockPayload.fiscal_year = '2022';
-    return stockPayload;
+    return this.settingsService.getFiscalYear(settings).pipe(
+      switchMap(fiscalYear => {
+        const date = new DateTime(settings.timeZone).toJSDate();
+        const stockPayload = new StockLedger();
+        stockPayload.name = uuidv4();
+        stockPayload.modified = date;
+        stockPayload.modified_by = token.fullName;
+        stockPayload.item_code = deliveryNoteItem.item_code;
+        stockPayload.actual_qty = deliveryNoteItem.qty;
+        stockPayload.valuation_rate = deliveryNoteItem.basic_rate
+          ? deliveryNoteItem.basic_rate
+          : 0;
+        stockPayload.batch_no = '';
+        stockPayload.posting_date = date;
+        stockPayload.posting_time = date;
+        stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
+        stockPayload.voucher_no = stock_entry_no;
+        stockPayload.voucher_detail_no = '';
+        stockPayload.incoming_rate = 0;
+        stockPayload.outgoing_rate = 0;
+        stockPayload.qty_after_transaction = stockPayload.actual_qty;
+        if (warehouse_type === 't_warehouse') {
+          stockPayload.warehouse = deliveryNoteItem.t_warehouse;
+        }
+        if (warehouse_type === 's_warehouse') {
+          stockPayload.warehouse = deliveryNoteItem.s_warehouse;
+        }
+        stockPayload.stock_value =
+          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+        stockPayload.stock_value_difference =
+          stockPayload.actual_qty * stockPayload.valuation_rate;
+        stockPayload.company = settings.defaultCompany;
+        stockPayload.fiscal_year = fiscalYear;
+        return of(stockPayload);
+      }),
+    );
   }
 
   parseFrappePayload(payload: StockEntry) {

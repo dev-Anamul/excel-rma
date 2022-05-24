@@ -47,13 +47,13 @@ import {
   GET_PRODUCT_BUNDLE_ITEMS,
   REMOVE_SALES_INVOICE_ENDPOINT,
   RELAY_GET_ITEM_GROUP_ENDPOINT,
-  RELAY_GET_DATE_WISE_STOCK_BALANCE_ENDPOINT,
   RELAY_GET_ITEM_BRAND_ENDPOINT,
   PRINT_DELIVERY_INVOICE_ENDPOINT,
   STOCK_AVAILABILITY_ENDPOINT,
   UPDATE_DELIVERY_STATUS_ENDPOINT,
   UPDATE_SALES_INVOICE_ITEM_MRP,
   RELAY_LIST_SALES_RETURN_ENDPOINT,
+  GET_STOCK_BALANCE_ENDPOINT,
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -440,11 +440,11 @@ export class SalesService {
   getItemStock(item_codes: string[], warehouse: string, date: string) {
     return from(item_codes).pipe(
       mergeMap(code => {
-        return this.getStockBalance(code, warehouse, date).pipe(
+        return this.getStockBalance(code, warehouse).pipe(
           switchMap(data =>
             of({
               ...data,
-              item_code: data.item,
+              item_code: data.item_code,
             }),
           ),
         );
@@ -459,16 +459,18 @@ export class SalesService {
       }),
     );
   }
-
-  getStockBalance(item_code: string, warehouse: string, date) {
-    const url = RELAY_GET_DATE_WISE_STOCK_BALANCE_ENDPOINT;
-    const body = { item: item_code, warehouse, date };
-
+  getStockBalance(item_code: string, warehouse: string) {
+    const url = GET_STOCK_BALANCE_ENDPOINT;
+    const params = new HttpParams()
+      .set('item_code', item_code)
+      .set('warehouse', warehouse);
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.post<any>(url, body, { headers });
+        return this.http.get<any>(url, { headers, params });
       }),
-      map(data => data.message),
+      switchMap(qty => {
+        return of({ item_code, qty });
+      }),
     );
   }
 

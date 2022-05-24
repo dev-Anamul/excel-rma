@@ -15,13 +15,17 @@ import {
   BEARER_HEADER_VALUE_PREFIX,
   DOC_RESET_INFO,
   SALES_INVOICE_STATUS,
+  DELIVERY_NOTE_DOCTYPE,
 } from '../../../constants/app-strings';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { SalesInvoice } from '../../entity/sales-invoice/sales-invoice.entity';
 import { DocInfoInterface } from '../../../purchase-order/policies/purchase-order-policies/purchase-order-policies.service';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
-
+import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { v4 as uuidv4 } from 'uuid';
+import { DateTime } from 'luxon';
 @Injectable()
 export class SalesInvoiceResetAggregateService extends AggregateRoot {
   constructor(
@@ -31,6 +35,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
     private readonly serialNoHistoryService: SerialNoHistoryService,
     private readonly salesResetPolicies: SalesInvoiceResetPoliciesService,
     private readonly serialNoService: SerialNoService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {
     super();
   }
@@ -85,7 +90,67 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
               },
             },
           ),
+        ).pipe(
+          switchMap(() => {
+            return of(salesInvoice);
+          }),
         );
+      }),
+      switchMap((salesInvoice: SalesInvoice) => {
+        return from(salesInvoice.items).pipe(
+          concatMap(item => {
+            return this.createStockLedgerPayload(
+              {
+                warehouse: salesInvoice.delivery_warehouse,
+                deliveryNoteItem: item,
+              },
+              req.token,
+              serverSettings,
+            ).pipe(
+              switchMap((response: StockLedger) => {
+                return from(this.stockLedgerService.create(response));
+              }),
+            );
+          }),
+          toArray(),
+        );
+      }),
+    );
+  }
+
+  createStockLedgerPayload(
+    payload: { warehouse: string; deliveryNoteItem },
+    token,
+    settings: ServerSettings,
+  ) {
+    return this.settingsService.getFiscalYear(settings).pipe(
+      switchMap(fiscalYear => {
+        const date = new DateTime(settings.timeZone).toJSDate();
+        const stockPayload = new StockLedger();
+        stockPayload.name = uuidv4();
+        stockPayload.modified = date;
+        stockPayload.modified_by = token.fullName;
+        stockPayload.warehouse = payload.warehouse;
+        stockPayload.item_code = payload.deliveryNoteItem.item_code;
+        stockPayload.actual_qty = payload.deliveryNoteItem.qty;
+        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+        stockPayload.batch_no = '';
+        stockPayload.posting_date = date;
+        stockPayload.posting_time = date;
+        stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
+        stockPayload.voucher_no =
+          payload.deliveryNoteItem.against_sales_invoice;
+        stockPayload.voucher_detail_no = '';
+        stockPayload.incoming_rate = 0;
+        stockPayload.outgoing_rate = 0;
+        stockPayload.qty_after_transaction = stockPayload.actual_qty;
+        stockPayload.stock_value =
+          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+        stockPayload.stock_value_difference =
+          stockPayload.actual_qty * stockPayload.valuation_rate;
+        stockPayload.company = settings.defaultCompany;
+        stockPayload.fiscal_year = fiscalYear;
+        return of(stockPayload);
       }),
     );
   }

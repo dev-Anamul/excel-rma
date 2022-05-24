@@ -45,7 +45,8 @@ import {
 import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
-import { DeliveryNoteItemDto } from 'src/serial-no/entity/serial-no/assign-serial-dto';
+import { DeliveryNoteItemDto } from '../../../serial-no/entity/serial-no/assign-serial-dto';
+import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 export const CREATE_STOCK_ENTRY_JOB = 'CREATE_STOCK_ENTRY_JOB';
 
 @Injectable()
@@ -62,6 +63,7 @@ export class DeliveryNoteJobService {
     private readonly importData: DataImportService,
     private readonly serialNoHistoryService: SerialNoHistoryService,
     private readonly stockLedgerService: StockLedgerService,
+    private readonly settingsService: SettingsService,
   ) {}
 
   execute(job) {
@@ -122,7 +124,7 @@ export class DeliveryNoteJobService {
         { serial_no: { $in: serials } },
         {
           $unset: {
-            'queue_state.delivery_note': null,
+            'queue_state.delivery_note': 1,
           },
         },
       )
@@ -358,30 +360,12 @@ export class DeliveryNoteJobService {
       .catch(error => {});
 
     from(payload.items).forEach((item: DeliveryNoteItemDto) => {
-      this.stockLedgerService
-        .asyncAggregate([
-          {
-            $match: {
-              item_code: item.item_code,
-              warehouse: payload.set_warehouse,
-            },
-          },
-          {
-            $sort: { _id: -1 },
-          },
-          { $limit: 1 },
-        ])
+      this.createStockLedgerPayload(
+        { warehouse: payload.set_warehouse, deliveryNoteItem: item },
+        token,
+        settings,
+      )
         .pipe(
-          switchMap((agg: StockLedger[]) => {
-            return of(
-              this.createStockLedgerPayload(
-                { warehouse: payload.set_warehouse, deliveryNoteItem: item },
-                token,
-                settings,
-                agg.find(x => x),
-              ),
-            );
-          }),
           switchMap((response: StockLedger) => {
             return from(this.stockLedgerService.create(response));
           }),
@@ -396,36 +380,37 @@ export class DeliveryNoteJobService {
     payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
     token,
     settings: ServerSettings,
-    oldPayload?: StockLedger,
   ) {
-    const date = new DateTime(settings.timeZone).toJSDate();
-    const stockPayload = new StockLedger();
-    stockPayload.name = uuidv4();
-    stockPayload.modified = date;
-    stockPayload.modified_by = token.fullName;
-    stockPayload.warehouse = payload.warehouse;
-    stockPayload.item_code = payload.deliveryNoteItem.item_code;
-    stockPayload.actual_qty = payload.deliveryNoteItem.qty;
-    stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
-    stockPayload.batch_no = '';
-    stockPayload.posting_date = date;
-    stockPayload.posting_time = date;
-    stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
-    stockPayload.voucher_no = payload.deliveryNoteItem.against_sales_invoice;
-    stockPayload.voucher_detail_no = '';
-    stockPayload.incoming_rate = 0;
-    stockPayload.outgoing_rate = 0;
-    stockPayload.qty_after_transaction =
-      (oldPayload
-        ? oldPayload.qty_after_transaction
-        : stockPayload.actual_qty) - stockPayload.actual_qty;
-    stockPayload.stock_value =
-      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
-    stockPayload.stock_value_difference =
-      stockPayload.actual_qty * stockPayload.valuation_rate;
-    stockPayload.company = settings.defaultCompany;
-    stockPayload.fiscal_year = '2022';
-    return stockPayload;
+    return this.settingsService.getFiscalYear(settings).pipe(
+      switchMap(fiscalYear => {
+        const date = new DateTime(settings.timeZone).toJSDate();
+        const stockPayload = new StockLedger();
+        stockPayload.name = uuidv4();
+        stockPayload.modified = date;
+        stockPayload.modified_by = token.fullName;
+        stockPayload.warehouse = payload.warehouse;
+        stockPayload.item_code = payload.deliveryNoteItem.item_code;
+        stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
+        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+        stockPayload.batch_no = '';
+        stockPayload.posting_date = date;
+        stockPayload.posting_time = date;
+        stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
+        stockPayload.voucher_no =
+          payload.deliveryNoteItem.against_sales_invoice;
+        stockPayload.voucher_detail_no = '';
+        stockPayload.incoming_rate = 0;
+        stockPayload.outgoing_rate = 0;
+        stockPayload.qty_after_transaction = stockPayload.actual_qty;
+        stockPayload.stock_value =
+          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+        stockPayload.stock_value_difference =
+          stockPayload.actual_qty * stockPayload.valuation_rate;
+        stockPayload.company = settings.defaultCompany;
+        stockPayload.fiscal_year = fiscalYear;
+        return of(stockPayload);
+      }),
+    );
   }
 
   getStatus(sales_invoice: SalesInvoice) {

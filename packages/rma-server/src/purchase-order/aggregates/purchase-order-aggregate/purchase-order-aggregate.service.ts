@@ -17,18 +17,21 @@ import { PurchaseInvoiceService } from '../../../purchase-invoice/entity/purchas
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { FRAPPE_CLIENT_CANCEL } from '../../../constants/routes';
-import { PURCHASE_RECEIPT_DOCTYPE_NAME } from '../../../constants/app-strings';
+import {
+  DOC_NAMES,
+  PURCHASE_RECEIPT_DOCTYPE_NAME,
+} from '../../../constants/app-strings';
 import {
   AUTHORIZATION,
   PURCHASE_INVOICE_STATUS,
   BEARER_HEADER_VALUE_PREFIX,
 } from '../../../constants/app-strings';
 import { PurchaseReceiptService } from '../../../purchase-receipt/entity/purchase-receipt.service';
-import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 import { PurchaseOrderItemDto } from '../../../purchase-order/entity/purchase-order/purchase-order-webhook-dto';
 import { v4 as uuidv4 } from 'uuid';
 import { DateTime } from 'luxon';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 @Injectable()
 export class PurchaseOrderAggregateService extends AggregateRoot {
@@ -66,13 +69,14 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
           .validatePurchaseOrderReset(name, settings, req)
           .pipe(
             switchMap((docs: { [key: string]: string[] }) => {
-              // return this.cancelERPNextDocs(docs, req, settings);
-              return of(true);
+              return this.cancelERPNextDocs(docs, req, settings);
             }),
             switchMap(success => {
-              return of(true);
-
-              // return this.cancelERPNextDocs({ [DOC_NAMES.PURCHASE_INVOICE]: [name] }, req, settings);
+              return this.cancelERPNextDocs(
+                { [DOC_NAMES.PURCHASE_INVOICE]: [name] },
+                req,
+                settings,
+              );
             }),
             switchMap(success => {
               return this.purchaseOrderService.findOne({
@@ -147,34 +151,18 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
   ) {
     return from(purchaseOrder.items).pipe(
       mergeMap((item: PurchaseOrderItemDto) => {
-        return this.stockLedgerService
-          .asyncAggregate([
-            {
-              $match: { item_code: item.item_code, warehouse: item.warehouse },
-            },
-            {
-              $sort: { _id: -1 },
-            },
-            { $limit: 1 },
-          ])
-          .pipe(
-            switchMap((agg: StockLedger[]) => {
-              return of(
-                this.createStockLedgerPayload(
-                  {
-                    pr_no: purchaseOrder.purchase_invoice_name,
-                    purchaseReciept: item,
-                  },
-                  token,
-                  settings,
-                  agg.find(x => x),
-                ),
-              );
-            }),
-            switchMap((response: StockLedger) => {
-              return from(this.stockLedgerService.create(response));
-            }),
-          );
+        return this.createStockLedgerPayload(
+          {
+            pr_no: purchaseOrder.purchase_invoice_name,
+            purchaseReciept: item,
+          },
+          token,
+          settings,
+        ).pipe(
+          switchMap((stockLedgerPayload: StockLedger) => {
+            return from(this.stockLedgerService.create(stockLedgerPayload));
+          }),
+        );
       }),
       toArray(),
     );
@@ -184,36 +172,37 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
     payload: { pr_no: string; purchaseReciept: PurchaseOrderItemDto },
     token,
     settings: ServerSettings,
-    oldPayload?: StockLedger,
   ) {
-    const date = new DateTime(settings.timeZone).toJSDate();
-    const stockPayload = new StockLedger();
-    stockPayload.name = uuidv4();
-    stockPayload.modified = date;
-    stockPayload.modified_by = token.fullName;
-    stockPayload.warehouse = payload.purchaseReciept.warehouse;
-    stockPayload.item_code = payload.purchaseReciept.item_code;
-    stockPayload.actual_qty = payload.purchaseReciept.qty;
-    stockPayload.valuation_rate = payload.purchaseReciept.rate;
-    stockPayload.batch_no = '';
-    stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
-    stockPayload.posting_date = date;
-    stockPayload.posting_time = date;
-    stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
-    stockPayload.voucher_no = payload.pr_no;
-    stockPayload.voucher_detail_no = '';
-    stockPayload.incoming_rate = payload.purchaseReciept.rate;
-    stockPayload.outgoing_rate = 0;
-    stockPayload.qty_after_transaction = oldPayload
-      ? oldPayload.qty_after_transaction - stockPayload.actual_qty
-      : stockPayload.actual_qty;
-    stockPayload.stock_value =
-      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
-    stockPayload.stock_value_difference =
-      stockPayload.actual_qty * stockPayload.valuation_rate;
-    stockPayload.company = settings.defaultCompany;
-    stockPayload.fiscal_year = '2022';
-    return stockPayload;
+    return this.serverSettings.getFiscalYear(settings).pipe(
+      switchMap(fiscalYear => {
+        const date = new DateTime(settings.timeZone).toJSDate();
+        const stockPayload = new StockLedger();
+        stockPayload.name = uuidv4();
+        stockPayload.modified = date;
+        stockPayload.modified_by = token.fullName;
+        stockPayload.warehouse = payload.purchaseReciept.warehouse;
+        stockPayload.item_code = payload.purchaseReciept.item_code;
+        stockPayload.actual_qty = -payload.purchaseReciept.qty;
+        stockPayload.valuation_rate = payload.purchaseReciept.rate;
+        stockPayload.batch_no = '';
+        stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
+        stockPayload.posting_date = date;
+        stockPayload.posting_time = date;
+        stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
+        stockPayload.voucher_no = payload.pr_no;
+        stockPayload.voucher_detail_no = '';
+        stockPayload.incoming_rate = payload.purchaseReciept.rate;
+        stockPayload.outgoing_rate = 0;
+        stockPayload.qty_after_transaction = stockPayload.actual_qty;
+        stockPayload.stock_value =
+          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+        stockPayload.stock_value_difference =
+          stockPayload.actual_qty * stockPayload.valuation_rate;
+        stockPayload.company = settings.defaultCompany;
+        stockPayload.fiscal_year = fiscalYear;
+        return of(stockPayload);
+      }),
+    );
   }
 
   cancelERPNextDocs(docs: { [key: string]: string[] }, req, settings) {

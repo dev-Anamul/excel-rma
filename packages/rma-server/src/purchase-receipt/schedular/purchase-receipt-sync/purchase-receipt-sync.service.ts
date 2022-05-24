@@ -47,6 +47,7 @@ import { EventType } from '../../../serial-no/entity/serial-no-history/serial-no
 import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 
 export const CREATE_PURCHASE_RECEIPT_JOB = 'CREATE_PURCHASE_RECEIPT_JOB';
 
@@ -64,6 +65,7 @@ export class PurchaseReceiptSyncService {
     private readonly purchaseReceiptService: PurchaseReceiptService,
     private readonly jsonToCsv: JsonToCSVParserService,
     private readonly stockLedgerService: StockLedgerService,
+    private readonly settingsService: SettingsService,
   ) {}
 
   execute(job) {
@@ -271,30 +273,15 @@ export class PurchaseReceiptSyncService {
         hash_map[item.item_code].warehouse = item.warehouse;
         hash_map[item.item_code].item_name = item.item_name;
 
-        this.stockLedgerService
-          .asyncAggregate([
-            {
-              $match: { item_code: item.item_code, warehouse: item.warehouse },
-            },
-            {
-              $sort: { _id: -1 },
-            },
-            { $limit: 1 },
-          ])
+        this.createStockLedgerPayload(
+          {
+            pr_no: receipt.purchase_invoice_name,
+            purchaseReciept: item,
+          },
+          token,
+          settings,
+        )
           .pipe(
-            switchMap((agg: StockLedger[]) => {
-              return of(
-                this.createStockLedgerPayload(
-                  {
-                    pr_no: receipt.purchase_invoice_name,
-                    purchaseReciept: item,
-                  },
-                  token,
-                  settings,
-                  agg.find(x => x),
-                ),
-              );
-            }),
             switchMap((response: StockLedger) => {
               return from(this.stockLedgerService.create(response));
             }),
@@ -369,36 +356,37 @@ export class PurchaseReceiptSyncService {
     payload: { pr_no: string; purchaseReciept: PurchaseReceiptItemDto },
     token,
     settings: ServerSettings,
-    oldPayload?: StockLedger,
   ) {
-    const date = new DateTime(settings.timeZone).toJSDate();
-    const stockPayload = new StockLedger();
-    stockPayload.name = uuidv4();
-    stockPayload.modified = date;
-    stockPayload.modified_by = token.fullName;
-    stockPayload.warehouse = payload.purchaseReciept.warehouse;
-    stockPayload.item_code = payload.purchaseReciept.item_code;
-    stockPayload.actual_qty = payload.purchaseReciept.qty;
-    stockPayload.valuation_rate = payload.purchaseReciept.rate;
-    stockPayload.batch_no = '';
-    stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
-    stockPayload.posting_date = date;
-    stockPayload.posting_time = date;
-    stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
-    stockPayload.voucher_no = payload.pr_no;
-    stockPayload.voucher_detail_no = '';
-    stockPayload.incoming_rate = 0;
-    stockPayload.outgoing_rate = 0;
-    stockPayload.qty_after_transaction = oldPayload
-      ? oldPayload.qty_after_transaction + stockPayload.actual_qty
-      : stockPayload.actual_qty;
-    stockPayload.stock_value =
-      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
-    stockPayload.stock_value_difference =
-      stockPayload.actual_qty * stockPayload.valuation_rate;
-    stockPayload.company = settings.defaultCompany;
-    stockPayload.fiscal_year = '2022';
-    return stockPayload;
+    return this.settingsService.getFiscalYear(settings).pipe(
+      switchMap(fiscalYear => {
+        const date = new DateTime(settings.timeZone).toJSDate();
+        const stockPayload = new StockLedger();
+        stockPayload.name = uuidv4();
+        stockPayload.modified = date;
+        stockPayload.modified_by = token.fullName;
+        stockPayload.warehouse = payload.purchaseReciept.warehouse;
+        stockPayload.item_code = payload.purchaseReciept.item_code;
+        stockPayload.actual_qty = payload.purchaseReciept.qty;
+        stockPayload.valuation_rate = payload.purchaseReciept.rate;
+        stockPayload.batch_no = '';
+        stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
+        stockPayload.posting_date = date;
+        stockPayload.posting_time = date;
+        stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
+        stockPayload.voucher_no = payload.pr_no;
+        stockPayload.voucher_detail_no = '';
+        stockPayload.incoming_rate = payload.purchaseReciept.rate;
+        stockPayload.outgoing_rate = 0;
+        stockPayload.qty_after_transaction = stockPayload.actual_qty;
+        stockPayload.stock_value =
+          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+        stockPayload.stock_value_difference =
+          stockPayload.actual_qty * stockPayload.valuation_rate;
+        stockPayload.company = settings.defaultCompany;
+        stockPayload.fiscal_year = fiscalYear;
+        return of(stockPayload);
+      }),
+    );
   }
 
   updateInvoiceDeliveredState(docName, fullName, parent) {

@@ -315,7 +315,7 @@ export class AddSalesInvoicePage implements OnInit {
     is_stock_item?: number;
   }) {
     if (item.bundle_items || item.has_bundle_item || item.is_stock_item === 0) {
-      return of({ message: 1000000 });
+      return of(1000000);
     }
     return this.itemPriceService.getStockBalance(
       item.item_code,

@@ -10,6 +10,7 @@ import { DataImportService } from '../../../sync/aggregates/data-import/data-imp
 import { JsonToCSVParserService } from '../../../sync/entities/agenda-job/json-to-csv-parser.service';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 
 describe('PurchaseReceiptSyncService', () => {
   let service: PurchaseReceiptSyncService;
@@ -53,6 +54,10 @@ describe('PurchaseReceiptSyncService', () => {
         },
         {
           provide: SerialNoHistoryService,
+          useValue: {},
+        },
+        {
+          provide: SettingsService,
           useValue: {},
         },
       ],
