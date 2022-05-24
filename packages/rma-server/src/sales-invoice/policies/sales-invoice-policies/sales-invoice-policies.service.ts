@@ -36,7 +36,6 @@ import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-p
 import { SalesInvoice } from '../../entity/sales-invoice/sales-invoice.entity';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
-import { StockLedger } from 'src/stock-ledger/entity/stock-ledger/stock-ledger.entity';
 
 @Injectable()
 export class SalesInvoicePoliciesService {
@@ -226,13 +225,13 @@ export class SalesInvoicePoliciesService {
                   },
                 },
                 {
-                  $sort: { _id: -1 },
+                  $group: { _id: null, sum: { $sum: '$actual_qty' } },
                 },
-                { $limit: 1 },
+                { $project: { sum: 1 } },
               ]),
             ).pipe(
-              switchMap((ledger: StockLedger[]) => {
-                const message = ledger.find(x => x).qty_after_transaction;
+              switchMap((stockCount: [{ sum: number }]) => {
+                const message = stockCount.find(summedData => summedData).sum;
                 if (message < item.qty) {
                   return throwError(
                     new BadRequestException(`

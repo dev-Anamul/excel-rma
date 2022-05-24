@@ -26,7 +26,6 @@ import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-p
 import { DateTime } from 'luxon';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
-import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 @Injectable()
 export class StockEntryPoliciesService {
   constructor(
@@ -163,15 +162,13 @@ export class StockEntryPoliciesService {
                   },
                 },
                 {
-                  $sort: { _id: -1 },
+                  $group: { _id: null, sum: { $sum: '$actual_qty' } },
                 },
-                { $limit: 1 },
+                { $project: { sum: 1 } },
               ]),
             ).pipe(
-              switchMap((ledger: StockLedger[]) => {
-                const message = ledger?.find(x => x)?.qty_after_transaction
-                  ? ledger?.find(x => x)?.qty_after_transaction
-                  : 0;
+              switchMap((stockCount: [{ sum: number }]) => {
+                const message = stockCount.find(summedData => summedData).sum;
                 if (message < item.qty) {
                   return throwError(
                     new BadRequestException(`

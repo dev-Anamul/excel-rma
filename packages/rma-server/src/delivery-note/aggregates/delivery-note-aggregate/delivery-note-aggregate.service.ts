@@ -46,7 +46,6 @@ import { SalesInvoice } from '../../../sales-invoice/entity/sales-invoice/sales-
 import { DeliveryNoteJobService } from '../../schedular/delivery-note-job/delivery-note-job.service';
 import { SerialBatchService } from '../../../sync/aggregates/serial-batch/serial-batch.service';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
-import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 import { DeliveryNotePoliciesService } from '../../policies/delivery-note-policies/delivery-note-policies.service';
 
 @Injectable()
@@ -59,7 +58,6 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
     private readonly deliveryNoteService: DeliveryNoteService,
     private readonly serialBatchService: SerialBatchService,
     private readonly deliveryNoteJobService: DeliveryNoteJobService,
-    private readonly serialNoService: SerialNoService,
     private readonly deliveryNotePolicyService: DeliveryNotePoliciesService,
   ) {
     super();
@@ -243,21 +241,6 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
         this.salesInvoiceService.findOne({
           name: assignPayload.sales_invoice_name,
         }),
-      ),
-      serial_no: from(
-        this.serialNoService.updateMany(
-          { serial_no: { $in: serials } },
-          {
-            $set: {
-              queue_state: {
-                delivery_note: {
-                  parent: assignPayload.sales_invoice_name,
-                  warehouse: assignPayload.set_warehouse,
-                },
-              },
-            },
-          },
-        ),
       ),
     }).pipe(
       switchMap(({ sales_invoice }) => {

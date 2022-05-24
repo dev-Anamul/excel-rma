@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/common';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { SalesInvoiceResetPoliciesService } from '../../policies/sales-invoice-reset-policies/sales-invoice-reset-policies.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('SalesInvoiceResetAggregateService', () => {
   let service: SalesInvoiceResetAggregateService;
@@ -36,6 +37,10 @@ describe('SalesInvoiceResetAggregateService', () => {
         },
         {
           provide: SerialNoHistoryService,
+          useValue: {},
+        },
+        {
+          provide: StockLedgerService,
           useValue: {},
         },
       ],

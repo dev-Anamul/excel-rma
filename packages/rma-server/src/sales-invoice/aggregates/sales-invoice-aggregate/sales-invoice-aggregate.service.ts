@@ -578,39 +578,21 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     from(items)
       .pipe(
         concatMap((item: SalesReturnItemDto) => {
-          return this.stockLedgerService
-            .asyncAggregate([
-              {
-                $match: {
-                  item_code: item.item_code,
-                  warehouse: sales_invoice.delivery_warehouse,
-                },
-              },
-              {
-                $sort: { _id: -1 },
-              },
-              { $limit: 1 },
-            ])
-            .pipe(
-              switchMap((agg: StockLedger[]) => {
-                return of(
-                  this.createStockLedgerPayload(
-                    {
-                      stock_entry_no: sales_invoice.name,
-                      salesInvoice: sales_invoice,
-                      deliveryNoteItem: item,
-                    },
-                    token,
-                    settings,
-                    agg.find(x => x),
-                  ),
-                );
-              }),
-              switchMap((response: StockLedger) => {
-                return from(this.stockLedgerService.create(response));
-              }),
-            );
+          return this.createStockLedgerPayload(
+            {
+              stock_entry_no: sales_invoice.name,
+              salesInvoice: sales_invoice,
+              deliveryNoteItem: item,
+            },
+            token,
+            settings,
+          ).pipe(
+            switchMap((response: StockLedger) => {
+              return from(this.stockLedgerService.create(response));
+            }),
+          );
         }),
+        toArray(),
       )
       .subscribe();
 
@@ -633,35 +615,36 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     },
     token,
     settings: ServerSettings,
-    oldPayload?: StockLedger,
   ) {
-    const date = new DateTime(settings.timeZone).toJSDate();
-    const stockPayload = new StockLedger();
-    stockPayload.name = uuidv4();
-    stockPayload.modified = date;
-    stockPayload.modified_by = token.fullName;
-    stockPayload.item_code = payload.deliveryNoteItem.item_code;
-    stockPayload.actual_qty = payload.deliveryNoteItem.qty;
-    stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
-    stockPayload.batch_no = '';
-    stockPayload.posting_date = date;
-    stockPayload.posting_time = date;
-    stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
-    stockPayload.voucher_no = payload.stock_entry_no;
-    stockPayload.voucher_detail_no = '';
-    stockPayload.incoming_rate = 0;
-    stockPayload.outgoing_rate = 0;
-    stockPayload.qty_after_transaction = oldPayload
-      ? oldPayload.qty_after_transaction - stockPayload.actual_qty
-      : stockPayload.actual_qty;
-    stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
-    stockPayload.stock_value =
-      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
-    stockPayload.stock_value_difference =
-      stockPayload.actual_qty * stockPayload.valuation_rate;
-    stockPayload.company = settings.defaultCompany;
-    stockPayload.fiscal_year = '2022';
-    return stockPayload;
+    return this.settingsService.getFiscalYear(settings).pipe(
+      switchMap(fiscalYear => {
+        const date = new DateTime(settings.timeZone).toJSDate();
+        const stockPayload = new StockLedger();
+        stockPayload.name = uuidv4();
+        stockPayload.modified = date;
+        stockPayload.modified_by = token.fullName;
+        stockPayload.item_code = payload.deliveryNoteItem.item_code;
+        stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
+        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+        stockPayload.batch_no = '';
+        stockPayload.posting_date = date;
+        stockPayload.posting_time = date;
+        stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
+        stockPayload.voucher_no = payload.stock_entry_no;
+        stockPayload.voucher_detail_no = '';
+        stockPayload.incoming_rate = 0;
+        stockPayload.outgoing_rate = 0;
+        stockPayload.qty_after_transaction = stockPayload.actual_qty;
+        stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
+        stockPayload.stock_value =
+          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+        stockPayload.stock_value_difference =
+          stockPayload.actual_qty * stockPayload.valuation_rate;
+        stockPayload.company = settings.defaultCompany;
+        stockPayload.fiscal_year = fiscalYear;
+        return of(stockPayload);
+      }),
+    );
   }
 
   updateOutstandingAmount(invoice_name: string) {
