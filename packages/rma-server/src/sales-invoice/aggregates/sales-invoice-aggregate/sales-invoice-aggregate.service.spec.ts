@@ -11,6 +11,7 @@ import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.s
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { ItemService } from '../../../item/entity/item/item.service';
 import { ItemAggregateService } from '../../../item/aggregates/item-aggregate/item-aggregate.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('SalesInvoiceAggregateService', () => {
   let service: SalesInvoiceAggregateService;
@@ -19,6 +20,10 @@ describe('SalesInvoiceAggregateService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SalesInvoiceAggregateService,
+        {
+          provide: StockLedgerService,
+          useValue: {},
+        },
         {
           provide: SalesInvoiceService,
           useValue: {},

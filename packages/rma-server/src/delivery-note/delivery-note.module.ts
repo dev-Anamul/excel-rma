@@ -17,9 +17,11 @@ import { DeliveryNOtePoliciesManager } from './policies';
 import { SerialNoPoliciesService } from '../serial-no/policies/serial-no-policies/serial-no-policies.service';
 import { ItemEntitiesModule } from '../item/entity/item-entity.module';
 import { SupplierEntitiesModule } from '../supplier/entity/entity.module';
+import { StockLedgerEntitiesModule } from '../stock-ledger/entity/entity.module';
 
 @Module({
   imports: [
+    StockLedgerEntitiesModule,
     DeliveryNoteEntitiesModule,
     SerialNoEntitiesModule,
     SalesInvoiceEntitiesModule,

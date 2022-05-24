@@ -12,9 +12,11 @@ import { SalesInvoiceWebhookController } from './controllers/sales-invoice-webho
 import { DirectModule } from '../direct/direct.module';
 import { SalesInvoicePoliciesManager } from './policies';
 import { ItemModule } from '../item/item.module';
+import { StockLedgerEntitiesModule } from '../stock-ledger/entity/entity.module';
 
 @Module({
   imports: [
+    StockLedgerEntitiesModule,
     SalesInvoiceEntitiesModule,
     CustomerModule,
     DeliveryNoteModule,

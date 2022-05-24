@@ -11,7 +11,8 @@ import { ClientTokenManagerService } from '../../../auth/aggregates/client-token
 import { AgendaJobService } from '../../../sync/entities/agenda-job/agenda-job.service';
 import { JsonToCSVParserService } from '../../../sync/entities/agenda-job/json-to-csv-parser.service';
 import { DataImportService } from '../../../sync/aggregates/data-import/data-import.service';
-import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { SerialNoHistoryService } from '../../..//serial-no/entity/serial-no-history/serial-no-history.service';
 
 describe('DeliveryNoteJobService', () => {
   let service: DeliveryNoteJobService;
@@ -46,11 +47,15 @@ describe('DeliveryNoteJobService', () => {
           useValue: {},
         },
         {
+          provide: SerialNoHistoryService,
+          useValue: {},
+        },
+        {
           provide: DeliveryNoteJobHelperService,
           useValue: {},
         },
         {
-          provide: SerialNoHistoryService,
+          provide: StockLedgerService,
           useValue: {},
         },
         { provide: JsonToCSVParserService, useValue: {} },

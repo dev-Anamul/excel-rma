@@ -14,7 +14,7 @@ import {
 } from '../../../constants/app-strings';
 import { DirectService } from '../../../direct/aggregates/direct/direct.service';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
-import { of, throwError, Observable } from 'rxjs';
+import { of, throwError, Observable, from } from 'rxjs';
 import { CreateDeliveryNoteInterface } from '../../entity/delivery-note-service/create-delivery-note-interface';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { DateTime } from 'luxon';
@@ -43,6 +43,9 @@ import {
   SerialNoHistoryInterface,
 } from '../../../serial-no/entity/serial-no-history/serial-no-history.entity';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
+import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { DeliveryNoteItemDto } from 'src/serial-no/entity/serial-no/assign-serial-dto';
 export const CREATE_STOCK_ENTRY_JOB = 'CREATE_STOCK_ENTRY_JOB';
 
 @Injectable()
@@ -58,6 +61,7 @@ export class DeliveryNoteJobService {
     private readonly csvService: JsonToCSVParserService,
     private readonly importData: DataImportService,
     private readonly serialNoHistoryService: SerialNoHistoryService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   execute(job) {
@@ -353,7 +357,75 @@ export class DeliveryNoteJobService {
       .then(success => {})
       .catch(error => {});
 
+    from(payload.items).forEach((item: DeliveryNoteItemDto) => {
+      this.stockLedgerService
+        .asyncAggregate([
+          {
+            $match: {
+              item_code: item.item_code,
+              warehouse: payload.set_warehouse,
+            },
+          },
+          {
+            $sort: { _id: -1 },
+          },
+          { $limit: 1 },
+        ])
+        .pipe(
+          switchMap((agg: StockLedger[]) => {
+            return of(
+              this.createStockLedgerPayload(
+                { warehouse: payload.set_warehouse, deliveryNoteItem: item },
+                token,
+                settings,
+                agg.find(x => x),
+              ),
+            );
+          }),
+          switchMap((response: StockLedger) => {
+            return from(this.stockLedgerService.create(response));
+          }),
+        )
+        .subscribe();
+    });
+
     return of(true);
+  }
+
+  createStockLedgerPayload(
+    payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
+    token,
+    settings: ServerSettings,
+    oldPayload?: StockLedger,
+  ) {
+    const date = new DateTime(settings.timeZone).toJSDate();
+    const stockPayload = new StockLedger();
+    stockPayload.name = uuidv4();
+    stockPayload.modified = date;
+    stockPayload.modified_by = token.fullName;
+    stockPayload.warehouse = payload.warehouse;
+    stockPayload.item_code = payload.deliveryNoteItem.item_code;
+    stockPayload.actual_qty = payload.deliveryNoteItem.qty;
+    stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+    stockPayload.batch_no = '';
+    stockPayload.posting_date = date;
+    stockPayload.posting_time = date;
+    stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
+    stockPayload.voucher_no = payload.deliveryNoteItem.against_sales_invoice;
+    stockPayload.voucher_detail_no = '';
+    stockPayload.incoming_rate = 0;
+    stockPayload.outgoing_rate = 0;
+    stockPayload.qty_after_transaction =
+      (oldPayload
+        ? oldPayload.qty_after_transaction
+        : stockPayload.actual_qty) - stockPayload.actual_qty;
+    stockPayload.stock_value =
+      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+    stockPayload.stock_value_difference =
+      stockPayload.actual_qty * stockPayload.valuation_rate;
+    stockPayload.company = settings.defaultCompany;
+    stockPayload.fiscal_year = '2022';
+    return stockPayload;
   }
 
   getStatus(sales_invoice: SalesInvoice) {

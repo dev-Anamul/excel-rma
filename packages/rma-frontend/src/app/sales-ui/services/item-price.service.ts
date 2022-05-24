@@ -11,7 +11,7 @@ import { StorageService } from '../../api/storage/storage.service';
 import {
   API_ITEM_LIST,
   API_ITEM_SET_MIN_PRICE,
-  RELAY_GET_STOCK_BALANCE_ENDPOINT,
+  GET_STOCK_BALANCE_ENDPOINT,
   GET_BALANCE_ON_ENDPOINT,
   SYNC_FRAPPE_ITEMS_ENDPOINT,
   RELAY_API_RES_COMPANY,
@@ -54,12 +54,14 @@ export class ItemPriceService {
   }
 
   getStockBalance(item_code: string, warehouse: string) {
-    const url = RELAY_GET_STOCK_BALANCE_ENDPOINT;
-    const body = { item_code, warehouse };
+    const url = GET_STOCK_BALANCE_ENDPOINT;
+    const params = new HttpParams()
+      .set('item_code', item_code)
+      .set('warehouse', warehouse);
 
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.post<any>(url, body, { headers });
+        return this.http.get<any>(url, { headers, params });
       }),
     );
   }

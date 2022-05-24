@@ -15,18 +15,21 @@ import {
   toArray,
   catchError,
 } from 'rxjs/operators';
-import { StockEntry } from '../../entities/stock-entry.entity';
+import { StockEntry, StockEntryItem } from '../../entities/stock-entry.entity';
 import { from, throwError, of, forkJoin } from 'rxjs';
 import {
   STOCK_ENTRY,
   FRAPPE_QUEUE_JOB,
   STOCK_ENTRY_STATUS,
   CREATE_STOCK_ENTRY_JOB,
-  ACCEPT_STOCK_ENTRY_JOB,
-  REJECT_STOCK_ENTRY_JOB,
+  // ACCEPT_STOCK_ENTRY_JOB,
+  // REJECT_STOCK_ENTRY_JOB,
   AUTHORIZATION,
   BEARER_HEADER_VALUE_PREFIX,
   STOCK_OPERATION,
+  STOCK_MATERIAL_TRANSFER,
+  ACCEPT_STOCK_ENTRY_JOB,
+  REJECT_STOCK_ENTRY_JOB,
 } from '../../../constants/app-strings';
 import { v4 as uuidv4 } from 'uuid';
 import * as Agenda from 'agenda';
@@ -44,6 +47,9 @@ import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.s
 import { FRAPPE_CLIENT_CANCEL } from '../../../constants/routes';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { getUserPermissions } from '../../../constants/agenda-job';
+import { StockEntrySyncService } from '../../../stock-entry/schedular/stock-entry-sync/stock-entry-sync.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 
 @Injectable()
 export class StockEntryAggregateService {
@@ -56,10 +62,13 @@ export class StockEntryAggregateService {
     private readonly settingService: SettingsService,
     private readonly serialHistoryService: SerialNoHistoryService,
     private readonly serialNoService: SerialNoService,
+    private readonly stockEntrySyncService: StockEntrySyncService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   createStockEntry(payload: StockEntryDto, req) {
     payload = this.parseStockEntryPayload(payload);
+    const settings = this.settingService.find();
     if (payload.status === STOCK_ENTRY_STATUS.draft || !payload.uuid) {
       return this.stockEntryPolicies
         .validateStockPermission(
@@ -94,33 +103,41 @@ export class StockEntryAggregateService {
             stockEntry.stock_entry_type === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
           ) {
             if (mongoSerials && mongoSerials.length) {
-              return this.createMongoSerials(stockEntry, mongoSerials, req);
+              return this.createMongoSerials(
+                stockEntry,
+                mongoSerials,
+                req,
+                settings,
+              );
             }
-            this.addToQueueNow(
-              {
-                payload: stockEntry,
-                token: req.token,
-                type: CREATE_STOCK_ENTRY_JOB,
-                parent: stockEntry.uuid,
-              },
-              stockEntry.uuid,
-            )
-              .then(success => {})
-              .catch(err => {});
-            return of(stockEntry);
+            settings
+              .pipe(
+                switchMap(settings => {
+                  return this.stockEntrySyncService.createStockEntry({
+                    payload: stockEntry,
+                    token: req.token,
+                    type: CREATE_STOCK_ENTRY_JOB,
+                    parent: stockEntry.uuid,
+                    settings,
+                  });
+                }),
+              )
+              .subscribe();
           }
 
-          this.addToQueueNow(
-            {
-              payload: stockEntry,
-              token: req.token,
-              type: CREATE_STOCK_ENTRY_JOB,
-              parent: stockEntry.uuid,
-            },
-            stockEntry.uuid,
-          )
-            .then(success => {})
-            .catch(err => {});
+          settings
+            .pipe(
+              switchMap(settings => {
+                return this.stockEntrySyncService.createStockEntry({
+                  payload: stockEntry,
+                  token: req.token,
+                  type: CREATE_STOCK_ENTRY_JOB,
+                  parent: stockEntry.uuid,
+                  settings,
+                });
+              }),
+            )
+            .subscribe();
 
           if (!mongoSerials) {
             return of(stockEntry);
@@ -169,24 +186,26 @@ export class StockEntryAggregateService {
       );
   }
 
-  createMongoSerials(stockEntry: StockEntry, mongoSerials: any, req) {
+  createMongoSerials(stockEntry: StockEntry, mongoSerials: any, req, settings) {
     return of({}).pipe(
       switchMap(obj => {
         return from(
           this.serialNoService.insertMany(mongoSerials, { ordered: false }),
         ).pipe(
           switchMap(success => {
-            this.addToQueueNow(
-              {
-                payload: stockEntry,
-                token: req.token,
-                type: CREATE_STOCK_ENTRY_JOB,
-                parent: stockEntry.uuid,
-              },
-              stockEntry.uuid,
-            )
-              .then(success => {})
-              .catch(err => {});
+            settings
+              .pipe(
+                switchMap(settings => {
+                  return this.stockEntrySyncService.createStockEntry({
+                    payload: stockEntry,
+                    token: req.token,
+                    type: CREATE_STOCK_ENTRY_JOB,
+                    parent: stockEntry.uuid,
+                    settings,
+                  });
+                }),
+              )
+              .subscribe();
             return of(stockEntry);
           }),
         );
@@ -271,6 +290,36 @@ export class StockEntryAggregateService {
     return mongoSerials;
   }
 
+  getStockBalance(payload: { item_code: string; warehouse: string }) {
+    return this.stockLedgerService
+      .asyncAggregate([
+        {
+          $match: {
+            item_code: payload.item_code,
+            warehouse: payload.warehouse,
+          },
+        },
+        {
+          $sort: { _id: -1 },
+        },
+        { $limit: 1 },
+      ])
+      .pipe(
+        switchMap((mostRecentLedger: StockLedger[]) => {
+          if (mostRecentLedger.length) {
+            return of(
+              mostRecentLedger.find(ledger => ledger).qty_after_transaction,
+            );
+          }
+          return throwError(
+            new BadRequestException(
+              `Please Sync Stock data this portal for item ${payload.item_code}`,
+            ),
+          );
+        }),
+      );
+  }
+
   async deleteDraft(uuid: string, req) {
     const stockEntry = await this.stockEntryService.findOne({ uuid });
     if (!stockEntry) {
@@ -293,6 +342,7 @@ export class StockEntryAggregateService {
   }
 
   resetStockEntry(uuid: string, req) {
+    let serverSettings: ServerSettings;
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
         return this.stockEntryPolicies
@@ -311,22 +361,136 @@ export class StockEntryAggregateService {
           stockEntry: this.stockEntryPolicies.validateStockEntryCancel(
             stockEntry,
           ),
-          stockEntryQueue: this.stockEntryPolicies.validateStockEntryQueue(
-            stockEntry,
-          ),
+          // stockEntryQueue: this.stockEntryPolicies.validateStockEntryQueue(stockEntry),
           settings: this.settingService.find(),
         });
       }),
       switchMap(({ stockEntry, settings }) => {
-        return this.cancelERPNextDocument(stockEntry, settings, req);
+        serverSettings = settings;
+        return of(stockEntry);
+        // return this.cancelERPNextDocument(stockEntry, settings, req);
       }),
       switchMap(stockEntry => {
         return forkJoin({
           serialReset: this.resetStockEntrySerial(stockEntry),
           serialHistoryReset: this.resetStockEntrySerialHistory(stockEntry),
-        }).pipe(switchMap(success => this.updateStockEntryReset(stockEntry)));
+        }).pipe(
+          switchMap(success => this.updateStockEntryReset(stockEntry)),
+          switchMap(() => {
+            if (stockEntry.stock_entry_type === STOCK_MATERIAL_TRANSFER) {
+              ['t_warehouse', 's_warehouse'].forEach(warehouse => {
+                return this.createTransferStockEntryLedger(
+                  stockEntry,
+                  req.token,
+                  serverSettings,
+                  warehouse,
+                );
+              });
+            }
+            return this.createTransferStockEntryLedger(
+              stockEntry,
+              req.token,
+              serverSettings,
+            );
+          }),
+        );
       }),
     );
+  }
+
+  createTransferStockEntryLedger(
+    payload: StockEntry,
+    token,
+    settings,
+    warehouse_type?,
+  ) {
+    return from(payload.items).pipe(
+      concatMap((item: StockEntryItem) => {
+        return this.stockLedgerService
+          .asyncAggregate([
+            {
+              $match: {
+                item_code: item.item_code,
+                warehouse: item.s_warehouse.length
+                  ? item.s_warehouse
+                  : item.t_warehouse,
+              },
+            },
+            {
+              $sort: { _id: -1 },
+            },
+            { $limit: 1 },
+          ])
+          .pipe(
+            switchMap((agg: StockLedger[]) => {
+              return of(
+                this.createStockLedgerPayload(
+                  {
+                    stock_entry_no: payload.naming_series,
+                    deliveryNoteItem: item,
+                  },
+                  token,
+                  settings,
+                  agg.find(x => x),
+                  warehouse_type
+                    ? warehouse_type
+                    : item.s_warehouse
+                    ? 's_warehouse'
+                    : 't_warehouse',
+                ),
+              );
+            }),
+            switchMap((response: StockLedger) => {
+              return from(this.stockLedgerService.create(response));
+            }),
+          );
+      }),
+      toArray(),
+    );
+  }
+
+  createStockLedgerPayload(
+    payload: { stock_entry_no: string; deliveryNoteItem: StockEntryItem },
+    token,
+    settings: ServerSettings,
+    oldPayload?: StockLedger,
+    warehouse_type?,
+  ) {
+    const date = new DateTime(settings.timeZone).toJSDate();
+    const stockPayload = new StockLedger();
+    stockPayload.name = uuidv4();
+    stockPayload.modified = date;
+    stockPayload.modified_by = token.fullName;
+    stockPayload.item_code = payload.deliveryNoteItem.item_code;
+    stockPayload.actual_qty = payload.deliveryNoteItem.qty;
+    stockPayload.valuation_rate = payload.deliveryNoteItem.basic_rate;
+    stockPayload.batch_no = '';
+    stockPayload.posting_date = date;
+    stockPayload.posting_time = date;
+    stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
+    stockPayload.voucher_no = payload.stock_entry_no;
+    stockPayload.voucher_detail_no = '';
+    stockPayload.incoming_rate = 0;
+    stockPayload.outgoing_rate = 0;
+    if (warehouse_type === 't_warehouse') {
+      stockPayload.qty_after_transaction = oldPayload
+        ? oldPayload.qty_after_transaction - stockPayload.actual_qty
+        : stockPayload.actual_qty;
+      stockPayload.warehouse = payload.deliveryNoteItem.t_warehouse;
+    }
+    if (warehouse_type === 's_warehouse') {
+      stockPayload.warehouse = payload.deliveryNoteItem.s_warehouse;
+      stockPayload.qty_after_transaction = oldPayload
+        ? oldPayload.qty_after_transaction + stockPayload.actual_qty
+        : stockPayload.actual_qty;
+    }
+    stockPayload.stock_value =
+      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+    stockPayload.stock_value_difference =
+      stockPayload.actual_qty * stockPayload.valuation_rate;
+    stockPayload.company = settings.defaultCompany;
+    stockPayload.fiscal_year = '2022';
+    return stockPayload;
   }
 
   cancelERPNextDocument(stockEntry: StockEntry, settings: ServerSettings, req) {
@@ -468,6 +632,7 @@ export class StockEntryAggregateService {
   }
 
   rejectStockEntry(uuid: string, req) {
+    const settings = this.settingService.find();
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
         if (!stockEntry) {
@@ -495,7 +660,7 @@ export class StockEntryAggregateService {
         if (!stockEntry) {
           return throwError(new BadRequestException('Stock Entry not found.'));
         }
-        const payload: any = this.removeStockEntryFields(stockEntry);
+        // const payload: any = this.removeStockEntryFields(stockEntry);
         this.stockEntryService
           .updateOne(
             { uuid },
@@ -503,29 +668,32 @@ export class StockEntryAggregateService {
           )
           .catch(err => {})
           .then(success => {});
-        this.addToQueueNow(
-          {
-            payload: stockEntry,
-            token: req.token,
-            type: REJECT_STOCK_ENTRY_JOB,
-            parent: stockEntry.uuid,
-          },
-          payload.uuid,
-        )
-          .then(success => {})
-          .catch(err => {});
+        settings
+          .pipe(
+            switchMap(settings => {
+              return this.stockEntrySyncService.createStockEntry({
+                payload: stockEntry,
+                token: req.token,
+                type: REJECT_STOCK_ENTRY_JOB,
+                parent: stockEntry.uuid,
+                settings,
+              });
+            }),
+          )
+          .subscribe();
         return of(stockEntry);
       }),
     );
   }
 
-  removeStockEntryFields(stockEntry: StockEntry) {
-    delete stockEntry.names;
-    delete stockEntry.createdAt;
-    return stockEntry;
-  }
+  // removeStockEntryFields(stockEntry: StockEntry) {
+  //   delete stockEntry.names;
+  //   delete stockEntry.createdAt;
+  //   return stockEntry;
+  // }
 
   acceptStockEntry(uuid: string, req) {
+    const settings = this.settingService.find();
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
         return this.stockEntryPolicies
@@ -550,7 +718,7 @@ export class StockEntryAggregateService {
         if (!stockEntry) {
           return throwError(new BadRequestException('Stock Entry not found.'));
         }
-        const payload: any = this.removeStockEntryFields(stockEntry);
+        // const payload: any = this.removeStockEntryFields(stockEntry);
         this.stockEntryService
           .updateOne(
             { uuid },
@@ -558,17 +726,19 @@ export class StockEntryAggregateService {
           )
           .catch(err => {})
           .then(success => {});
-        this.addToQueueNow(
-          {
-            payload: stockEntry,
-            token: req.token,
-            type: ACCEPT_STOCK_ENTRY_JOB,
-            parent: stockEntry.uuid,
-          },
-          payload.uuid,
-        )
-          .then(success => {})
-          .catch(err => {});
+        settings
+          .pipe(
+            switchMap(settings => {
+              return this.stockEntrySyncService.createStockEntry({
+                payload: stockEntry,
+                token: req.token,
+                type: ACCEPT_STOCK_ENTRY_JOB,
+                parent: stockEntry.uuid,
+                settings,
+              });
+            }),
+          )
+          .subscribe();
         return of(stockEntry);
       }),
     );

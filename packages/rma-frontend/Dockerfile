@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:16
 # Copy and build server
 COPY . /home/craft/rma-frontend
 WORKDIR /home/craft/

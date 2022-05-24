@@ -31,11 +31,12 @@ import { ClientTokenManagerService } from '../../../auth/aggregates/client-token
 import {
   FRAPPE_API_SALES_INVOICE_ENDPOINT,
   POST_DELIVERY_NOTE_ENDPOINT,
-  RELAY_GET_STOCK_BALANCE_ENDPOINT,
 } from '../../../constants/routes';
 import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
 import { SalesInvoice } from '../../entity/sales-invoice/sales-invoice.entity';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { StockLedger } from 'src/stock-ledger/entity/stock-ledger/stock-ledger.entity';
 
 @Injectable()
 export class SalesInvoicePoliciesService {
@@ -47,6 +48,7 @@ export class SalesInvoicePoliciesService {
     private readonly http: HttpService,
     private readonly clientToken: ClientTokenManagerService,
     private readonly settings: SettingsService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   validateSalesInvoice(uuid: string) {
@@ -214,27 +216,34 @@ export class SalesInvoicePoliciesService {
               item_code: item.item_code,
               warehouse: sales_invoice.delivery_warehouse,
             };
-            const headers = this.settings.getAuthorizationHeaders(req.token);
-            return this.http
-              .post(
-                settings.authServerURL + RELAY_GET_STOCK_BALANCE_ENDPOINT,
-                body,
-                { headers },
-              )
-              .pipe(
-                map(data => data.data.message),
-                switchMap(message => {
-                  if (message < item.qty) {
-                    return throwError(
-                      new BadRequestException(`
+            // const headers = this.settings.getAuthorizationHeaders(req.token);
+            return from(
+              this.stockLedgerService.asyncAggregate([
+                {
+                  $match: {
+                    item_code: item.item_code,
+                    warehouse: body.warehouse,
+                  },
+                },
+                {
+                  $sort: { _id: -1 },
+                },
+                { $limit: 1 },
+              ]),
+            ).pipe(
+              switchMap((ledger: StockLedger[]) => {
+                const message = ledger.find(x => x).qty_after_transaction;
+                if (message < item.qty) {
+                  return throwError(
+                    new BadRequestException(`
                   Only ${message} quantity available in stock for item ${item.item_name}, 
                   at warehouse ${sales_invoice.delivery_warehouse}.
                   `),
-                    );
-                  }
-                  return of(true);
-                }),
-              );
+                  );
+                }
+                return of(true);
+              }),
+            );
           }),
         );
       }),

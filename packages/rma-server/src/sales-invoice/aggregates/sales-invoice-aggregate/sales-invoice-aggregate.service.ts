@@ -36,6 +36,7 @@ import {
   INVOICE_DELIVERY_STATUS,
   CANCELED_STATUS,
   REJECTED_STATUS,
+  DELIVERY_NOTE_DOCTYPE,
 } from '../../../constants/app-strings';
 import { ACCEPT } from '../../../constants/app-strings';
 import { APP_WWW_FORM_URLENCODED } from '../../../constants/app-strings';
@@ -46,7 +47,10 @@ import {
   FRAPPE_API_SALES_INVOICE_ITEM_ENDPOINT,
 } from '../../../constants/routes';
 import { SalesInvoicePoliciesService } from '../../../sales-invoice/policies/sales-invoice-policies/sales-invoice-policies.service';
-import { CreateSalesReturnDto } from '../../entity/sales-invoice/sales-return-dto';
+import {
+  CreateSalesReturnDto,
+  SalesReturnItemDto,
+} from '../../entity/sales-invoice/sales-return-dto';
 import { DeliveryNote } from '../../../delivery-note/entity/delivery-note-service/delivery-note.entity';
 import {
   CreateDeliveryNoteInterface,
@@ -67,6 +71,9 @@ import { ItemService } from '../../../item/entity/item/item.service';
 import { ItemAggregateService } from '../../../item/aggregates/item-aggregate/item-aggregate.service';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { Item } from '../../../item/entity/item/item.entity';
+import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { ServerSettings } from 'src/system-settings/entities/server-settings/server-settings.entity';
 @Injectable()
 export class SalesInvoiceAggregateService extends AggregateRoot {
   constructor(
@@ -80,6 +87,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     private readonly serialNoHistoryService: SerialNoHistoryService,
     private readonly itemService: ItemService,
     private readonly itemAggregateService: ItemAggregateService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {
     super();
   }
@@ -567,6 +575,45 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       .then(updated => {})
       .catch(error => {});
 
+    from(items)
+      .pipe(
+        concatMap((item: SalesReturnItemDto) => {
+          return this.stockLedgerService
+            .asyncAggregate([
+              {
+                $match: {
+                  item_code: item.item_code,
+                  warehouse: sales_invoice.delivery_warehouse,
+                },
+              },
+              {
+                $sort: { _id: -1 },
+              },
+              { $limit: 1 },
+            ])
+            .pipe(
+              switchMap((agg: StockLedger[]) => {
+                return of(
+                  this.createStockLedgerPayload(
+                    {
+                      stock_entry_no: sales_invoice.name,
+                      salesInvoice: sales_invoice,
+                      deliveryNoteItem: item,
+                    },
+                    token,
+                    settings,
+                    agg.find(x => x),
+                  ),
+                );
+              }),
+              switchMap((response: StockLedger) => {
+                return from(this.stockLedgerService.create(response));
+              }),
+            );
+        }),
+      )
+      .subscribe();
+
     this.salesInvoiceService
       .updateMany(
         { name: sales_invoice.name },
@@ -576,6 +623,45 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       )
       .then(success => {})
       .catch(error => {});
+  }
+
+  createStockLedgerPayload(
+    payload: {
+      stock_entry_no: string;
+      salesInvoice: SalesInvoiceDto;
+      deliveryNoteItem: SalesReturnItemDto;
+    },
+    token,
+    settings: ServerSettings,
+    oldPayload?: StockLedger,
+  ) {
+    const date = new DateTime(settings.timeZone).toJSDate();
+    const stockPayload = new StockLedger();
+    stockPayload.name = uuidv4();
+    stockPayload.modified = date;
+    stockPayload.modified_by = token.fullName;
+    stockPayload.item_code = payload.deliveryNoteItem.item_code;
+    stockPayload.actual_qty = payload.deliveryNoteItem.qty;
+    stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+    stockPayload.batch_no = '';
+    stockPayload.posting_date = date;
+    stockPayload.posting_time = date;
+    stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
+    stockPayload.voucher_no = payload.stock_entry_no;
+    stockPayload.voucher_detail_no = '';
+    stockPayload.incoming_rate = 0;
+    stockPayload.outgoing_rate = 0;
+    stockPayload.qty_after_transaction = oldPayload
+      ? oldPayload.qty_after_transaction - stockPayload.actual_qty
+      : stockPayload.actual_qty;
+    stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
+    stockPayload.stock_value =
+      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+    stockPayload.stock_value_difference =
+      stockPayload.actual_qty * stockPayload.valuation_rate;
+    stockPayload.company = settings.defaultCompany;
+    stockPayload.fiscal_year = '2022';
+    return stockPayload;
   }
 
   updateOutstandingAmount(invoice_name: string) {

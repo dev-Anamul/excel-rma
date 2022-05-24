@@ -7,6 +7,8 @@ import { SettingsService } from '../../../system-settings/aggregates/settings/se
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { HttpService } from '@nestjs/common';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { StockEntrySyncService } from '../../../stock-entry/schedular/stock-entry-sync/stock-entry-sync.service';
 
 describe('StockEntryAggregateService', () => {
   let service: StockEntryAggregateService;
@@ -15,6 +17,14 @@ describe('StockEntryAggregateService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StockEntryAggregateService,
+        {
+          provide: StockLedgerService,
+          useValue: {},
+        },
+        {
+          provide: StockEntrySyncService,
+          useValue: {},
+        },
         {
           provide: StockEntryService,
           useValue: {},

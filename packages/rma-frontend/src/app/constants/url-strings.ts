@@ -42,6 +42,8 @@ export const RELAY_GET_DELIVERY_NOTE_ENDPOINT =
   '/api/command/user/api/resource/Delivery Note';
 export const RELAY_GET_STOCK_BALANCE_ENDPOINT =
   '/api/command/user/api/method/erpnext.stock.utils.get_stock_balance';
+export const GET_STOCK_BALANCE_ENDPOINT =
+  '/api/stock_entry/v1/get_stock_balance';
 export const RELAY_GET_DATE_WISE_STOCK_BALANCE_ENDPOINT =
   '/api/command/user/api/method/erpnext.stock.doctype.quick_stock_balance.quick_stock_balance.get_stock_item_details';
 export const RELAY_GET_ADDRESS_NAME_METHOD_ENDPOINT =
