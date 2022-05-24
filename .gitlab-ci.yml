@@ -30,9 +30,6 @@ test_rma_frontend:
     - npm run format:check
     # Test backend unit tests
     - npm run test
-    # Test backend e2e
-    - npm run e2e
-    - npm run build -- --prod
   tags:
     - docker
 
