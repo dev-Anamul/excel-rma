@@ -97,23 +97,29 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
         );
       }),
       switchMap((salesInvoice: SalesInvoice) => {
-        return from(salesInvoice.items).pipe(
-          concatMap(item => {
-            return this.createStockLedgerPayload(
-              {
-                warehouse: salesInvoice.delivery_warehouse,
-                deliveryNoteItem: item,
-              },
-              req.token,
-              serverSettings,
-            ).pipe(
-              switchMap((response: StockLedger) => {
-                return from(this.stockLedgerService.create(response));
-              }),
-            );
-          }),
-          toArray(),
-        );
+        if (
+          salesInvoice.delivery_note_items.length &&
+          !salesInvoice.returned_items.length
+        ) {
+          return from(salesInvoice.items).pipe(
+            concatMap(item => {
+              return this.createStockLedgerPayload(
+                {
+                  warehouse: salesInvoice.delivery_warehouse,
+                  deliveryNoteItem: item,
+                },
+                req.token,
+                serverSettings,
+              ).pipe(
+                switchMap((response: StockLedger) => {
+                  return from(this.stockLedgerService.create(response));
+                }),
+              );
+            }),
+            toArray(),
+          );
+        }
+        return of(true);
       }),
     );
   }

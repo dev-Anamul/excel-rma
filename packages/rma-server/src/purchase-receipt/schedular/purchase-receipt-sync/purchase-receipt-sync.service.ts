@@ -10,6 +10,7 @@ import {
   toArray,
   retry,
   map,
+  concatMap,
 } from 'rxjs/operators';
 import {
   VALIDATE_AUTH_STRING,
@@ -272,21 +273,6 @@ export class PurchaseReceiptSyncService {
         hash_map[item.item_code].warranty_date = item.warranty_date;
         hash_map[item.item_code].warehouse = item.warehouse;
         hash_map[item.item_code].item_name = item.item_name;
-
-        this.createStockLedgerPayload(
-          {
-            pr_no: receipt.purchase_invoice_name,
-            purchaseReciept: item,
-          },
-          token,
-          settings,
-        )
-          .pipe(
-            switchMap((response: StockLedger) => {
-              return from(this.stockLedgerService.create(response));
-            }),
-          )
-          .subscribe();
       });
     });
 
@@ -299,6 +285,8 @@ export class PurchaseReceiptSyncService {
     )
       .setZone(settings.timeZone)
       .toJSDate();
+
+    this.createStockLedger(payload, token, settings).subscribe();
 
     if (!Object.keys(hash_map).length) {
       return this.updateInvoiceDeliveredState(doc.name, token.fullName, parent);
@@ -349,6 +337,31 @@ export class PurchaseReceiptSyncService {
           parent,
         );
       }),
+    );
+  }
+
+  createStockLedger(payload: PurchaseReceiptDto[], token, settings) {
+    return from(payload).pipe(
+      concatMap(receipt => {
+        return from(receipt.items).pipe(
+          concatMap(item => {
+            return this.createStockLedgerPayload(
+              {
+                pr_no: receipt.purchase_invoice_name,
+                purchaseReciept: item,
+              },
+              token,
+              settings,
+            ).pipe(
+              switchMap((response: StockLedger) => {
+                return from(this.stockLedgerService.create(response));
+              }),
+            );
+          }),
+          toArray(),
+        );
+      }),
+      toArray(),
     );
   }
 
