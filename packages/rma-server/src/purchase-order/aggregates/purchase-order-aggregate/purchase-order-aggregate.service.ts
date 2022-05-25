@@ -179,7 +179,7 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         const stockPayload = new StockLedger();
         stockPayload.name = uuidv4();
         stockPayload.modified = date;
-        stockPayload.modified_by = token.fullName;
+        stockPayload.modified_by = token.email;
         stockPayload.warehouse = payload.purchaseReciept.warehouse;
         stockPayload.item_code = payload.purchaseReciept.item_code;
         stockPayload.actual_qty = -payload.purchaseReciept.qty;

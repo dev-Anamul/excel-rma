@@ -622,7 +622,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
         const stockPayload = new StockLedger();
         stockPayload.name = uuidv4();
         stockPayload.modified = date;
-        stockPayload.modified_by = token.fullName;
+        stockPayload.modified_by = token.email;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
         stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
