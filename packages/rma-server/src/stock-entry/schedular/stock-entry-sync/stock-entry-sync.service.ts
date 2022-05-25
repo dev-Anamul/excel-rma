@@ -1,5 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { switchMap, mergeMap, catchError, concatMap } from 'rxjs/operators';
+import {
+  switchMap,
+  mergeMap,
+  catchError,
+  concatMap,
+  toArray,
+} from 'rxjs/operators';
 import {
   VALIDATE_AUTH_STRING,
   STOCK_ENTRY,
@@ -342,6 +348,7 @@ export class StockEntrySyncService {
           }),
         );
       }),
+      toArray(),
     );
   }
 
@@ -358,7 +365,7 @@ export class StockEntrySyncService {
         const stockPayload = new StockLedger();
         stockPayload.name = uuidv4();
         stockPayload.modified = date;
-        stockPayload.modified_by = token.fullName;
+        stockPayload.modified_by = token.email;
         stockPayload.item_code = deliveryNoteItem.item_code;
         stockPayload.actual_qty = deliveryNoteItem.qty;
         stockPayload.valuation_rate = deliveryNoteItem.basic_rate

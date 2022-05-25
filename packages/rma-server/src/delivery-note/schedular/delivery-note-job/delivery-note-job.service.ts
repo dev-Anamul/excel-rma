@@ -387,7 +387,7 @@ export class DeliveryNoteJobService {
         const stockPayload = new StockLedger();
         stockPayload.name = uuidv4();
         stockPayload.modified = date;
-        stockPayload.modified_by = token.fullName;
+        stockPayload.modified_by = token.email;
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;

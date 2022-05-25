@@ -112,13 +112,13 @@ export class SettingsService extends AggregateRoot {
   }
 
   getFiscalYear(serverSettings: ServerSettings) {
-    const url = FRAPPE_API_FISCAL_YEAR_ENDPOINT;
+    const url = `${serverSettings.authServerURL}${FRAPPE_API_FISCAL_YEAR_ENDPOINT}`;
     const headers = {};
     headers[AUTHORIZATION] = TOKEN_HEADER_VALUE_PREFIX;
     headers[AUTHORIZATION] += serverSettings.serviceAccountApiKey + ':';
     headers[AUTHORIZATION] += serverSettings.serviceAccountApiSecret;
     return this.http.get(url, { headers }).pipe(
-      map(data => data.data),
+      map(data => data.data.data),
       switchMap((response: { name: string }[]) => {
         return of(response.find(fiscalYear => fiscalYear).name);
       }),
