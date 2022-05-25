@@ -2,13 +2,7 @@ import { BadRequestException, HttpService, Injectable } from '@nestjs/common';
 import { AggregateRoot } from '@nestjs/cqrs';
 import { PurchaseOrderPoliciesService } from '../../policies/purchase-order-policies/purchase-order-policies.service';
 import { PurchaseOrderService } from '../../entity/purchase-order/purchase-order.service';
-import {
-  catchError,
-  concatMap,
-  mergeMap,
-  switchMap,
-  toArray,
-} from 'rxjs/operators';
+import { catchError, concatMap, switchMap, toArray } from 'rxjs/operators';
 import { forkJoin, from, of, throwError } from 'rxjs';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
@@ -150,7 +144,7 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
     settings: ServerSettings,
   ) {
     return from(purchaseOrder.items).pipe(
-      mergeMap((item: PurchaseOrderItemDto) => {
+      concatMap((item: PurchaseOrderItemDto) => {
         return this.createStockLedgerPayload(
           {
             pr_no: purchaseOrder.purchase_invoice_name,
