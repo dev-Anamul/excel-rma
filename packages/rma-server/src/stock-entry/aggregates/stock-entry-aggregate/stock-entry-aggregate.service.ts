@@ -110,19 +110,6 @@ export class StockEntryAggregateService {
                 settings,
               );
             }
-            settings
-              .pipe(
-                switchMap(settings => {
-                  return this.stockEntrySyncService.createStockEntry({
-                    payload: stockEntry,
-                    token: req.token,
-                    type: CREATE_STOCK_ENTRY_JOB,
-                    parent: stockEntry.uuid,
-                    settings,
-                  });
-                }),
-              )
-              .subscribe();
           }
 
           if (!mongoSerials) {
@@ -148,6 +135,19 @@ export class StockEntryAggregateService {
               );
             }),
             toArray(),
+            switchMap(() => {
+              return settings.pipe(
+                switchMap(settings => {
+                  return this.stockEntrySyncService.createStockEntry({
+                    payload: stockEntry,
+                    token: req.token,
+                    type: CREATE_STOCK_ENTRY_JOB,
+                    parent: stockEntry.uuid,
+                    settings,
+                  });
+                }),
+              );
+            }),
             switchMap(success => {
               return of(stockEntry);
             }),
