@@ -236,6 +236,7 @@ pack_rma_server_prod:
   only:
     refs:
       - master
+      - unsync
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -252,6 +253,7 @@ pack_rma_frontend_prod:
   only:
     refs:
       - master
+      - unsync
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -268,6 +270,7 @@ pack_rma_warranty_prod:
   only:
     refs:
       - master
+      - unsync
     changes:
       - packages/rma-warranty/**/*
   before_script:
@@ -284,6 +287,7 @@ pack_rma_pos_prod:
   only:
     refs:
       - master
+      - unsync
     changes:
       - packages/rma-pos/**/*
   before_script:
