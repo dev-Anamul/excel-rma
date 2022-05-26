@@ -162,13 +162,33 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
     );
   }
 
+  getDeliveredQuantity(purchase_invoice_name: string, item_code: string) {
+    return from(
+      this.purchaseReceiptService.find({ purchase_invoice_name, item_code }),
+    ).pipe(
+      switchMap(purchaseReciept => {
+        if (purchaseReciept.length) {
+          return of(purchaseReciept.find(x => x).qty);
+        }
+        return of(0);
+      }),
+    );
+  }
+
   createStockLedgerPayload(
     payload: { pr_no: string; purchaseReciept: PurchaseOrderItemDto },
     token,
     settings: ServerSettings,
   ) {
-    return this.serverSettings.getFiscalYear(settings).pipe(
-      switchMap(fiscalYear => {
+    return forkJoin({
+      purchaseDelvieredQty: this.getDeliveredQuantity(
+        payload.pr_no,
+        payload.purchaseReciept.item_code,
+      ),
+      fiscalYear: this.serverSettings.getFiscalYear(settings),
+    }).pipe(
+      switchMap(delieverdState => {
+        payload.purchaseReciept.qty = delieverdState.purchaseDelvieredQty;
         const date = new DateTime(settings.timeZone).toJSDate();
         const stockPayload = new StockLedger();
         stockPayload.name = uuidv4();
@@ -193,7 +213,7 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         stockPayload.stock_value_difference =
           stockPayload.actual_qty * stockPayload.valuation_rate;
         stockPayload.company = settings.defaultCompany;
-        stockPayload.fiscal_year = fiscalYear;
+        stockPayload.fiscal_year = delieverdState.fiscalYear;
         return of(stockPayload);
       }),
     );

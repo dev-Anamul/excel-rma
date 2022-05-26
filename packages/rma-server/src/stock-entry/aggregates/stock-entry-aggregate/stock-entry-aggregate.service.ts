@@ -113,6 +113,19 @@ export class StockEntryAggregateService {
           }
 
           if (!mongoSerials) {
+            settings
+              .pipe(
+                switchMap(settings => {
+                  return this.stockEntrySyncService.createStockEntry({
+                    payload: stockEntry,
+                    token: req.token,
+                    type: CREATE_STOCK_ENTRY_JOB,
+                    parent: stockEntry.uuid,
+                    settings,
+                  });
+                }),
+              )
+              .subscribe();
             return of(stockEntry);
           }
 

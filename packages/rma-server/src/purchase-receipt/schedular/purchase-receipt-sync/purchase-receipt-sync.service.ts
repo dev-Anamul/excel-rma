@@ -252,7 +252,7 @@ export class PurchaseReceiptSyncService {
       };
     } = {};
     const purchase_receipts: PurchaseReceipt[] = this.mapPurchaseReceiptMetaData(
-      { items: payload.map(item => item.items), ...doc },
+      payload,
       token,
       parent,
     );
@@ -445,25 +445,27 @@ export class PurchaseReceiptSyncService {
     purchase_invoice_name,
   ): PurchaseReceipt[] {
     const purchase_receipt_list = [];
-    purchaseReceipt.items.forEach(item => {
-      const purchase_receipt: any = {};
-      purchase_receipt.purchase_document_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
-      purchase_receipt.purchase_document_no = purchaseReceipt.name;
-      purchase_receipt.purchase_invoice_name = purchase_invoice_name;
-      purchase_receipt.amount = item.amount;
-      purchase_receipt.cost_center = item.cost_center;
-      purchase_receipt.expense_account = item.expense_account;
-      purchase_receipt.item_code = item.item_code;
-      purchase_receipt.item_name = item.item_name;
-      purchase_receipt.qty = item.qty;
-      purchase_receipt.rate = item.rate;
-      purchase_receipt.warehouse = item.warehouse;
-      if (item.serial_no) {
-        purchase_receipt.serial_no = item.serial_no.split('\n');
-      }
-      purchase_receipt.deliveredBy = token.fullName;
-      purchase_receipt.deliveredByEmail = token.email;
-      purchase_receipt_list.push(purchase_receipt);
+    purchaseReceipt.forEach(reciept => {
+      reciept.items.forEach(item => {
+        const purchase_receipt: any = {};
+        purchase_receipt.purchase_document_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
+        purchase_receipt.purchase_document_no = purchaseReceipt.name;
+        purchase_receipt.purchase_invoice_name = purchase_invoice_name;
+        purchase_receipt.amount = item.amount;
+        purchase_receipt.cost_center = item.cost_center;
+        purchase_receipt.expense_account = item.expense_account;
+        purchase_receipt.item_code = item.item_code;
+        purchase_receipt.item_name = item.item_name;
+        purchase_receipt.qty = item.qty;
+        purchase_receipt.rate = item.rate;
+        purchase_receipt.warehouse = item.warehouse;
+        if (item.serial_no) {
+          purchase_receipt.serial_no = item.serial_no.split('\n');
+        }
+        purchase_receipt.deliveredBy = token.fullName;
+        purchase_receipt.deliveredByEmail = token.email;
+        purchase_receipt_list.push(purchase_receipt);
+      });
     });
     return purchase_receipt_list;
   }
