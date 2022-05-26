@@ -11,8 +11,8 @@ export class PurchaseReceiptService {
     private readonly purchaseReceiptRepository: MongoRepository<PurchaseReceipt>,
   ) {}
 
-  async find() {
-    return await this.purchaseReceiptRepository.find();
+  async find(options?) {
+    return await this.purchaseReceiptRepository.find(options);
   }
 
   async create(purchaseReceipt: PurchaseReceipt) {
