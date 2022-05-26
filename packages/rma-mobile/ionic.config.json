@@ -1,7 +1,0 @@
-{
-  "name": "rma-mobile",
-  "type": "angular",
-  "integrations": {
-    "cordova": {}
-  }
-}

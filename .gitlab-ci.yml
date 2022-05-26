@@ -33,20 +33,20 @@ test_rma_frontend:
   tags:
     - docker
 
-test_rma_mobile:
+test_rma_pos:
   image: registry.gitlab.com/castlecraft/docker-craft/node-16-headless-chrome:latest
   stage: tests
   cache:
     key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
-      - packages/rma-mobile/node_modules/
+      - packages/rma-pos/node_modules/
   only:
     changes:
-      - packages/rma-mobile/**/*
+      - packages/rma-pos/**/*
     refs:
       - merge_requests
   before_script:
-    - cd packages/rma-mobile
+    - cd packages/rma-pos
     - npm install
   script:
     # Check Code Quality
@@ -85,9 +85,8 @@ test_rma_warranty:
     - npm run format:check
     # Test backend unit tests
     - npm run test
-    # Test backend e2e
-    - npm run e2e
-    - npm run build -- --prod
+    # - npm run e2e
+    # - npm run build -- --prod
   tags:
     - docker
 
@@ -164,6 +163,21 @@ pack_rma_warranty_staging:
     - docker tag rma-warranty $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:latest
     - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:latest
 
+pack_rma_pos_staging:
+  image: docker
+  stage: pack
+  only:
+    refs:
+      - develop
+    changes:
+      - packages/rma-pos/**/*
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  script:
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest -t rma-pos packages/rma-pos
+    - docker tag rma-pos $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:latest
+
 deploy_staging_frontend:
   image: alpine:latest
   stage: deploy
@@ -176,6 +190,19 @@ deploy_staging_frontend:
     - apk add curl bash
   script:
     - curl -Ss -X POST $FRONTEND_UPDATE_KEY
+
+deploy_staging_pos:
+  image: alpine:latest
+  stage: deploy
+  only:
+    refs:
+      - develop
+    changes:
+      - packages/rma-pos/**/*
+  before_script:
+    - apk add curl bash
+  script:
+    - curl -Ss -X POST $POS_UPDATE_KEY
 
 deploy_staging_server:
   image: alpine:latest
@@ -250,3 +277,19 @@ pack_rma_warranty_prod:
     - export VERSION=$(git tag --list "rma-warranty@*" --sort=-version:refname | sed -n 1p | sed -e 's#.*@\(\)#\1#')
     - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:$VERSION packages/rma-warranty
     - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:$VERSION
+
+pack_rma_pos_prod:
+  image: docker
+  stage: pack
+  only:
+    refs:
+      - master
+    changes:
+      - packages/rma-pos/**/*
+  before_script:
+    - apk add git
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  script:
+    - export VERSION=$(git tag --list "rma-pos@*" --sort=-version:refname | sed -n 1p | sed -e 's#.*@\(\)#\1#')
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:$VERSION packages/rma-pos
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:$VERSION
