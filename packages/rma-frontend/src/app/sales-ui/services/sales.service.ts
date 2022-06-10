@@ -538,7 +538,6 @@ export class SalesService {
 
   relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
     const url = STOCK_AVAILABILITY_ENDPOINT;
-
     const params = new HttpParams({
       fromObject: {
         fields: '["*"]',
@@ -551,7 +550,9 @@ export class SalesService {
       switchMap(headers => {
         return this.http.get<any>(url, { headers, params });
       }),
-      map(res => res.data),
+      map(res =>{
+        return res
+      }),
     );
   }
 

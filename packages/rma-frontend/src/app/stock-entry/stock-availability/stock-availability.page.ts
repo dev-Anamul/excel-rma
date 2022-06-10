@@ -159,28 +159,28 @@ export class StockAvailabilityPage implements OnInit {
       this.filters.push([
         'item_code',
         'like',
-        `%${this.f.itemName.value.item_code}%`,
+        `${this.f.itemName.value.item_code}`,
       ]);
       this.countFilter.item_code = [
         'like',
-        `%${this.f.itemName.value.item_code}%`,
+        `${this.f.itemName.value.item_code}`,
       ];
     }
 
     if (this.f.warehouse.value) {
-      this.filters.push(['warehouse', 'like', `%${this.f.warehouse.value}%`]);
-      this.countFilter.warehouse = ['like', `%${this.f.warehouse.value}%`];
+      this.filters.push(['warehouse', 'like', `${this.f.warehouse.value}`]);
+      this.countFilter.warehouse = ['like', `${this.f.warehouse.value}`];
     }
 
     if (this.f.excel_item_group.value) {
       this.filters.push([
         'excel_item_group',
         'like',
-        `%${this.f.excel_item_group.value.name}%`,
+        `${this.f.excel_item_group.value.name}`,
       ]);
       this.countFilter.excel_item_group = [
         'like',
-        `%${this.f.excel_item_group.value.name}%`,
+        `${this.f.excel_item_group.value.name}`,
       ];
     }
 
@@ -188,11 +188,11 @@ export class StockAvailabilityPage implements OnInit {
       this.filters.push([
         'excel_item_brand',
         'like',
-        `%${this.f.excel_item_brand.value.brand}%`,
+        `${this.f.excel_item_brand.value.brand}`,
       ]);
       this.countFilter.excel_item_brand = [
         'like',
-        `%${this.f.excel_item_brand.value.brand}%`,
+        `${this.f.excel_item_brand.value.brand}`,
       ];
     }
 
