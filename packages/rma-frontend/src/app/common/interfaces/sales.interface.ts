@@ -42,6 +42,7 @@ export class Item {
   item_defaults?: ItemDefaults;
   source_warehouse?: string;
   target_warehouse?: string;
+  excel_serials: string;
 }
 
 export class ItemDefaults {

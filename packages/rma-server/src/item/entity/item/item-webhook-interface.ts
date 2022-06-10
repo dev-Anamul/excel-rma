@@ -78,6 +78,7 @@ export interface ItemApiResponseInterface {
   item_defaults: ItemDefaultsInterface[];
   taxes: any[];
   brand?: string;
+  excel_serials: string;
 }
 
 export interface ItemBundleWebhookInterface {
@@ -100,4 +101,5 @@ export interface ItemBundleItemWebhookInterface {
   qty: number;
   rate: number;
   uom: string;
+  excel_serials:string;
 }

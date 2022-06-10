@@ -54,6 +54,8 @@ import {
   UPDATE_SALES_INVOICE_ITEM_MRP,
   RELAY_LIST_SALES_RETURN_ENDPOINT,
   GET_STOCK_BALANCE_ENDPOINT,
+  INVOICE_LIST,
+  INVOICE_PUT
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -291,7 +293,6 @@ export class SalesService {
 
   assignSerials(assignSerial: SerialAssign) {
     const url = ASSIGN_SERIAL_ENDPOINT;
-
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.post(url, assignSerial, {
@@ -301,11 +302,40 @@ export class SalesService {
     );
   }
 
+  assignInvoice (invoiceName :any ) {
+    const params = new HttpParams().set(
+      'name',
+      invoiceName,
+    );
+    const url=INVOICE_LIST;
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers,params });
+      }),
+      map(res => res.data),
+    );
+  }
+  updateInvoice (invoiceBody: any, invoiceName :any ) {
+    const params = new HttpParams().set(
+      'name',
+      invoiceName,
+    )
+    .set('body',
+    invoiceBody
+    )
+    const url=INVOICE_PUT;
+    debugger
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.put<any>(url, {headers,params });
+      }))
+  }
+
   getItemList(
     filter: any = {},
     sortOrder: any = { item_name: 'asc' },
     pageIndex = 0,
-    pageSize = 30,
+    pageSize = 30,  
     query?: { [key: string]: any },
   ) {
     try {

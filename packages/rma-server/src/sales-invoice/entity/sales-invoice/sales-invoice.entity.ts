@@ -201,4 +201,5 @@ export class Item {
   qty: number;
   rate: number;
   amount: number;
+  excel_serials: string;
 }

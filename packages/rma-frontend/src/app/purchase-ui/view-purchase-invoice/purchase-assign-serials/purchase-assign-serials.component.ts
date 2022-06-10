@@ -623,10 +623,10 @@ export class PurchaseAssignSerialsComponent implements OnInit {
           );
           return true;
         }
-        this.assignRangeSerial(
-          element,
-          csvJsonObj[element.item_name].serial_no,
-        );
+        // this.assignRangeSerial(
+        //   element,
+        //   csvJsonObj[element.item_name].serial_no,
+        // );
         return false;
       }
     });

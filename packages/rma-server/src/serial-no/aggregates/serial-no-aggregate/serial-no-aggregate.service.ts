@@ -15,8 +15,8 @@ import {
 } from '../../entity/serial-no/serial-no-dto';
 import { SerialNo } from '../../entity/serial-no/serial-no.entity';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
-import { switchMap, retry, finalize } from 'rxjs/operators';
-import { throwError, of, from } from 'rxjs';
+import { switchMap, retry, finalize, map } from 'rxjs/operators';
+import { throwError, of, from, forkJoin } from 'rxjs';
 import {
   AUTHORIZATION,
   CONTENT_TYPE,
@@ -24,13 +24,14 @@ import {
   ACCEPT,
 } from '../../../constants/app-strings';
 import { BEARER_HEADER_VALUE_PREFIX } from '../../../constants/app-strings';
-import { FRAPPE_API_SERIAL_NO_ENDPOINT } from '../../../constants/routes';
+import { FRAPPE_API_SERIAL_NO_ENDPOINT, INVOICE_LIST } from '../../../constants/routes';
 import { SerialNoPoliciesService } from '../../policies/serial-no-policies/serial-no-policies.service';
 import {
   SUPPLIER_PROJECT_QUERY,
   CUSTOMER_PROJECT_QUERY,
   ITEM_PROJECT_QUERY,
 } from '../../../constants/query';
+import { ClientTokenManagerService } from '../../../auth/aggregates/client-token-manager/client-token-manager.service';
 import { AssignSerialDto } from '../../entity/serial-no/assign-serial-dto';
 import { AssignSerialNoPoliciesService } from '../../policies/assign-serial-no-policies/assign-serial-no-policies.service';
 import { DeliveryNoteAggregateService } from '../../../delivery-note/aggregates/delivery-note-aggregate/delivery-note-aggregate.service';
@@ -56,6 +57,7 @@ export class SerialNoAggregateService extends AggregateRoot {
     private readonly deliveryNoteAggregateService: DeliveryNoteAggregateService,
     private readonly errorLogService: ErrorLogService,
     private readonly salesInvoiceService: SalesInvoiceService,
+    private readonly clientToken: ClientTokenManagerService
   ) {
     super();
   }
@@ -143,6 +145,27 @@ export class SerialNoAggregateService extends AggregateRoot {
 
   async getSerialNoList(offset, limit, sort, filterQuery) {
     return this.serialNoService.list(offset, limit, sort, filterQuery);
+  }
+
+
+  updateSalesDoc (updatedInvoice,invoiceParam){
+    console.log("updatedInvoice",updatedInvoice )
+    console.log("updatedParams",invoiceParam )
+    return forkJoin({
+      headers: this.clientToken.getServiceAccountApiHeaders(),
+      settings: this.settingsService.find(),
+    }).pipe(
+      switchMap(({ headers, settings }) => {
+
+        const url = settings.authServerURL + INVOICE_LIST+ "/"+ invoiceParam;
+        const body = updatedInvoice
+        return this.http
+          .put(url, body,{
+            headers
+          })
+      }),
+    );
+
   }
 
   syncNewSerialNo(serialNo: SerialNo, clientHttpRequest) {
@@ -312,4 +335,23 @@ export class SerialNoAggregateService extends AggregateRoot {
       }),
     );
   }
+
+  retrieveSalesDoc (invoiceParam) {
+    return forkJoin({
+      headers: this.clientToken.getServiceAccountApiHeaders(),
+      settings: this.settingsService.find(),
+    }).pipe(
+      switchMap(({ headers, settings }) => {
+        const url = settings.authServerURL + INVOICE_LIST+ "/"+ invoiceParam;
+        return this.http
+          .get(url, {
+            headers
+          })
+          .pipe(map(res => res.data));
+      }),
+    );
+  }
+
+
+  
 }

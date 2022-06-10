@@ -171,3 +171,8 @@ export const SYNC_FRAPPE_ITEMS_ENDPOINT = '/api/item/v1/sync_items';
 export const DELETE_EMPTY_JOBS_ENDPOINT = '/api/job_queue/v1/delete_empty_jobs';
 export const GET_STOCK_ENTRY_DELIVERED_SERIALS =
   '/api/stock_entry/v1/get_delivered_serials';
+
+export const INVOICE_LIST = 
+'/api/serial_no/v1/invoicelist'
+export const INVOICE_PUT = 
+'/api/serial_no/v1/updateInvoice'

@@ -571,7 +571,6 @@ export class SerialsComponent implements OnInit {
         assignSerial.items.push(item_hash[key]);
       }
     });
-
     this.salesService.assignSerials(assignSerial).subscribe({
       next: success => {
         this.submit = false;
@@ -600,6 +599,15 @@ export class SerialsComponent implements OnInit {
         });
       },
     });
+
+    this.salesService.assignInvoice(assignSerial.sales_invoice_name).subscribe ((data) =>{
+      for( let i =0 ; i< assignSerial.items.length ; i++){
+        data['items'][i]['excel_serials'] = assignSerial.items[i].serial_no.join(",");
+      }
+     this.salesService.updateInvoice(data,assignSerial.sales_invoice_name).subscribe((value)=>{
+     })
+    });
+
   }
 
   mergeDuplicateItems() {

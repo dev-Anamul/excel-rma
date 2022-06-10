@@ -199,6 +199,10 @@ export class SalesInvoiceWebhookItemDto {
   @IsNumber()
   @IsNotEmpty()
   amount: number;
+
+  @IsOptional()
+  @IsString()
+  excel_serials: string;
 }
 
 export class SalesInvoicePaymentScheduleDto {
