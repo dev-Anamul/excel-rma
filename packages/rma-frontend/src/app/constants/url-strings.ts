@@ -87,7 +87,8 @@ export const UPDATE_CREDIT_LIMIT_RMA_CUSTOMER_ENDPOINT =
 export const UPDATE_CUSTOMER_CREDIT_LIMIT_ENDPOINT =
   '/api/command/user/api/resource/Customer%20Credit%20Limit';
 export const CUSTOMER_ENDPOINT = '/api/command/user/api/resource/Customer';
-export const STOCK_AVAILABILITY_ENDPOINT = '/api/command/user/api/resource/Bin';
+//export const STOCK_AVAILABILITY_ENDPOINT = '/api/command/user/api/resource/Bin';
+export const STOCK_AVAILABILITY_ENDPOINT = '/api/stock-ledger/v1/list'
 export const GET_BALANCE_ON_ENDPOINT =
   '/api/command/user/api/method/erpnext.accounts.utils.get_balance_on';
 export const RELAY_API_RES_COMPANY = '/api/command/user/api/resource/Company';
