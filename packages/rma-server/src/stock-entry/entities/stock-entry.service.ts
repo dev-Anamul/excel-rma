@@ -5,7 +5,8 @@ import { MongoRepository } from 'typeorm';
 import { STOCK_ENTRY_LIST_ITEM_SELECT_KEYS } from '../../constants/app-strings';
 import { PARSE_REGEX } from '../../constants/app-strings';
 import { PermissionStateInterface } from '../../constants/agenda-job';
-
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 @Injectable()
 export class StockEntryService {
   constructor(
@@ -176,4 +177,13 @@ export class StockEntryService {
   async insertMany(query, options?) {
     return await this.stockEntryRepository.insertMany(query, options);
   }
+
+   asyncAggregate(query) {
+    return of(this.stockEntryRepository.aggregate(query)).pipe(
+      switchMap((aggregateData: any) => {
+        return aggregateData.toArray();
+      }),
+    );
+  }
+
 }

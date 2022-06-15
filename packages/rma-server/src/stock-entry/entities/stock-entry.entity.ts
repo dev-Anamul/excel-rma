@@ -83,6 +83,9 @@ export class StockEntry extends BaseEntity {
   @Column()
   item_data: any;
 
+  @Column({ unique: true })
+  stock_id:any;
+
   naming_series?: string;
 }
 
