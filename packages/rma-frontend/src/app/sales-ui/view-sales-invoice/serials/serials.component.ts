@@ -601,9 +601,30 @@ export class SerialsComponent implements OnInit {
     });
 
     this.salesService.assignInvoice(assignSerial.sales_invoice_name).subscribe ((data) =>{
-      for( let i =0 ; i< assignSerial.items.length ; i++){
-        data['items'][i]['excel_serials'] = assignSerial.items[i].serial_no.join(",");
-      }
+      data['items'].forEach((element) => {
+       assignSerial.items.find((value) => {
+             if (value.item_code == element['item_code']) {
+              if( value['has_serial_no'] == 0) {
+                if( !element['excel_serials']){
+                 return  element['excel_serials'] = value['serial_no'].join("")
+                } 
+              }
+              else {
+                if ( element['excel_serials']) {
+                  if(value['serial_no'].length > 1 ){
+                    return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(', ')
+                  }
+                  else {
+                    return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(',')
+                  }
+                }
+                else {
+                  return element['excel_serials'] = value['serial_no'].join(",");
+                }
+              }
+          }  
+     })
+    })
      this.salesService.updateInvoice(data,assignSerial.sales_invoice_name).subscribe((value)=>{
      })
     });

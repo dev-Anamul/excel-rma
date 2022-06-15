@@ -149,8 +149,6 @@ export class SerialNoAggregateService extends AggregateRoot {
 
 
   updateSalesDoc (updatedInvoice,invoiceParam){
-    console.log("updatedInvoice",updatedInvoice )
-    console.log("updatedParams",invoiceParam )
     return forkJoin({
       headers: this.clientToken.getServiceAccountApiHeaders(),
       settings: this.settingsService.find(),
