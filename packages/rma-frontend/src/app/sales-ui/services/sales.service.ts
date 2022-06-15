@@ -56,7 +56,8 @@ import {
   GET_STOCK_BALANCE_ENDPOINT,
   INVOICE_LIST,
   INVOICE_PUT,
-  STOCK_AVAILABILITY_COUNT_ENDPOINT
+  STOCK_AVAILABILITY_COUNT_ENDPOINT,
+  GET_DOCTYPE_COUNT_METHOD
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -584,6 +585,23 @@ export class SalesService {
       map(res =>{
         return res
       }),
+    );
+  }
+
+  getDoctypeCount(doctype: string, filters) {
+    const url = GET_DOCTYPE_COUNT_METHOD;
+    const params = new HttpParams({
+      fromObject: {
+        doctype,
+        filters: JSON.stringify(filters),
+      },
+    });
+
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => res.message),
     );
   }
 
