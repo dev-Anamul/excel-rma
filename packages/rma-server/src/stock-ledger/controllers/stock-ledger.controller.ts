@@ -66,13 +66,6 @@ export class StockLedgerController {
         sort,
         filter,
         req,
-      ),
-      this.aggregate.getStockLedgerListCount(
-        Number(limit_start) || 0,
-        Number(limit_page_length) || 10,
-        sort,
-        filter,
-        req,
       )
       
     }
