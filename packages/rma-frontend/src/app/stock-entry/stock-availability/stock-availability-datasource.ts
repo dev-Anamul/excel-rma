@@ -55,9 +55,11 @@ export class StockAvailabilityDataSource extends DataSource<ListingData> {
       )
       .subscribe(items => this.itemSubject.next(items));
 
-    this.salesService.getDoctypeCount('Bin', countFilter).subscribe({
+    this.salesService.getDocCount(pageIndex, pageSize, filters).subscribe({
       next: res => {
-        this.length = res;
+        res.forEach(element => {
+          this.length = element.count
+        });
       },
     });
   }

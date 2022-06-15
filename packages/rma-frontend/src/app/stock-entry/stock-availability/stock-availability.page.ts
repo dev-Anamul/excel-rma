@@ -54,8 +54,8 @@ export class StockAvailabilityPage implements OnInit {
       this.paginator.firstPage();
     });
     if (!this.f.actual_qty.value) {
-      this.filters.push(['actual_qty', '!=', `0`]);
-      this.countFilter.actual_qty = ['!=', `0`];
+      this.filters.push(['actual_qty', '!=', 0]);
+      this.countFilter.actual_qty = ['!=', 0];
     }
     this.dataSource = new StockAvailabilityDataSource(this.salesService);
     this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
@@ -197,8 +197,13 @@ export class StockAvailabilityPage implements OnInit {
     }
 
     if (!this.f.actual_qty.value) {
-      this.filters.push(['actual_qty', '!=', `0`]);
-      this.countFilter.actual_qty = ['!=', `0`];
+      this.filters.push(['actual_qty', '!=', 0]);
+      this.countFilter.actual_qty = ['!=', 0];
+    }
+    else{
+      this.filters.push(['actual_qty', '==', 0]);
+      this.countFilter.actual_qty = ['==', 0];
+
     }
 
     this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
