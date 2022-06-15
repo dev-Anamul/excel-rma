@@ -43,7 +43,7 @@ import {
   VALIDATE_RETURN_SERIALS,
   GET_CUSTOMER_ENDPOINT,
   CUSTOMER_ENDPOINT,
-  GET_DOCTYPE_COUNT_METHOD,
+  // GET_DOCTYPE_COUNT_METHOD,
   GET_PRODUCT_BUNDLE_ITEMS,
   REMOVE_SALES_INVOICE_ENDPOINT,
   RELAY_GET_ITEM_GROUP_ENDPOINT,
@@ -54,6 +54,7 @@ import {
   UPDATE_SALES_INVOICE_ITEM_MRP,
   RELAY_LIST_SALES_RETURN_ENDPOINT,
   GET_STOCK_BALANCE_ENDPOINT,
+  STOCK_AVAILABILITY_COUNT_ENDPOINT,
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -536,7 +537,7 @@ export class SalesService {
     );
   }
 
-  relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
+    relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
     const url = STOCK_AVAILABILITY_ENDPOINT;
     const params = new HttpParams({
       fromObject: {
@@ -556,20 +557,23 @@ export class SalesService {
     );
   }
 
-  getDoctypeCount(doctype: string, filters) {
-    const url = GET_DOCTYPE_COUNT_METHOD;
+  getDocCount(pageIndex = 0, pageSize = 30, filters) {
+    const url = STOCK_AVAILABILITY_COUNT_ENDPOINT;
     const params = new HttpParams({
       fromObject: {
-        doctype,
+        fields: '["*"]',
         filters: JSON.stringify(filters),
+        limit_page_length: pageSize.toString(),
+        limit_start: (pageIndex * pageSize).toString(),
       },
     });
-
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.get<any>(url, { headers, params });
       }),
-      map(res => res.message),
+      map(res =>{
+        return res
+      }),
     );
   }
 
