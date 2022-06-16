@@ -70,6 +70,7 @@ export class SerialsComponent implements OnInit {
   csvFileInput: ElementRef;
 
   xlsxData: any;
+
   value: string;
   date = new FormControl(new Date());
   claimsReceivedDate: string;
@@ -149,6 +150,7 @@ export class SerialsComponent implements OnInit {
   index: number = 0;
   size: number = 10;
   itemMap: any = {};
+  validSerials: boolean = true;
 
   constructor(
     private readonly salesService: SalesService,
@@ -573,6 +575,7 @@ export class SerialsComponent implements OnInit {
     });
     this.salesService.assignSerials(assignSerial).subscribe({
       next: success => {
+        this.validSerials = true;
         this.submit = false;
         loading.dismiss();
         this.snackBar.open(SERIAL_ASSIGNED, CLOSE, {
@@ -581,6 +584,7 @@ export class SerialsComponent implements OnInit {
         this.viewSalesInvoicePage.selectedSegment = 0;
       },
       error: err => {
+        this.validSerials = false;
         loading.dismiss();
         this.submit = false;
         if (err.status === 406) {
@@ -610,6 +614,8 @@ export class SerialsComponent implements OnInit {
                 } 
               }
               else {
+                if(this.validSerials){
+                this.validSerials=true;
                 if ( element['excel_serials']) {
                   if(value['serial_no'].length > 1 ){
                     return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(', ')
@@ -622,6 +628,7 @@ export class SerialsComponent implements OnInit {
                   return element['excel_serials'] = value['serial_no'].join(", ");
                 }
               }
+            }
           }  
      })
     })
