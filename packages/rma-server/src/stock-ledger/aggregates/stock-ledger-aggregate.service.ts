@@ -27,7 +27,7 @@ export class StockLedgerAggregateService {
             filter_Obj["_id.warehouse"] = element[2]
           }
           if(element[1] == "=="){
-              filter_Obj["stockAvailability"] = {$eq: element[2]}
+              filter_Obj["stockAvailability"] = {$lte: element[2]}
           }
           if(element[1] == "!="){
             filter_Obj["stockAvailability"] = {$gt: element[2]}
@@ -109,7 +109,7 @@ export class StockLedgerAggregateService {
               filter_Obj["_id.warehouse"] = element[2]
             }
             if(element[1] == "=="){
-                filter_Obj["stockAvailability"] = {$eq: element[2]}
+                filter_Obj["stockAvailability"] = {$lte: element[2]}
             }
             if(element[1] == "!="){
                 filter_Obj["stockAvailability"] = {$gt: element[2]}
