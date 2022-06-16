@@ -111,6 +111,9 @@ export class StockLedgerAggregateService {
             if(element[1] == "=="){
                 filter_Obj["stockAvailability"] = {$eq: element[2]}
             }
+            if(element[1] == "!="){
+                filter_Obj["stockAvailability"] = {$gt: element[2]}
+            }
           });
           if(Object.entries(filter_Obj).length != 0 ){
               var obj : any= {
