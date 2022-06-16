@@ -615,11 +615,11 @@ export class SerialsComponent implements OnInit {
                     return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(', ')
                   }
                   else {
-                    return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(',')
+                    return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(', ')
                   }
                 }
                 else {
-                  return element['excel_serials'] = value['serial_no'].join(",");
+                  return element['excel_serials'] = value['serial_no'].join(", ");
                 }
               }
           }  
