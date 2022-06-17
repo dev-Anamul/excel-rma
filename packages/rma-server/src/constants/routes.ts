@@ -97,5 +97,7 @@ export const RELAY_GET_STOCK_BALANCE_ENDPOINT =
 export const POST_WARRANTY_PRINT_ENDPOINT =
   '/api/resource/Excel%20Warranty%20Print';
 
+  export const POST_STOCK_PRINT_ENDPOINT =
+  '/api/resource/Excel%20Stock%20Print';
   export const INVOICE_LIST = 
   '/api/resource/Sales%20Invoice'

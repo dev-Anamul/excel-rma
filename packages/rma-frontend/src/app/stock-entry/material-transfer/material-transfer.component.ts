@@ -1129,6 +1129,7 @@ export class MaterialTransferComponent implements OnInit {
       STOCK_ENTRY_TYPE.MATERIAL_TRANSFER
     ) {
       this.stock_receipt_names.forEach(name =>
+        // names.push('TROUT-2022-00053')
         name.includes('TROUT') ? names.push(name) : null,
       );
     } else {
@@ -1139,6 +1140,7 @@ export class MaterialTransferComponent implements OnInit {
       .pipe(
         switchMap((data: any) => {
           data = Object.values(data);
+          console.log("erp data",data)
           const aggregatedDeliveryNotes = this.salesService.getAggregatedDocument(
             data,
           );
@@ -1190,6 +1192,22 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   async getPrint() {
+    // const loading = await this.loadingController.create({
+    //   message: `Generating Print...!`,
+    // });
+    // await loading.present();
+    console.log(this.activatedRoute.snapshot.params.uuid)
+    this.salesService.getStockEntry(this.activatedRoute.snapshot.params.uuid).subscribe ((data : any) => {
+      console.log('before' , data)
+      // const aggregatedDeliveryNotes = this.salesService.getAggregatedDocument(
+      //   data
+      // );
+      // console.log(aggregatedDeliveryNotes)
+  
+      // this.salesService.sendDocument(doc).subscribe((data)=>{
+
+      // })
+    })
     const doc =
       this.form.controls.stock_entry_type.value ===
       STOCK_ENTRY_TYPE.RnD_PRODUCTS
