@@ -904,7 +904,7 @@ export class StockEntryAggregateService {
         }
         url = `${setting.authServerURL}${POST_STOCK_PRINT_ENDPOINT}`;
         return this.http.get(`${url}/${stockPrintBody.uuid}`, {
-          headers: {
+          headers: {  
             authorization: req.body.headers.Authorization,
             Accept: APPLICATION_JSON_CONTENT_TYPE,
           },
