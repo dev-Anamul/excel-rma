@@ -47,7 +47,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { StockItemsDataSource } from './items-datasource';
 import { MatDialog } from '@angular/material/dialog';
-import { Item } from '../../common/interfaces/sales.interface';
+import { Item, MaterialPrintDto } from '../../common/interfaces/sales.interface';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import { AddItemDialog } from './add-item-dialog';
 import { SettingsService } from '../../settings/settings.service';
@@ -171,7 +171,7 @@ export class MaterialTransferComponent implements OnInit {
     private router: Router,
     private readonly service: SettingsService,
     private readonly loadingController: LoadingController,
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.subscribeEndpoints();
@@ -214,7 +214,7 @@ export class MaterialTransferComponent implements OnInit {
           this.typeChange(success.stock_entry_type);
           this.updateItemStock();
         },
-        error: err => {},
+        error: err => { },
       });
       return;
     }
@@ -313,7 +313,7 @@ export class MaterialTransferComponent implements OnInit {
           DELIVERED_SERIALS_BY.sales_invoice_name;
         this.deliveredSerialsState.deliveredSerialsDisplayedColumns =
           DELIVERED_SERIALS_DISPLAYED_COLUMNS[
-            DELIVERED_SERIALS_BY.sales_invoice_name
+          DELIVERED_SERIALS_BY.sales_invoice_name
           ];
         this.deliveredSerialsState.uuid = this.uuid;
         break;
@@ -323,7 +323,7 @@ export class MaterialTransferComponent implements OnInit {
           DELIVERED_SERIALS_BY.sales_invoice_name;
         this.deliveredSerialsState.deliveredSerialsDisplayedColumns =
           DELIVERED_SERIALS_DISPLAYED_COLUMNS[
-            DELIVERED_SERIALS_BY.sales_invoice_name
+          DELIVERED_SERIALS_BY.sales_invoice_name
           ];
         this.deliveredSerialsState.uuid = this.uuid;
         break;
@@ -333,7 +333,7 @@ export class MaterialTransferComponent implements OnInit {
           DELIVERED_SERIALS_BY.purchase_invoice_name;
         this.deliveredSerialsState.deliveredSerialsDisplayedColumns =
           DELIVERED_SERIALS_DISPLAYED_COLUMNS[
-            DELIVERED_SERIALS_BY.purchase_invoice_name
+          DELIVERED_SERIALS_BY.purchase_invoice_name
           ];
         this.deliveredSerialsState.uuid = this.uuid;
 
@@ -341,7 +341,7 @@ export class MaterialTransferComponent implements OnInit {
         this.deliveredSerialsState.type = DELIVERED_SERIALS_BY.stock_entry_uuid;
         this.deliveredSerialsState.deliveredSerialsDisplayedColumns =
           DELIVERED_SERIALS_DISPLAYED_COLUMNS[
-            DELIVERED_SERIALS_BY.purchase_invoice_name
+          DELIVERED_SERIALS_BY.purchase_invoice_name
           ];
         this.deliveredSerialsState.uuid = this.uuid;
     }
@@ -530,7 +530,7 @@ export class MaterialTransferComponent implements OnInit {
     item.warehouse = this.warehouseState.s_warehouse.value;
     item.validateFor =
       this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+        STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
         ? PURCHASE_RECEIPT
         : DELIVERY_NOTE;
     this.salesService.validateSerials(item).subscribe({
@@ -548,7 +548,7 @@ export class MaterialTransferComponent implements OnInit {
         }
         this.assignRangeSerial(row, this.rangePickerState.serials);
       },
-      error: err => {},
+      error: err => { },
     });
   }
 
@@ -578,11 +578,10 @@ export class MaterialTransferComponent implements OnInit {
     if (
       (assignValue || 0) + row.assigned > row.available_stock &&
       this.form.controls.stock_entry_type.value !==
-        STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+      STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
     ) {
       this.getMessage(
-        `Cannot assign ${(assignValue || 0) + row.assigned}, Only ${
-          row.available_stock - (row.assigned || 0)
+        `Cannot assign ${(assignValue || 0) + row.assigned}, Only ${row.available_stock - (row.assigned || 0)
         } available.`,
       );
       return;
@@ -678,7 +677,7 @@ export class MaterialTransferComponent implements OnInit {
     }
     const warrantyInMonths =
       this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+        STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
         ? item.purchaseWarrantyMonths
         : item.salesWarrantyMonths;
 
@@ -874,7 +873,7 @@ export class MaterialTransferComponent implements OnInit {
     if (
       !this.warehouseState.s_warehouse.value &&
       this.form.controls.stock_entry_type.value !==
-        STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+      STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
     ) {
       this.getMessage('Please select source warehouse.');
       return false;
@@ -922,8 +921,8 @@ export class MaterialTransferComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: success => {},
-        error: err => {},
+        next: success => { },
+        error: err => { },
       });
   }
 
@@ -1129,6 +1128,7 @@ export class MaterialTransferComponent implements OnInit {
       STOCK_ENTRY_TYPE.MATERIAL_TRANSFER
     ) {
       this.stock_receipt_names.forEach(name =>
+        // names.push('TROUT-2022-00053')
         name.includes('TROUT') ? names.push(name) : null,
       );
     } else {
@@ -1139,6 +1139,7 @@ export class MaterialTransferComponent implements OnInit {
       .pipe(
         switchMap((data: any) => {
           data = Object.values(data);
+          console.log("erp data", data)
           const aggregatedDeliveryNotes = this.salesService.getAggregatedDocument(
             data,
           );
@@ -1160,8 +1161,8 @@ export class MaterialTransferComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: success => {},
-        error: err => {},
+        next: success => { },
+        error: err => { },
       });
   }
 
@@ -1190,18 +1191,43 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   async getPrint() {
-    const doc =
-      this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.RnD_PRODUCTS
-        ? `Delivery Note`
-        : `Stock Entry`;
-    this.printDeliveryNote(doc);
+    // const loading = await this.loadingController.create({
+    //   message: `Generating Print...!`,
+    // });
+    // await loading.present();
+    console.log(this.activatedRoute.snapshot.params.uuid)
+    this.salesService.getStockEntry(this.activatedRoute.snapshot.params.uuid).subscribe((data: any) => {
+      const printBody = {} as MaterialPrintDto;
+
+      printBody.stock_entry_type = data.stock_entry_type
+      printBody.uuid = data.uuid
+      printBody.company = data.company
+      printBody.territory = data.territory
+      printBody.remarks = data.remarks
+      printBody.customer = data.customer
+      printBody.posting_date = data.posting_date
+      printBody.posting_time = data.posting_time
+      printBody.items = data.items
+      printBody.status = data.status
+      printBody.items.forEach( (value)=> {
+      return value.serial_no =value.serial_no.join(', ')
+      })
+      this.salesService.sendDocument(printBody).subscribe((data) => {
+      })
+    })
+    // const doc =
+    //   this.form.controls.stock_entry_type.value ===
+    //   STOCK_ENTRY_TYPE.RnD_PRODUCTS
+    //     ? `Delivery Note`
+    //     : `Stock Entry`;
+    // this.printDeliveryNote(doc);
   }
 
   showJobs() {
     this.router.navigateByUrl(`jobs?parent=${this.uuid}`);
   }
 }
+
 
 export class ItemInterface {
   item_code?: string;

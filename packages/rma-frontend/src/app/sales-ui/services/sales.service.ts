@@ -57,7 +57,9 @@ import {
   INVOICE_LIST,
   INVOICE_PUT,
   STOCK_AVAILABILITY_COUNT_ENDPOINT,
-  GET_DOCTYPE_COUNT_METHOD
+  GET_DOCTYPE_COUNT_METHOD,
+  GET_STOCK_ENTRY,
+  SYNC_STOCK_PRINT_ENDPOINT
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -326,7 +328,6 @@ export class SalesService {
     invoiceBody
     )
     const url=INVOICE_PUT;
-    debugger
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.put<any>(url, {headers,params });
@@ -877,6 +878,21 @@ export class SalesService {
     return this.http.get<any>(API_INFO_ENDPOINT);
   }
 
+  sendDocument(invoice:any) {
+    const params = new HttpParams().set(
+      'invoice',
+      invoice,
+    )
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.post(SYNC_STOCK_PRINT_ENDPOINT, {
+          headers,
+          params
+        });
+      }),
+    );
+  }
+  
   getAggregatedDocument(res: AggregatedDocument[]) {
     const itemsHashMap = {};
     const doc: any = res[0];
@@ -936,5 +952,15 @@ export class SalesService {
           });
         },
       });
+  }
+
+  getStockEntry(uuid: string) {
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get(`${GET_STOCK_ENTRY}${uuid}`, {
+          headers,
+        });
+      }),
+    );
   }
 }
