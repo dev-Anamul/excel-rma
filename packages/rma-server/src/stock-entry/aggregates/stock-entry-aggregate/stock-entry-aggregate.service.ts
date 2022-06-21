@@ -602,12 +602,13 @@ export class StockEntryAggregateService {
       switchMap(stockEntry => {
         if (stockEntry.status !== STOCK_ENTRY_STATUS.draft) {
           stockEntry.items.filter(item => {
-            if (item.serial_no && item.serial_no.length) {
-              item.serial_no = [
-                item.serial_no[0],
-                item.serial_no[item.serial_no.length - 1],
-              ];
-            }
+            // if (item.serial_no && item.serial_no.length) {
+            //   item.serial_no = [
+            //     item.serial_no[0],
+            //     item.serial_no[item.serial_no.length - 1],
+            //   ];
+            // }
+
             return item;
           });
         }

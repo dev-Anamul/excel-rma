@@ -1198,7 +1198,6 @@ export class MaterialTransferComponent implements OnInit {
     console.log(this.activatedRoute.snapshot.params.uuid)
     this.salesService.getStockEntry(this.activatedRoute.snapshot.params.uuid).subscribe((data: any) => {
       const printBody = {} as MaterialPrintDto;
-
       printBody.stock_entry_type = data.stock_entry_type
       printBody.uuid = data.uuid
       printBody.company = data.company
@@ -1213,6 +1212,7 @@ export class MaterialTransferComponent implements OnInit {
       return value.serial_no =value.serial_no.join(', ')
       })
       this.salesService.sendDocument(printBody).subscribe((data) => {
+          this.salesService.openPdf(data, data['uuid']);
       })
     })
     // const doc =

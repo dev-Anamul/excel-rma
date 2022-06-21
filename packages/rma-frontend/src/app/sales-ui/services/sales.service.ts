@@ -15,6 +15,7 @@ import {
   ACCESS_TOKEN,
   DEFAULT_SELLING_PRICE_LIST,
   HUNDRED_NUMBERSTRING,
+  AUTH_SERVER_URL
 } from '../../constants/storage';
 import {
   LIST_SALES_INVOICE_ENDPOINT,
@@ -59,7 +60,8 @@ import {
   STOCK_AVAILABILITY_COUNT_ENDPOINT,
   GET_DOCTYPE_COUNT_METHOD,
   GET_STOCK_ENTRY,
-  SYNC_STOCK_PRINT_ENDPOINT
+  SYNC_STOCK_PRINT_ENDPOINT,
+  PRINT_SALES_INVOICE_PDF_METHOD
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -69,8 +71,10 @@ import {
   JSON_BODY_MAX_SIZE,
   NON_SERIAL_ITEM,
   TERRITORY,
+  EXCEL_STOCK_PRINT
 } from '../../constants/app-string';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
 
 @Injectable({
   providedIn: 'root',
@@ -951,6 +955,21 @@ export class SalesService {
             duration: 4500,
           });
         },
+      });
+  }
+
+   openPdf(format, uuid) {
+    this.storage
+      .getItem(AUTH_SERVER_URL)
+      .then(auth_url => {
+        window.open(
+          `${auth_url}${PRINT_SALES_INVOICE_PDF_METHOD}?doctype=${EXCEL_STOCK_PRINT}` +
+            `&name=${uuid}` +
+            `&format=${format.name}` +
+            `&no_letterhead=0` +
+            `&_lang=en`,
+          '_blank',
+        );
       });
   }
 
