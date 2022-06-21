@@ -1211,8 +1211,12 @@ export class MaterialTransferComponent implements OnInit {
       printBody.items.forEach( (value)=> {
       return value.serial_no =value.serial_no.join(', ')
       })
-      this.salesService.sendDocument(printBody).subscribe((data) => {
-          this.salesService.openPdf(data, data['uuid']);
+      this.salesService.sendDocument(printBody).subscribe({
+        next: (success: any) => {
+          if(success) {
+            this.salesService.openPdf(data, data['uuid']);
+          }
+        }
       })
     })
     // const doc =
@@ -1221,6 +1225,7 @@ export class MaterialTransferComponent implements OnInit {
     //     ? `Delivery Note`
     //     : `Stock Entry`;
     // this.printDeliveryNote(doc);
+    
   }
 
   showJobs() {
