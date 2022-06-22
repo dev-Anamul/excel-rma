@@ -57,6 +57,10 @@ export class StockLedgerAggregateService {
             where.push({$unwind})
             const $match : any = filter_Obj
             where.push({$match})
+            const $sort: any = {
+                "_id.item_code": -1
+            }
+            where.push({$sort})
             const $limit : any = limit
             const $skip : any = offset
             where.push({$skip})
@@ -87,6 +91,10 @@ export class StockLedgerAggregateService {
             where.push({$lookup})
             const $unwind : any ="$item"
             where.push({$unwind})
+            const $sort: any = {
+                "_id.item_code": -1
+            }
+            where.push({$sort})
             where.push({$skip})
             where.push({$limit})
            return this.stockLedgerService.asyncAggregate(where)
