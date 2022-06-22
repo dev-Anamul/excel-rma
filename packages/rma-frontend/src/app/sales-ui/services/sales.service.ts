@@ -965,8 +965,8 @@ export class SalesService {
         window.open(
           `${auth_url}${PRINT_SALES_INVOICE_PDF_METHOD}?doctype=${EXCEL_STOCK_PRINT}` +
             `&name=${uuid}` +
-            `&format=${format.name}` +
-            `&no_letterhead=0` +
+            `&format=${EXCEL_STOCK_PRINT}` +
+            `&no_letterhead=1` +
             `&_lang=en`,
           '_blank',
         );

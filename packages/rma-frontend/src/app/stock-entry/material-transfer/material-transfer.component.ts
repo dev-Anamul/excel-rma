@@ -1195,7 +1195,7 @@ export class MaterialTransferComponent implements OnInit {
     //   message: `Generating Print...!`,
     // });
     // await loading.present();
-    console.log(this.activatedRoute.snapshot.params.uuid)
+    // console.log(this.activatedRoute.snapshot.params.uuid)
     this.salesService.getStockEntry(this.activatedRoute.snapshot.params.uuid).subscribe((data: any) => {
       const printBody = {} as MaterialPrintDto;
       printBody.stock_entry_type = data.stock_entry_type
