@@ -31,7 +31,7 @@ import // REVOKE_FRAPPE_TOKEN_SUCCESS,
 // REVOKE_FRAPPE_TOKEN_ERROR,
 '../../../constants/messages';
 import { AGENDA_TOKEN } from '../../../system-settings/providers/agenda.provider';
-import { TokenCacheService } from 'src/auth/entities/token-cache/token-cache.service';
+import { TokenCacheService } from '../../../auth/entities/token-cache/token-cache.service';
 
 export const REVOKE_EXPIRED_FRAPPE_TOKEN = 'REVOKE_EXPIRED_FRAPPE_TOKEN';
 @Injectable()
