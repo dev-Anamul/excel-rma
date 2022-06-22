@@ -3,7 +3,7 @@ import {
   BadRequestException,
   HttpStatus,
   HttpService,
-  BadGatewayException,
+  //  BadGatewayException,
   ForbiddenException,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -100,7 +100,7 @@ export class DirectService {
               });
             }),
             map(tokenData => tokenData.data as BearerToken),
-            switchMap(token => this.saveToken(token)),
+            // switchMap(token => this.saveToken(token)),
           );
         }),
       )
@@ -119,48 +119,43 @@ export class DirectService {
       });
   }
 
-  saveToken(token: BearerToken) {
-    if (!token || !token.access_token) {
-      return throwError(new BadGatewayException(INVALID_FRAPPE_TOKEN));
-    }
-    return from(
-      this.tokenCacheService.findOne({
-        email: this.localState.email,
-        refreshToken: { $exists: true, $ne: null },
-      }),
-    ).pipe(
-      switchMap((localToken: TokenCache) => {
-        // Set Saved Token Expiration Time
-        const exp = Date.now() / 1000 + (token.expires_in || 3600);
+  // saveToken(token: BearerToken) {
+  //   if (!token || !token.access_token) {
+  //     return throwError(new BadGatewayException(INVALID_FRAPPE_TOKEN));
+  //   }
+  //   return from(
+  //     this.tokenCacheService.findOne({
+  //       email: this.localState.email,
+  //       refreshToken: { $exists: true, $ne: null },
+  //     }),
+  //   ).pipe(
+  //     switchMap((localToken: TokenCache) => {
+  //       // Set Saved Token Expiration Time
+  //       const exp = Date.now() / 1000 + (token.expires_in || 3600);
 
-        if (!localToken) {
-          return from(
-            this.tokenCacheService.save({
-              uuid: uuidv4(),
-              accessToken: token.access_token,
-              refreshToken: token.refresh_token,
-              email: this.localState.email,
-              status: ACTIVE,
-              exp,
-            }),
-          );
-        }
+  //       if (!localToken) {
+  //         return from(
+  //           this.tokenCacheService.save({
+  //             uuid: uuidv4(),
+  //             accessToken: token.access_token,
+  //             refreshToken: token.refresh_token,
+  //             email: this.localState.email,
+  //             status: ACTIVE,
+  //             exp,
+  //           }),
+  //         );
+  //       }
 
-        this.revokeToken(localToken.accessToken);
-        localToken.email = this.localState.email;
-        localToken.accessToken = token.access_token;
-        localToken.refreshToken = token.refresh_token;
-        localToken.exp = exp;
-        localToken.status = ACTIVE;
-        return from(
-          this.tokenCacheService.updateOne(
-            { uuid: localToken.uuid },
-            { $set: localToken },
-          ),
-        );
-      }),
-    );
-  }
+  //       this.revokeToken(localToken.accessToken);
+  //       localToken.email = this.localState.email;
+  //       localToken.accessToken = token.access_token;
+  //       localToken.refreshToken = token.refresh_token;
+  //       localToken.exp = exp;
+  //       localToken.status = ACTIVE;
+  //       return from(this.tokenCacheService.updateOne({ uuid: localToken.uuid }, { $set: localToken }));
+  //     }),
+  //   );
+  // }
 
   deleteRequestState(requestState: RequestState) {
     from(requestState.remove()).subscribe({
@@ -330,15 +325,14 @@ export class DirectService {
   }
 
   async verifyBackendConnection(email: string) {
-    const token = await this.tokenCacheService.findOne({
-      email,
-      refreshToken: { $exists: true, $ne: null },
-    });
-
-    let isConnected = false;
-    if (token) {
-      isConnected = true;
-    }
-    return { isConnected };
+    // const token = await this.tokenCacheService.findOne({
+    //   email,
+    //   refreshToken: { $exists: true, $ne: null },
+    // });
+    // let isConnected = false;
+    // if (token) {
+    //   isConnected = true;
+    // }
+    // return { isConnected };
   }
 }
