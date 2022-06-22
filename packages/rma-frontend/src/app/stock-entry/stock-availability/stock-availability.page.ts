@@ -10,7 +10,8 @@ import { ValidateInputSelected } from '../../common/pipes/validators';
 import { startWith, switchMap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { WAREHOUSES } from '../../constants/app-string';
-
+import { CsvJsonService } from '../../api/csv-json/csv-json.service';
+import {STOCK_AVAILABILITY_CSV_FILE,STOCK_AVAILABILITY_DOWNLOAD_HEADERS} from '../../constants/app-string'
 @Component({
   selector: 'app-stock-availability',
   templateUrl: './stock-availability.page.html',
@@ -46,6 +47,7 @@ export class StockAvailabilityPage implements OnInit {
     private readonly location: Location,
     private readonly salesService: SalesService,
     private route: ActivatedRoute,
+    private csvService: CsvJsonService,
   ) {}
 
   ngOnInit() {
@@ -220,5 +222,32 @@ export class StockAvailabilityPage implements OnInit {
       }
       return option.item_group_name;
     }
+  }
+
+  downloadServiceInvoices(){
+    var result: any = this.serializeStockAvailabilityObject(this.dataSource.data)
+    this.csvService.downloadStockAvailabilityCSV(
+      result,
+      STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
+      `${STOCK_AVAILABILITY_CSV_FILE}`,
+    );
+
+  }
+
+  serializeStockAvailabilityObject(data: any){
+    var serializedArray:any=[]
+    data.forEach((element) =>{
+     var  obj1:any = {
+        "item_name": element.item.item_name,
+        "item_code" :  element.item.item_code,
+        "item_group": element.item.item_group,
+        "brand": element.item.brand,
+        "warehouse": element._id.warehouse,
+        "stockAvailability": element.stockAvailability
+      }
+      serializedArray.push(obj1)
+    })
+    return serializedArray
+
   }
 }
