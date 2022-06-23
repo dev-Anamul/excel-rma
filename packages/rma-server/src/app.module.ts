@@ -36,7 +36,7 @@ import { SyncEntitiesModule } from './sync/entities/sync-entity.module';
 import { ServiceInvoiceModule } from './service-invoice/service-invoice.module';
 import { PrintModule } from './print/print-module';
 import { TermsAndConditionsModule } from './terms-and-conditions/terms-and-conditions.module';
-import { StockLedgerModule } from './stock-ledger/supplier.module';
+import { StockLedgerModule } from './stock-ledger/stock-ledger.module';
 
 @Module({
   imports: [
