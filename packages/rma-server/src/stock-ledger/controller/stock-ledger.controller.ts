@@ -1,4 +1,12 @@
-import { Controller, UsePipes, ValidationPipe, Req, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  UsePipes,
+  ValidationPipe,
+  Req,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PurchaseInvoiceListQueryDto } from '../../constants/listing-dto/purchase-invoice-list-query';
 import { TokenGuard } from '../../auth/guards/token.guard';
 import { StockLedgerAggregateService } from '../aggregates/stock-ledger-aggregate/stock-ledger-aggregate.service';
@@ -18,6 +26,11 @@ export class StockLedgerController {
     } catch {
       filter;
     }
-    return this.stockLedgerAggregate.getStockSummaryList({ offset: Number(offset) || 0, limit: Number(limit) || 10, sort, filter });
+    return this.stockLedgerAggregate.getStockSummaryList({
+      offset: Number(offset) || 0,
+      limit: Number(limit) || 10,
+      sort,
+      filter,
+    });
   }
 }
