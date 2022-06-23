@@ -26,6 +26,7 @@ import { PermissionManager } from './api/permission/permission.service';
 import { SerialUiModule } from './serial-ui/serial-ui.module';
 import { ApiModule } from './api/api.module';
 import { ServiceInvoicesPageModule } from './service-invoices/service-invoices.module';
+import { StockBalanceSummaryPageModule } from './stock-balance-summary/stock-balance-summary.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -41,6 +42,7 @@ import { ServiceInvoicesPageModule } from './service-invoices/service-invoices.m
     AppCommonModule,
     WarrantyUiModule,
     ServiceInvoicesPageModule,
+    StockBalanceSummaryPageModule,
     SerialUiModule,
     ApiModule,
   ],
