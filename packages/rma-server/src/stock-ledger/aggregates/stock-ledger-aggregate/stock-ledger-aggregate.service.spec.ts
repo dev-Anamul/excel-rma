@@ -13,10 +13,16 @@ describe('SerialNoAggregateService', () => {
           provide: StockLedgerService,
           useValue: {},
         },
+        {
+          provide: SettingsService,
+          useValue: {},
+        },
       ],
     }).compile();
 
-    service = module.get<StockLedgerAggregateService>(StockLedgerAggregateService);
+    service = module.get<StockLedgerAggregateService>(
+      StockLedgerAggregateService,
+    );
   });
   StockLedgerAggregateService;
   it('should be defined', () => {
