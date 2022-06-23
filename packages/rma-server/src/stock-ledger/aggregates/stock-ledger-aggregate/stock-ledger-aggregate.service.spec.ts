@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 import { StockLedgerAggregateService } from './stock-ledger-aggregate.service';
 
