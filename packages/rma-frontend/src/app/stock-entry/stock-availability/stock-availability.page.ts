@@ -236,16 +236,21 @@ export class StockAvailabilityPage implements OnInit {
 
   serializeStockAvailabilityObject(data: any){
     var serializedArray:any=[]
+    debugger
     data.forEach((element) =>{
-     var  obj1:any = {
-        "item_name": element.item.item_name,
-        "item_code" :  element.item.item_code,
-        "item_group": element.item.item_group,
-        "brand": element.item.brand,
-        "warehouse": element._id.warehouse,
-        "stockAvailability": element.stockAvailability
+      if(element.item.item_name!= null && 
+      element.item.item_code != null && element.item.item_group != null && element.item.brand != null
+      && element._id.warehouse != null && element.stockAvailability != null){
+        var  obj1:any = {
+          "item_name": element.item.item_name,
+          "item_code" :  element.item.item_code,
+          "item_group": element.item.item_group,
+          "brand": element.item.brand,
+          "warehouse": element._id.warehouse,
+          "stockAvailability": element.stockAvailability
+        }
+        serializedArray.push(obj1)
       }
-      serializedArray.push(obj1)
     })
     return serializedArray
 

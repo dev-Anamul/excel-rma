@@ -118,5 +118,5 @@ export const STOCK_AVAILABILITY_DOWNLOAD_HEADERS = [
   'item_group',
   'brand',
   'warehouse',
-  'actual_qty'
+  'stockAvailability'
 ];
