@@ -12,7 +12,7 @@ import {
 } from '../constants/storage';
 import {
   DIRECT_PROFILE_ENDPOINT,
-  IS_BACKEND_CONNECTED_ENDPOINT,
+  //  IS_BACKEND_CONNECTED_ENDPOINT,
   CONNECT_BACKEND_ENDPOINT,
 } from '../constants/url-strings';
 import { IDTokenClaims } from '../common/interfaces/id-token-claims.interfaces';
@@ -113,26 +113,26 @@ export class HomePage implements OnInit {
           this.spinner = false;
           this.email = profile.email;
           this.fullName = profile.name;
-          this.checkBackendConnection(token);
+          // this.checkBackendConnection(token);
         },
       });
   }
 
-  checkBackendConnection(token: string) {
-    const headers = {
-      [AUTHORIZATION]: BEARER_TOKEN_PREFIX + token,
-    };
-    this.http
-      .get<{ isConnected: boolean }>(IS_BACKEND_CONNECTED_ENDPOINT, { headers })
-      .subscribe({
-        next: res => {
-          if (!res.isConnected) {
-            window.location.href =
-              CONNECT_BACKEND_ENDPOINT + '?access_token=' + token;
-          }
-        },
-      });
-  }
+  // checkBackendConnection(token: string) {
+  //   const headers = {
+  //     [AUTHORIZATION]: BEARER_TOKEN_PREFIX + token,
+  //   };
+  //   this.http
+  //     .get<{ isConnected: boolean }>(IS_BACKEND_CONNECTED_ENDPOINT, { headers })
+  //     .subscribe({
+  //       next: res => {
+  //         if (!res.isConnected) {
+  //           window.location.href =
+  //             CONNECT_BACKEND_ENDPOINT + '?access_token=' + token;
+  //         }
+  //       },
+  //     });
+  // }
 
   loadNoteList() {
     const currentDate = new Date();

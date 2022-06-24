@@ -243,10 +243,7 @@ pack_rma_server_prod:
   stage: pack
   only:
     refs:
-      - master
-      - unsync
-    changes:
-      - packages/rma-server/**/*
+      - main
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -260,10 +257,7 @@ pack_rma_frontend_prod:
   stage: pack
   only:
     refs:
-      - master
-      - unsync
-    changes:
-      - packages/rma-frontend/**/*
+      - main
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -277,10 +271,7 @@ pack_rma_warranty_prod:
   stage: pack
   only:
     refs:
-      - master
-      - unsync
-    changes:
-      - packages/rma-warranty/**/*
+      - main
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -294,10 +285,7 @@ pack_rma_pos_prod:
   stage: pack
   only:
     refs:
-      - master
-      - unsync
-    changes:
-      - packages/rma-pos/**/*
+      - main
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com

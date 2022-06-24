@@ -1,13 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { TokenGuard } from '../../auth/guards/token.guard';
 import { StockLedgerController } from './stock-ledger.controller';
+import { StockLedgerAggregateService } from '../aggregates/stock-ledger-aggregate/stock-ledger-aggregate.service';
 
-describe('StockLedgerController', () => {
+describe('StockLedger Controller', () => {
   let controller: StockLedgerController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StockLedgerController],
-    }).compile();
+      providers: [
+        {
+          provide: StockLedgerAggregateService,
+          useValue: {},
+        },
+      ],
+    })
+      .overrideGuard(TokenGuard)
+      .useValue({})
+      .compile();
 
     controller = module.get<StockLedgerController>(StockLedgerController);
   });
