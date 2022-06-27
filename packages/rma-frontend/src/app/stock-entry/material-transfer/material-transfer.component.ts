@@ -47,7 +47,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { StockItemsDataSource } from './items-datasource';
 import { MatDialog } from '@angular/material/dialog';
-import { Item, MaterialPrintDto } from '../../common/interfaces/sales.interface';
+import { Item, MaterialPrintDto,StockRow } from '../../common/interfaces/sales.interface';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import { AddItemDialog } from './add-item-dialog';
 import { SettingsService } from '../../settings/settings.service';
@@ -1197,8 +1197,9 @@ export class MaterialTransferComponent implements OnInit {
     // await loading.present();
     // console.log(this.activatedRoute.snapshot.params.uuid)
     this.salesService.getStockEntry(this.activatedRoute.snapshot.params.uuid).subscribe((data: any) => {
-      console.log(data)
       const printBody = {} as MaterialPrintDto;
+      const printItem= {} as StockRow;
+      var newStock =[]
       printBody.stock_entry_type = data.stock_entry_type
       printBody.uuid = data.uuid
       printBody.company = data.company
@@ -1210,25 +1211,25 @@ export class MaterialTransferComponent implements OnInit {
       printBody.items = data.items
       printBody.status = data.status
       printBody.items.forEach( (value)=> {
-      return value.serial_no =value.serial_no.join(', ')
+        printItem.transferWarehouse= value.transferWarehouse
+        printItem.s_warehouse =value.s_warehouse
+        printItem.t_warehouse = value.t_warehouse
+        printItem.item_code= value.item_code
+        printItem.qty = value.qty
+        printItem.serial_no = value.serial_no.join(', ')
+        newStock.push(printItem)
+ 
       })
+      printBody.items= newStock
       this.salesService.sendDocument(printBody).subscribe({
         next: (success: any) => {
           if(success) {
-            console.log("this is print body", printBody)
             this.salesService.openPdf(printBody, data['uuid']);
           }
         }
       })
-    })
-    // const doc =
-    //   this.form.controls.stock_entry_type.value ===
-    //   STOCK_ENTRY_TYPE.RnD_PRODUCTS
-    //     ? `Delivery Note`
-    //     : `Stock Entry`;
-    // this.printDeliveryNote(doc);
-    
-  }
+      })
+    }
 
   showJobs() {
     this.router.navigateByUrl(`jobs?parent=${this.uuid}`);

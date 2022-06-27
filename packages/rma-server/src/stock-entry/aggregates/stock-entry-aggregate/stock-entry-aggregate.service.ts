@@ -913,7 +913,6 @@ export class StockEntryAggregateService {
       }),
       map(res => res.data),
       switchMap(() => {
-        console.log("put request",stockPrintBody)
         return this.http.put(
           `${url}/${stockPrintBody.uuid}`,
           stockPrintBody,
@@ -929,7 +928,6 @@ export class StockEntryAggregateService {
       catchError(err => {
         console.log(err.response.status)
         if (err.response.status === 404) {
-          console.log("post body",stockPrintBody)
           return this.http.post(url, stockPrintBody, {
             headers: {
               authorization: req.body.headers.Authorization,
