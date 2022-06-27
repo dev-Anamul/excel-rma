@@ -1197,6 +1197,7 @@ export class MaterialTransferComponent implements OnInit {
     // await loading.present();
     // console.log(this.activatedRoute.snapshot.params.uuid)
     this.salesService.getStockEntry(this.activatedRoute.snapshot.params.uuid).subscribe((data: any) => {
+      console.log(data)
       const printBody = {} as MaterialPrintDto;
       printBody.stock_entry_type = data.stock_entry_type
       printBody.uuid = data.uuid
@@ -1214,7 +1215,8 @@ export class MaterialTransferComponent implements OnInit {
       this.salesService.sendDocument(printBody).subscribe({
         next: (success: any) => {
           if(success) {
-            this.salesService.openPdf(data, data['uuid']);
+            console.log("this is print body", printBody)
+            this.salesService.openPdf(printBody, data['uuid']);
           }
         }
       })
