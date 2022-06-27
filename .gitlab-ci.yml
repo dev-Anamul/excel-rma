@@ -131,8 +131,8 @@ pack_rma_server_staging:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - docker build --cache-from $CI_REGISTRY_IMAGE:latest -t rma-server packages/rma-server
-    - docker tag rma-server $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-server:latest
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-server:latest
+    - docker tag rma-server $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-server:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-server:latest
 
 pack_rma_frontend_staging:
   image: docker
@@ -147,8 +147,8 @@ pack_rma_frontend_staging:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - docker build --cache-from $CI_REGISTRY_IMAGE:latest -t rma-frontend packages/rma-frontend
-    - docker tag rma-frontend $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-frontend:latest
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-frontend:latest
+    - docker tag rma-frontend $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-frontend:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-frontend:latest
 
 pack_rma_warranty_staging:
   image: docker
@@ -163,8 +163,8 @@ pack_rma_warranty_staging:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - docker build --cache-from $CI_REGISTRY_IMAGE:latest -t rma-warranty packages/rma-warranty
-    - docker tag rma-warranty $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-warranty:latest
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-warranty:latest
+    - docker tag rma-warranty $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:latest
 
 pack_rma_pos_staging:
   image: docker
@@ -179,8 +179,8 @@ pack_rma_pos_staging:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - docker build --cache-from $CI_REGISTRY_IMAGE:latest -t rma-pos packages/rma-pos
-    - docker tag rma-pos $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-pos:latest
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-pos:latest
+    - docker tag rma-pos $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:latest
 
 deploy_staging_frontend:
   image: alpine:latest
@@ -236,6 +236,7 @@ deploy_staging_warranty:
   before_script:
     - apk add curl bash
   script:
+
     - curl -Ss -X POST "https://stag-portainer.excelbd.com/api/webhooks/ac268400-41f8-47ce-a922-6a06d3880b60"
 
 pack_rma_server_prod:
@@ -249,8 +250,8 @@ pack_rma_server_prod:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - export VERSION=$(git tag --list "rma-server@*" --sort=-version:refname | sed -n 1p | sed -e 's#.*@\(\)#\1#')
-    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-server:$VERSION packages/rma-server
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-server:$VERSION
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-server:$VERSION packages/rma-server
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-server:$VERSION
 
 pack_rma_frontend_prod:
   image: docker
@@ -263,8 +264,8 @@ pack_rma_frontend_prod:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - export VERSION=$(git tag --list "rma-frontend@*" --sort=-version:refname | sed -n 1p | sed -e 's#.*@\(\)#\1#')
-    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-frontend:$VERSION packages/rma-frontend
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-frontend:$VERSION
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-frontend:$VERSION packages/rma-frontend
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-frontend:$VERSION
 
 pack_rma_warranty_prod:
   image: docker
@@ -277,8 +278,8 @@ pack_rma_warranty_prod:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - export VERSION=$(git tag --list "rma-warranty@*" --sort=-version:refname | sed -n 1p | sed -e 's#.*@\(\)#\1#')
-    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-warranty:$VERSION packages/rma-warranty
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-warranty:$VERSION
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:$VERSION packages/rma-warranty
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-warranty:$VERSION
 
 pack_rma_pos_prod:
   image: docker
@@ -291,5 +292,5 @@ pack_rma_pos_prod:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - export VERSION=$(git tag --list "rma-pos@*" --sort=-version:refname | sed -n 1p | sed -e 's#.*@\(\)#\1#')
-    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-pos:$VERSION packages/rma-pos
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/rma-alpha/rma-pos:$VERSION
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:$VERSION packages/rma-pos
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/excel-rma/rma-pos:$VERSION
