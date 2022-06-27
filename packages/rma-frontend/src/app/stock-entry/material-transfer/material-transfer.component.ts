@@ -1216,6 +1216,7 @@ export class MaterialTransferComponent implements OnInit {
         printItem.t_warehouse = value.t_warehouse
         printItem.item_code= value.item_code
         printItem.qty = value.qty
+        printItem.item_name = value.item_name
         printItem.serial_no = value.serial_no.join(', ')
         newStock.push(printItem)
  
