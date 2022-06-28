@@ -123,7 +123,7 @@ pack_rma_server_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -138,7 +138,7 @@ pack_rma_frontend_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -153,7 +153,7 @@ pack_rma_warranty_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-warranty/**/*
   before_script:
@@ -168,7 +168,7 @@ pack_rma_pos_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-pos/**/*
   before_script:
@@ -183,7 +183,7 @@ deploy_staging_frontend:
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -196,7 +196,7 @@ deploy_staging_pos:
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-pos/**/*
   before_script:
@@ -209,7 +209,7 @@ deploy_staging_server:
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -222,7 +222,7 @@ deploy_staging_warranty:
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-warranty/**/*
   before_script:
@@ -235,7 +235,7 @@ pack_rma_server_prod:
   stage: pack
   only:
     refs:
-      - main
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -249,7 +249,7 @@ pack_rma_frontend_prod:
   stage: pack
   only:
     refs:
-      - main
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -263,7 +263,7 @@ pack_rma_warranty_prod:
   stage: pack
   only:
     refs:
-      - main
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -277,7 +277,7 @@ pack_rma_pos_prod:
   stage: pack
   only:
     refs:
-      - main
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
