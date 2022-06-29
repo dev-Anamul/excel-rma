@@ -605,27 +605,27 @@ export class SerialsComponent implements OnInit {
     });
 
     this.salesService.assignInvoice(assignSerial.sales_invoice_name).subscribe ((data) =>{
-      data['items'].forEach((element) => {
+      data.items.forEach((element) => {
        assignSerial.items.find((value) => {
-             if (value.item_code == element['item_code']) {
-              if( value['has_serial_no'] == 0) {
-                if( !element['excel_serials']){
-                 return  element['excel_serials'] = value['serial_no'].join("")
+             if (value.item_code == element.item_code) {
+              if( value.has_serial_no == 0) {
+                if( !element.excel_serials){
+                 return  element.excel_serials = value.serial_no.join("")
                 } 
               }
               else {
                 if(this.validSerials){
                 this.validSerials=true;
-                if ( element['excel_serials']) {
-                  if(value['serial_no'].length > 1 ){
-                    return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(', ')
+                if ( element.excel_serials) {
+                  if(value.serial_no.length > 1 ){
+                    return element.excel_serials = element.excel_serials +', ' + value.serial_no.join(', ')
                   }
                   else {
-                    return element['excel_serials'] = element['excel_serials'] +', ' + value['serial_no'].join(', ')
+                    return element.excel_serials = element.excel_serials +', ' + value.serial_no.join(', ')
                   }
                 }
                 else {
-                  return element['excel_serials'] = value['serial_no'].join(", ");
+                  return element.excel_serials = value.serial_no.join(", ");
                 }
               }
             }

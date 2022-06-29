@@ -75,6 +75,7 @@ export interface SerialNo {
   rate?: number;
   amount?: number;
   serial_no?: string[];
+  has_serial_no?: number;
 }
 
 export interface AggregatedDocument {
