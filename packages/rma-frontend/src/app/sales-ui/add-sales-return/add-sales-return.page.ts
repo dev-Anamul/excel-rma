@@ -859,5 +859,5 @@ export interface SerialReturnItem {
   has_serial_no: number;
   serial_no: any;
   cost_center: string;
-  excel_serials : string;
+  excel_serials: string;
 }

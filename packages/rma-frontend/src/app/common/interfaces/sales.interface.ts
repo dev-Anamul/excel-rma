@@ -86,9 +86,6 @@ export interface AggregatedDocument {
   created_by?: string;
 }
 
-
-
-
 export class StockRow {
   s_warehouse?: string;
   t_warehouse?: string;

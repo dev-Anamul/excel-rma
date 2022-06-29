@@ -110,7 +110,7 @@ export const DELIVERED_SERIALS_BY = {
 };
 export const NON_SERIAL_ITEM = 'Non serial Item';
 
-export const STOCK_AVAILABILITY_CSV_FILE = "stock_availability.csv"
+export const STOCK_AVAILABILITY_CSV_FILE = 'stock_availability.csv';
 
 export const STOCK_AVAILABILITY_DOWNLOAD_HEADERS = [
   'item_name',
@@ -118,5 +118,5 @@ export const STOCK_AVAILABILITY_DOWNLOAD_HEADERS = [
   'item_group',
   'brand',
   'warehouse',
-  'stockAvailability'
+  'stockAvailability',
 ];

@@ -15,7 +15,7 @@ import {
   ACCESS_TOKEN,
   DEFAULT_SELLING_PRICE_LIST,
   HUNDRED_NUMBERSTRING,
-  AUTH_SERVER_URL
+  AUTH_SERVER_URL,
 } from '../../constants/storage';
 import {
   LIST_SALES_INVOICE_ENDPOINT,
@@ -61,7 +61,7 @@ import {
   GET_DOCTYPE_COUNT_METHOD,
   GET_STOCK_ENTRY,
   SYNC_STOCK_PRINT_ENDPOINT,
-  PRINT_SALES_INVOICE_PDF_METHOD
+  PRINT_SALES_INVOICE_PDF_METHOD,
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -71,10 +71,9 @@ import {
   JSON_BODY_MAX_SIZE,
   NON_SERIAL_ITEM,
   TERRITORY,
-  EXCEL_STOCK_PRINT
+  EXCEL_STOCK_PRINT,
 } from '../../constants/app-string';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
 
 @Injectable({
   providedIn: 'root',
@@ -310,39 +309,33 @@ export class SalesService {
     );
   }
 
-  assignInvoice (invoiceName :any ) {
-    const params = new HttpParams().set(
-      'name',
-      invoiceName,
-    );
-    const url=INVOICE_LIST;
+  assignInvoice(invoiceName: any) {
+    const params = new HttpParams().set('name', invoiceName);
+    const url = INVOICE_LIST;
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.get<any>(url, { headers,params });
+        return this.http.get<any>(url, { headers, params });
       }),
       map(res => res.data),
     );
   }
-  updateInvoice (invoiceBody: any, invoiceName :any ) {
-    const params = new HttpParams().set(
-      'name',
-      invoiceName,
-    )
-    .set('body',
-    invoiceBody
-    )
-    const url=INVOICE_PUT;
+  updateInvoice(invoiceBody: any, invoiceName: any) {
+    const params = new HttpParams()
+      .set('name', invoiceName)
+      .set('body', invoiceBody);
+    const url = INVOICE_PUT;
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.put<any>(url, {headers,params });
-      }))
+        return this.http.put<any>(url, { headers, params });
+      }),
+    );
   }
 
   getItemList(
     filter: any = {},
     sortOrder: any = { item_name: 'asc' },
     pageIndex = 0,
-    pageSize = 30,  
+    pageSize = 30,
     query?: { [key: string]: any },
   ) {
     try {
@@ -573,7 +566,7 @@ export class SalesService {
     );
   }
 
-    relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
+  relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
     const url = STOCK_AVAILABILITY_ENDPOINT;
     const params = new HttpParams({
       fromObject: {
@@ -587,8 +580,8 @@ export class SalesService {
       switchMap(headers => {
         return this.http.get<any>(url, { headers, params });
       }),
-      map(res =>{
-        return res
+      map(res => {
+        return res;
       }),
     );
   }
@@ -624,8 +617,8 @@ export class SalesService {
       switchMap(headers => {
         return this.http.get<any>(url, { headers, params });
       }),
-      map(res =>{
-        return res
+      map(res => {
+        return res;
       }),
     );
   }
@@ -882,21 +875,18 @@ export class SalesService {
     return this.http.get<any>(API_INFO_ENDPOINT);
   }
 
-  sendDocument(invoice:any) {
-    const params = new HttpParams().set(
-      'invoice',
-      invoice,
-    )
+  sendDocument(invoice: any) {
+    const params = new HttpParams().set('invoice', invoice);
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.post(SYNC_STOCK_PRINT_ENDPOINT, {
           headers,
-          params
+          params,
         });
       }),
     );
   }
-  
+
   getAggregatedDocument(res: AggregatedDocument[]) {
     const itemsHashMap = {};
     const doc: any = res[0];
@@ -958,19 +948,17 @@ export class SalesService {
       });
   }
 
-   openPdf(format, uuid) {
-    this.storage
-      .getItem(AUTH_SERVER_URL)
-      .then(auth_url => {
-        window.open(
-          `${auth_url}${PRINT_SALES_INVOICE_PDF_METHOD}?doctype=${EXCEL_STOCK_PRINT}` +
-            `&name=${uuid}` +
-            `&format=${EXCEL_STOCK_PRINT}` +
-            `&no_letterhead=1` +
-            `&_lang=en`,
-          '_blank',
-        );
-      });
+  openPdf(format, uuid) {
+    this.storage.getItem(AUTH_SERVER_URL).then(auth_url => {
+      window.open(
+        `${auth_url}${PRINT_SALES_INVOICE_PDF_METHOD}?doctype=${EXCEL_STOCK_PRINT}` +
+          `&name=${uuid}` +
+          `&format=${EXCEL_STOCK_PRINT}` +
+          `&no_letterhead=1` +
+          `&_lang=en`,
+        '_blank',
+      );
+    });
   }
 
   getStockEntry(uuid: string) {

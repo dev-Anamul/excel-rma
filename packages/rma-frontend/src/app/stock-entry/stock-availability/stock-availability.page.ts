@@ -11,7 +11,10 @@ import { startWith, switchMap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { WAREHOUSES } from '../../constants/app-string';
 import { CsvJsonService } from '../../api/csv-json/csv-json.service';
-import {STOCK_AVAILABILITY_CSV_FILE,STOCK_AVAILABILITY_DOWNLOAD_HEADERS} from '../../constants/app-string'
+import {
+  STOCK_AVAILABILITY_CSV_FILE,
+  STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
+} from '../../constants/app-string';
 @Component({
   selector: 'app-stock-availability',
   templateUrl: './stock-availability.page.html',
@@ -201,11 +204,9 @@ export class StockAvailabilityPage implements OnInit {
     if (!this.f.actual_qty.value) {
       this.filters.push(['actual_qty', '!=', 0]);
       this.countFilter.actual_qty = ['!=', 0];
-    }
-    else{
+    } else {
       this.filters.push(['actual_qty', '==', 0]);
       this.countFilter.actual_qty = ['==', 0];
-
     }
 
     this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
@@ -224,32 +225,39 @@ export class StockAvailabilityPage implements OnInit {
     }
   }
 
-  downloadServiceInvoices(){
-    let result: any = this.serializeStockAvailabilityObject(this.dataSource.data)
+  downloadServiceInvoices() {
+    const result: any = this.serializeStockAvailabilityObject(
+      this.dataSource.data,
+    );
     this.csvService.downloadStockAvailabilityCSV(
       result,
       STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
       `${STOCK_AVAILABILITY_CSV_FILE}`,
     );
-
   }
 
-  serializeStockAvailabilityObject(data: any){
-    let serializedArray:any=[]
-    data.forEach((element) =>{
-      if(element.item.item_name!= null && element.item.item_code != null && element.item.item_group != null && element.item.brand != null && element._id.warehouse != null && element.stockAvailability != null){
-        let  obj1:any = {
-          "item_name": element.item.item_name,
-          "item_code" :  element.item.item_code,
-          "item_group": element.item.item_group,
-          "brand": element.item.brand,
-          "warehouse": element._id.warehouse,
-          "stockAvailability": element.stockAvailability
-        }
-        serializedArray.push(obj1)
+  serializeStockAvailabilityObject(data: any) {
+    const serializedArray: any = [];
+    data.forEach(element => {
+      if (
+        element.item.item_name != null &&
+        element.item.item_code != null &&
+        element.item.item_group != null &&
+        element.item.brand != null &&
+        element._id.warehouse != null &&
+        element.stockAvailability != null
+      ) {
+        const obj1: any = {
+          item_name: element.item.item_name,
+          item_code: element.item.item_code,
+          item_group: element.item.item_group,
+          brand: element.item.brand,
+          warehouse: element._id.warehouse,
+          stockAvailability: element.stockAvailability,
+        };
+        serializedArray.push(obj1);
       }
-    })
-    return serializedArray
-
+    });
+    return serializedArray;
   }
 }
