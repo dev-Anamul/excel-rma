@@ -225,7 +225,7 @@ export class StockAvailabilityPage implements OnInit {
   }
 
   downloadServiceInvoices(){
-    var result: any = this.serializeStockAvailabilityObject(this.dataSource.data)
+    let result: any = this.serializeStockAvailabilityObject(this.dataSource.data)
     this.csvService.downloadStockAvailabilityCSV(
       result,
       STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
@@ -235,13 +235,10 @@ export class StockAvailabilityPage implements OnInit {
   }
 
   serializeStockAvailabilityObject(data: any){
-    var serializedArray:any=[]
-    debugger
+    let serializedArray:any=[]
     data.forEach((element) =>{
-      if(element.item.item_name!= null && 
-      element.item.item_code != null && element.item.item_group != null && element.item.brand != null
-      && element._id.warehouse != null && element.stockAvailability != null){
-        var  obj1:any = {
+      if(element.item.item_name!= null && element.item.item_code != null && element.item.item_group != null && element.item.brand != null && element._id.warehouse != null && element.stockAvailability != null){
+        let  obj1:any = {
           "item_name": element.item.item_name,
           "item_code" :  element.item.item_code,
           "item_group": element.item.item_group,
