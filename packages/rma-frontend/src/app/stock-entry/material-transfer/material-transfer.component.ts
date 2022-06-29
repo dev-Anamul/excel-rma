@@ -1198,7 +1198,6 @@ export class MaterialTransferComponent implements OnInit {
     // console.log(this.activatedRoute.snapshot.params.uuid)
     this.salesService.getStockEntry(this.activatedRoute.snapshot.params.uuid).subscribe((data: any) => {
       const printBody = {} as MaterialPrintDto;
-      const printItem= {} as StockRow;
       var newStock =[]
       printBody.stock_entry_type = data.stock_entry_type
       printBody.uuid = data.uuid
@@ -1211,15 +1210,24 @@ export class MaterialTransferComponent implements OnInit {
       printBody.items = data.items
       printBody.status = data.status
       printBody.items.forEach( (value)=> {
-        printItem.transferWarehouse= value.transferWarehouse
-        printItem.s_warehouse =value.s_warehouse
-        printItem.t_warehouse = value.t_warehouse
-        printItem.item_code= value.item_code
-        printItem.qty = value.qty
-        printItem.item_name = value.item_name
-        printItem.serial_no = value.serial_no.join(', ')
-        newStock.push(printItem)
- 
+        var obj:any = {
+          "transferWarehouse": value.transferWarehouse,
+          "s_warehouse" : value.s_warehouse,
+          "t_warehouse" : value.t_warehouse,
+          "item_code" : value.item_code,
+          "qty": value.qty,
+          "item_name": value.item_name,
+          "serial_no" : value.serial_no.join(', ')
+
+        }
+        // printItem.transferWarehouse= value.transferWarehouse
+        // printItem.s_warehouse =value.s_warehouse
+        // printItem.t_warehouse = value.t_warehouse
+        // printItem.item_code= value.item_code
+        // printItem.qty = value.qty
+        // printItem.item_name = value.item_name
+        // printItem.serial_no = value.serial_no.join(', ')
+        newStock.push(obj)
       })
       printBody.items= newStock
       this.salesService.sendDocument(printBody).subscribe({
