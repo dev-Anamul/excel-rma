@@ -47,7 +47,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { StockItemsDataSource } from './items-datasource';
 import { MatDialog } from '@angular/material/dialog';
-import { Item, MaterialPrintDto,StockRow } from '../../common/interfaces/sales.interface';
+import { Item, MaterialPrintDto } from '../../common/interfaces/sales.interface';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import { AddItemDialog } from './add-item-dialog';
 import { SettingsService } from '../../settings/settings.service';
