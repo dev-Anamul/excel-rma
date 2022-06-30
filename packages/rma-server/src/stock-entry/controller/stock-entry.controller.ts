@@ -159,11 +159,13 @@ export class StockEntryController {
     return this.aggregate.getStockBalance({ item_code, warehouse });
   }
 
-
   @Post('v1/sync_stock_document')
   @UsePipes(new ValidationPipe({ whitelist: true }))
   syncStockEntryDocument(@Req() req) {
     // const body: WarrantyPrintDetails = JSON.parse(file.buffer);
-    return this.aggregate.syncStockEntryDocument(req,req.body['params'].updates[0].value );
+    return this.aggregate.syncStockEntryDocument(
+      req,
+      req.body.params.updates[0].value,
+    );
   }
 }

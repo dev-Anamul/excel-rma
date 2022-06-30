@@ -15,7 +15,7 @@ import {
   concatMap,
   toArray,
   catchError,
-  map
+  map,
 } from 'rxjs/operators';
 import { StockEntry, StockEntryItem } from '../../entities/stock-entry.entity';
 import { from, throwError, of, forkJoin } from 'rxjs';
@@ -32,7 +32,7 @@ import {
   STOCK_MATERIAL_TRANSFER,
   ACCEPT_STOCK_ENTRY_JOB,
   REJECT_STOCK_ENTRY_JOB,
-  APPLICATION_JSON_CONTENT_TYPE
+  APPLICATION_JSON_CONTENT_TYPE,
 } from '../../../constants/app-strings';
 import { v4 as uuidv4 } from 'uuid';
 import * as Agenda from 'agenda';
@@ -48,7 +48,10 @@ import { SettingsService } from '../../../system-settings/aggregates/settings/se
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 
-import { FRAPPE_CLIENT_CANCEL, POST_STOCK_PRINT_ENDPOINT } from '../../../constants/routes';
+import {
+  FRAPPE_CLIENT_CANCEL,
+  POST_STOCK_PRINT_ENDPOINT,
+} from '../../../constants/routes';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { getUserPermissions } from '../../../constants/agenda-job';
 import { StockEntrySyncService } from '../../../stock-entry/schedular/stock-entry-sync/stock-entry-sync.service';
@@ -905,7 +908,7 @@ export class StockEntryAggregateService {
         }
         url = `${setting.authServerURL}${POST_STOCK_PRINT_ENDPOINT}`;
         return this.http.get(`${url}/${stockPrintBody.uuid}`, {
-          headers: {  
+          headers: {
             authorization: req.body.headers.Authorization,
             Accept: APPLICATION_JSON_CONTENT_TYPE,
           },
@@ -913,20 +916,15 @@ export class StockEntryAggregateService {
       }),
       map(res => res.data),
       switchMap(() => {
-        return this.http.put(
-          `${url}/${stockPrintBody.uuid}`,
-          stockPrintBody,
-          {
-            headers: {
-              authorization: req.body.headers.Authorization,
-              Accept: APPLICATION_JSON_CONTENT_TYPE,
-            },
+        return this.http.put(`${url}/${stockPrintBody.uuid}`, stockPrintBody, {
+          headers: {
+            authorization: req.body.headers.Authorization,
+            Accept: APPLICATION_JSON_CONTENT_TYPE,
           },
-        );
+        });
       }),
       map(res => res.data),
       catchError(err => {
-        console.log(err.response.status)
         if (err.response.status === 404) {
           return this.http.post(url, stockPrintBody, {
             headers: {

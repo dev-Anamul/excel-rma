@@ -146,5 +146,4 @@ export class Item extends BaseEntity {
 
   @Column()
   excel_serials: string;
- 
 }

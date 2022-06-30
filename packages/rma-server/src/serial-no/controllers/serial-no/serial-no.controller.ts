@@ -12,7 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
-  Put
+  Put,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { TokenGuard } from '../../../auth/guards/token.guard';
@@ -168,14 +168,18 @@ export class SerialNoController {
 
   @Get('v1/invoicelist')
   @UseGuards(TokenGuard)
-  async invoiceList (@Req() req){
-   return await this.serialAggregateService.retrieveSalesDoc(req.query.name)
+  async invoiceList(@Req() req) {
+    return await this.serialAggregateService.retrieveSalesDoc(req.query.name);
   }
 
   @Put('v1/updateInvoice')
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async invoiceUpdate (@Req() req){ 
-   this.serialAggregateService.updateSalesDoc(req.body['params'].updates[1].value, req.body['params'].updates[0].value).subscribe((data) =>{
-   })
+  async invoiceUpdate(@Req() req) {
+    this.serialAggregateService
+      .updateSalesDoc(
+        req.body.params.updates[1].value,
+        req.body.params.updates[0].value,
+      )
+      .subscribe(data => {});
   }
 }

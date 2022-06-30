@@ -101,5 +101,5 @@ export interface ItemBundleItemWebhookInterface {
   qty: number;
   rate: number;
   uom: string;
-  excel_serials:string;
+  excel_serials: string;
 }

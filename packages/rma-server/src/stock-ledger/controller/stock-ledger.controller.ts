@@ -37,16 +37,11 @@ export class StockLedgerController {
   @Get('v1/list')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
- async  getPurchaseInvoiceList(
-    @Query() query,
-    @Req() req,
-  ) {
-
+  async getPurchaseInvoiceList(@Query() query, @Req() req) {
     const { limit_start, limit_page_length, filters } = query;
     let filter;
-    const sort = 'ASC'
+    const sort = 'ASC';
     try {
-      
       filter = JSON.parse(filters);
     } catch {
       filter;
@@ -57,22 +52,16 @@ export class StockLedgerController {
       sort,
       filter,
       req,
-    )
-    
+    );
   }
   @Get('v1/list_count')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
- async  getPurchaseInvoiceListCount(
-    @Query() query,
-    @Req() req,
-  ) {
-
+  async getPurchaseInvoiceListCount(@Query() query, @Req() req) {
     const { limit_start, limit_page_length, filters } = query;
     let filter;
-    const sort = 'ASC'
+    const sort = 'ASC';
     try {
-      
       filter = JSON.parse(filters);
     } catch {
       filter;
@@ -83,7 +72,6 @@ export class StockLedgerController {
       sort,
       filter,
       req,
-    )
-    
+    );
   }
 }

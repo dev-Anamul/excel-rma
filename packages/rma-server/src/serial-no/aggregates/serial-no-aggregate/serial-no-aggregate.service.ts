@@ -24,7 +24,10 @@ import {
   ACCEPT,
 } from '../../../constants/app-strings';
 import { BEARER_HEADER_VALUE_PREFIX } from '../../../constants/app-strings';
-import { FRAPPE_API_SERIAL_NO_ENDPOINT, INVOICE_LIST } from '../../../constants/routes';
+import {
+  FRAPPE_API_SERIAL_NO_ENDPOINT,
+  INVOICE_LIST,
+} from '../../../constants/routes';
 import { SerialNoPoliciesService } from '../../policies/serial-no-policies/serial-no-policies.service';
 import {
   SUPPLIER_PROJECT_QUERY,
@@ -57,7 +60,7 @@ export class SerialNoAggregateService extends AggregateRoot {
     private readonly deliveryNoteAggregateService: DeliveryNoteAggregateService,
     private readonly errorLogService: ErrorLogService,
     private readonly salesInvoiceService: SalesInvoiceService,
-    private readonly clientToken: ClientTokenManagerService
+    private readonly clientToken: ClientTokenManagerService,
   ) {
     super();
   }
@@ -147,23 +150,19 @@ export class SerialNoAggregateService extends AggregateRoot {
     return this.serialNoService.list(offset, limit, sort, filterQuery);
   }
 
-
-  updateSalesDoc (updatedInvoice,invoiceParam){
+  updateSalesDoc(updatedInvoice, invoiceParam) {
     return forkJoin({
       headers: this.clientToken.getServiceAccountApiHeaders(),
       settings: this.settingsService.find(),
     }).pipe(
       switchMap(({ headers, settings }) => {
-
-        const url = settings.authServerURL + INVOICE_LIST+ "/"+ invoiceParam;
-        const body = updatedInvoice
-        return this.http
-          .put(url, body,{
-            headers
-          })
+        const url = settings.authServerURL + INVOICE_LIST + '/' + invoiceParam;
+        const body = updatedInvoice;
+        return this.http.put(url, body, {
+          headers,
+        });
       }),
     );
-
   }
 
   syncNewSerialNo(serialNo: SerialNo, clientHttpRequest) {
@@ -334,22 +333,19 @@ export class SerialNoAggregateService extends AggregateRoot {
     );
   }
 
-  retrieveSalesDoc (invoiceParam) {
+  retrieveSalesDoc(invoiceParam) {
     return forkJoin({
       headers: this.clientToken.getServiceAccountApiHeaders(),
       settings: this.settingsService.find(),
     }).pipe(
       switchMap(({ headers, settings }) => {
-        const url = settings.authServerURL + INVOICE_LIST+ "/"+ invoiceParam;
+        const url = settings.authServerURL + INVOICE_LIST + '/' + invoiceParam;
         return this.http
           .get(url, {
-            headers
+            headers,
           })
           .pipe(map(res => res.data));
       }),
     );
   }
-
-
-  
 }
