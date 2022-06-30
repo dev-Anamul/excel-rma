@@ -110,4 +110,5 @@ export class MaterialPrintDto {
   posting_time: string;
   items: StockRow[];
   status?: string;
+  names?: string;
 }

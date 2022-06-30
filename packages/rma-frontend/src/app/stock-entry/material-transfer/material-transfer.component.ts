@@ -1213,6 +1213,7 @@ export class MaterialTransferComponent implements OnInit {
         printBody.posting_time = data.posting_time;
         printBody.items = data.items;
         printBody.status = data.status;
+        printBody.names = data.names.join(', ');
         printBody.items.forEach(value => {
           const obj: any = {
             transferWarehouse: value.transferWarehouse,
