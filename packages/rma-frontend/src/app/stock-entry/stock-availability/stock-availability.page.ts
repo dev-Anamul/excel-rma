@@ -243,7 +243,7 @@ export class StockAvailabilityPage implements OnInit {
         element.item.hasOwnPropety('item_name') &&
         element.item.hasOwnPropety('item_code') &&
         element.item.hasOwnPropety('item_group') &&
-        element.item.hasOwnPropety('brand')  &&
+        element.item.hasOwnPropety('brand') &&
         element._id.hasOwnPropety('warehouse') &&
         element.hasOwnPropety('stockAvailability')
       ) {

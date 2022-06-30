@@ -57,12 +57,12 @@ export class StockAvailabilityDataSource extends DataSource<ListingData> {
 
     this.salesService.getDocCount(pageIndex, pageSize, filters).subscribe({
       next: res => {
-        if(res){
+        if (res) {
           res.forEach(element => {
             this.length = element.count;
           });
-        }else{
-          this.length =0
+        } else {
+          this.length = 0;
         }
       },
     });

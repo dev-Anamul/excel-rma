@@ -46,9 +46,8 @@ describe('StockAvailabilityPage', () => {
         },
         {
           provide: CsvJsonService,
-          useValue:{
-          }
-        }
+          useValue: {},
+        },
       ],
     }).compileComponents();
 
