@@ -240,12 +240,12 @@ export class StockAvailabilityPage implements OnInit {
     const serializedArray: any = [];
     data.forEach(element => {
       if (
-        element.item.item_name != null &&
-        element.item.item_code != null &&
-        element.item.item_group != null &&
-        element.item.brand != null &&
-        element._id.warehouse != null &&
-        element.stockAvailability != null
+        element.item.hasOwnPropety('item_name') &&
+        element.item.hasOwnPropety('item_code') &&
+        element.item.hasOwnPropety('item_group') &&
+        element.item.hasOwnPropety('brand')  &&
+        element._id.hasOwnPropety('warehouse') &&
+        element.hasOwnPropety('stockAvailability')
       ) {
         const obj1: any = {
           item_name: element.item.item_name,
