@@ -47,7 +47,10 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { StockItemsDataSource } from './items-datasource';
 import { MatDialog } from '@angular/material/dialog';
-import { Item } from '../../common/interfaces/sales.interface';
+import {
+  Item,
+  MaterialPrintDto,
+} from '../../common/interfaces/sales.interface';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import { AddItemDialog } from './add-item-dialog';
 import { SettingsService } from '../../settings/settings.service';
@@ -1129,6 +1132,7 @@ export class MaterialTransferComponent implements OnInit {
       STOCK_ENTRY_TYPE.MATERIAL_TRANSFER
     ) {
       this.stock_receipt_names.forEach(name =>
+        // names.push('TROUT-2022-00053')
         name.includes('TROUT') ? names.push(name) : null,
       );
     } else {
@@ -1190,12 +1194,54 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   async getPrint() {
-    const doc =
-      this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.RnD_PRODUCTS
-        ? `Delivery Note`
-        : `Stock Entry`;
-    this.printDeliveryNote(doc);
+    // const loading = await this.loadingController.create({
+    //   message: `Generating Print...!`,
+    // });
+    // await loading.present();
+    this.salesService
+      .getStockEntry(this.activatedRoute.snapshot.params.uuid)
+      .subscribe((data: any) => {
+        const printBody = {} as MaterialPrintDto;
+        const newStock = [];
+        printBody.stock_entry_type = data.stock_entry_type;
+        printBody.uuid = data.uuid;
+        printBody.company = data.company;
+        printBody.territory = data.territory;
+        printBody.remarks = data.remarks;
+        printBody.customer = data.customer;
+        printBody.posting_date = data.posting_date;
+        printBody.posting_time = data.posting_time;
+        printBody.items = data.items;
+        printBody.status = data.status;
+        printBody.names = data.names.join(', ');
+        printBody.items.forEach(value => {
+          const obj: any = {
+            transferWarehouse: value.transferWarehouse,
+            s_warehouse: value.s_warehouse,
+            t_warehouse: value.t_warehouse,
+            item_code: value.item_code,
+            qty: value.qty,
+            item_name: value.item_name,
+            serial_no: value.serial_no.join(', '),
+          };
+          // printItem.transferWarehouse= value.transferWarehouse
+          // printItem.s_warehouse =value.s_warehouse
+          // printItem.t_warehouse = value.t_warehouse
+          // printItem.item_code= value.item_code
+          // printItem.qty = value.qty
+          // printItem.item_name = value.item_name
+          // printItem.serial_no = value.serial_no.join(', ')
+          newStock.push(obj);
+        });
+        printBody.items = newStock;
+        this.salesService.sendDocument(printBody).subscribe({
+          next: (success: any) => {
+            if (success) {
+              this.salesService.openPdf(printBody, data.uuid);
+            }
+          },
+        });
+      });
   }
 
   showJobs() {

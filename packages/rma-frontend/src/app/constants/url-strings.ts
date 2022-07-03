@@ -87,7 +87,10 @@ export const UPDATE_CREDIT_LIMIT_RMA_CUSTOMER_ENDPOINT =
 export const UPDATE_CUSTOMER_CREDIT_LIMIT_ENDPOINT =
   '/api/command/user/api/resource/Customer%20Credit%20Limit';
 export const CUSTOMER_ENDPOINT = '/api/command/user/api/resource/Customer';
-export const STOCK_AVAILABILITY_ENDPOINT = '/api/command/user/api/resource/Bin';
+// export const STOCK_AVAILABILITY_ENDPOINT = '/api/command/user/api/resource/Bin';
+export const STOCK_AVAILABILITY_COUNT_ENDPOINT =
+  '/api/stock_ledger/v1/list_count';
+export const STOCK_AVAILABILITY_ENDPOINT = '/api/stock_ledger/v1/list';
 export const GET_BALANCE_ON_ENDPOINT =
   '/api/command/user/api/method/erpnext.accounts.utils.get_balance_on';
 export const RELAY_API_RES_COMPANY = '/api/command/user/api/resource/Company';
@@ -171,3 +174,11 @@ export const SYNC_FRAPPE_ITEMS_ENDPOINT = '/api/item/v1/sync_items';
 export const DELETE_EMPTY_JOBS_ENDPOINT = '/api/job_queue/v1/delete_empty_jobs';
 export const GET_STOCK_ENTRY_DELIVERED_SERIALS =
   '/api/stock_entry/v1/get_delivered_serials';
+
+export const GET_STOCK_ENTRY = '/api/stock_entry/v1/get/';
+
+export const SYNC_STOCK_PRINT_ENDPOINT =
+  'api/stock_entry/v1/sync_stock_document';
+
+export const INVOICE_LIST = '/api/serial_no/v1/invoicelist';
+export const INVOICE_PUT = '/api/serial_no/v1/updateInvoice';

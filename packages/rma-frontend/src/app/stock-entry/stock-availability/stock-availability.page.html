@@ -156,6 +156,14 @@
             >
               Clear
             </ion-button>
+            <ion-button
+            color="tertiary"
+            [disabled]="!dataSource.length"
+            (click)="downloadServiceInvoices()"
+            fill="outline"
+          >
+            Download CSV
+          </ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -170,32 +178,32 @@
         >
           <ng-container matColumnDef="excel_item_name">
             <mat-header-cell *matHeaderCellDef>Item name</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.excel_item_name }}</mat-cell>
+            <mat-cell *matCellDef="let row">{{ row.item.item_name }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="item_code">
             <mat-header-cell *matHeaderCellDef>Item code</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.item_code }}</mat-cell>
+            <mat-cell *matCellDef="let row">{{ row._id.item_code }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="excel_item_group">
             <mat-header-cell *matHeaderCellDef>Item group</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.excel_item_group }}</mat-cell>
+            <mat-cell *matCellDef="let row">{{ row.item.item_group }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="excel_item_brand">
             <mat-header-cell *matHeaderCellDef>Item brand</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.excel_item_brand }}</mat-cell>
+            <mat-cell *matCellDef="let row">{{ row.item.brand }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="warehouse">
             <mat-header-cell *matHeaderCellDef>Warehouse</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.warehouse }}</mat-cell>
+            <mat-cell *matCellDef="let row">{{ row._id.warehouse }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="actual_qty">
             <mat-header-cell *matHeaderCellDef>Actual quantity</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.actual_qty }}</mat-cell>
+            <mat-cell *matCellDef="let row">{{ row.stockAvailability }}</mat-cell>
           </ng-container>
 
           <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
@@ -210,7 +218,7 @@
           class="mat-paginator-sticky"
           (page)="getUpdate($event)"
           [length]="dataSource.length"
-          [pageSizeOptions]="[30, 50, 100, 500]"
+          [pageSizeOptions]="[30, 50, 100, 500,1000]"
         >
         </mat-paginator>
       </mat-card-actions>

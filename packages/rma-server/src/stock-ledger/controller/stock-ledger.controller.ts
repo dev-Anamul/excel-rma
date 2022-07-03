@@ -33,4 +33,45 @@ export class StockLedgerController {
       filter,
     });
   }
+
+  @Get('v1/list')
+  @UseGuards(TokenGuard)
+  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
+  async getPurchaseInvoiceList(@Query() query, @Req() req) {
+    const { limit_start, limit_page_length, filters } = query;
+    let filter;
+    const sort = 'ASC';
+    try {
+      filter = JSON.parse(filters);
+    } catch {
+      filter;
+    }
+    return await this.stockLedgerAggregate.getStockLedgerList(
+      Number(limit_start) || 0,
+      Number(limit_page_length) || 10,
+      sort,
+      filter,
+      req,
+    );
+  }
+  @Get('v1/list_count')
+  @UseGuards(TokenGuard)
+  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
+  async getPurchaseInvoiceListCount(@Query() query, @Req() req) {
+    const { limit_start, limit_page_length, filters } = query;
+    let filter;
+    const sort = 'ASC';
+    try {
+      filter = JSON.parse(filters);
+    } catch {
+      filter;
+    }
+    return await this.stockLedgerAggregate.getStockLedgerListCount(
+      Number(limit_start) || 0,
+      Number(limit_page_length) || 10,
+      sort,
+      filter,
+      req,
+    );
+  }
 }
