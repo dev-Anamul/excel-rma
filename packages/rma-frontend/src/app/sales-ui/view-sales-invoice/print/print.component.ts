@@ -61,7 +61,6 @@ export class PrintComponent implements OnInit {
     }&${no_letterhead}`;
   }
 
-
   async getprintSalesChallanURL() {
     const authURL = await this.storage.getItem(AUTH_SERVER_URL);
     const url = `${authURL}${PRINT_SALES_INVOICE_PDF_METHOD}`;
