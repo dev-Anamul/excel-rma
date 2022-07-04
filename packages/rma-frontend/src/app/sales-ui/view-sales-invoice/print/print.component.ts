@@ -28,7 +28,7 @@ import { SalesService } from '../../services/sales.service';
 export class PrintComponent implements OnInit {
   invoice_name: string = '';
   printSalesInvoiceURL: string = '';
-  printSalesChallanURL: string= '';
+  printSalesChallanURL: string = '';
   printMRPSalesInvoiceURL: string = '';
   deliveryNoteNames: string[] = [];
   printDeliveryNoteURL: string = '';
@@ -66,11 +66,10 @@ export class PrintComponent implements OnInit {
     const authURL = await this.storage.getItem(AUTH_SERVER_URL);
     const url = `${authURL}${PRINT_SALES_INVOICE_PDF_METHOD}`;
     const doctype = 'Sales Invoice';
-    const printFormat = 'Sales Challan';
     const name = `name=${this.invoice_name}`;
     const no_letterhead = 'no_letterhead=0';
     this.printSalesChallanURL = `${url}?doctype=${doctype}&${name}&format=${
-      PRINT_FORMAT_PREFIX + printFormat
+      PRINT_FORMAT_PREFIX + 'Sales Challan'
     }&${no_letterhead}`;
   }
 
