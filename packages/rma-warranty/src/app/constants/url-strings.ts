@@ -111,6 +111,7 @@ export const ADD_PROBLEM_ENDPOINT = '/api/problem/v1/create';
 export const UPDATE_PROBLEM_ENDPOINT = '/api/problem/v1/update';
 export const DELETE_PROBLEM_ENDPOINT = '/api/problem/v1/delete';
 export const JOB_QUEUE_LIST_ENDPOINT = '/api/job_queue/v1/list';
+export const STOCK_BALANCE_SUMMARY_ENDPOINT = '/api/stock_ledger/v1/summary';
 export const JOB_QUEUE_RETRY_ENDPOINT = '/api/job_queue/v1/retry';
 export const JOB_QUEUE_RESET_ENDPOINT = '/api/job_queue/v1/reset';
 export const GET_EXPORTED_JOB_ENDPOINT = '/api/job_queue/v1/get_exported_job/';
