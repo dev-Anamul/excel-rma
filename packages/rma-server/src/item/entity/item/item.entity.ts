@@ -143,4 +143,7 @@ export class Item extends BaseEntity {
 
   @Column()
   bundle_items: ItemBundleItemWebhookInterface[];
+
+  @Column()
+  excel_serials: string;
 }

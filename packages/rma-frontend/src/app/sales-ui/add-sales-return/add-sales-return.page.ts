@@ -767,10 +767,10 @@ export class AddSalesReturnPage implements OnInit {
           );
           return true;
         }
-        this.assignRangeSerial(
-          element,
-          csvJsonObj[element.item_name].serial_no,
-        );
+        // this.assignRangeSerial(
+        //   element,
+        //   csvJsonObj[element.item_name].serial_no,
+        // );
         return false;
       }
     });
@@ -859,4 +859,5 @@ export interface SerialReturnItem {
   has_serial_no: number;
   serial_no: any;
   cost_center: string;
+  excel_serials: string;
 }

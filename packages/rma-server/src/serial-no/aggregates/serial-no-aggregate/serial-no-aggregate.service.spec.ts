@@ -9,6 +9,7 @@ import { DeliveryNoteAggregateService } from '../../../delivery-note/aggregates/
 import { ErrorLogService } from '../../../error-log/error-log-service/error-log.service';
 import { SalesInvoiceService } from '../../../sales-invoice/entity/sales-invoice/sales-invoice.service';
 import { SerialNoHistoryService } from '../../entity/serial-no-history/serial-no-history.service';
+import { ClientTokenManagerService } from '../../../auth/aggregates/client-token-manager/client-token-manager.service';
 
 describe('SerialNoAggregateService', () => {
   let service: SerialNoAggregateService;
@@ -51,6 +52,10 @@ describe('SerialNoAggregateService', () => {
         },
         {
           provide: SerialNoHistoryService,
+          useValue: {},
+        },
+        {
+          provide: ClientTokenManagerService,
           useValue: {},
         },
       ],
