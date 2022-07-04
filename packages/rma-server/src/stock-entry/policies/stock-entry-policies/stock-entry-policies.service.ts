@@ -1,7 +1,6 @@
 import {
   Injectable,
   BadRequestException,
-  HttpService,
   ForbiddenException,
 } from '@nestjs/common';
 import {
@@ -9,7 +8,7 @@ import {
   StockEntryItemDto,
 } from '../../entities/stock-entry-dto';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
-import { switchMap, mergeMap, toArray, map } from 'rxjs/operators';
+import { switchMap, mergeMap, toArray } from 'rxjs/operators';
 import { forkJoin, from, Observable, of, throwError } from 'rxjs';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import {
@@ -23,10 +22,10 @@ import {
 import { StockEntry } from '../../entities/stock-entry.entity';
 import { SerialNoHistoryPoliciesService } from '../../../serial-no/policies/serial-no-history-policies/serial-no-history-policies.service';
 import { AgendaJobService } from '../../../sync/entities/agenda-job/agenda-job.service';
-import { RELAY_GET_STOCK_BALANCE_ENDPOINT } from '../../../constants/routes';
 import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
 import { DateTime } from 'luxon';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 @Injectable()
 export class StockEntryPoliciesService {
   constructor(
@@ -34,9 +33,9 @@ export class StockEntryPoliciesService {
     private readonly serialNoHistoryPolicy: SerialNoHistoryPoliciesService,
     private readonly serialNoPolicy: SerialNoPoliciesService,
     private readonly agendaJob: AgendaJobService,
-    private readonly http: HttpService,
     private readonly settings: SettingsService,
     private serialNoHistoryPolicyService: SerialNoHistoryPoliciesService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   validateStockEntry(payload: StockEntryDto, clientHttpRequest) {
@@ -154,27 +153,33 @@ export class StockEntryPoliciesService {
               item_code: item.item_code,
               warehouse: item.s_warehouse,
             };
-            const headers = this.settings.getAuthorizationHeaders(req.token);
-            return this.http
-              .post(
-                settings.authServerURL + RELAY_GET_STOCK_BALANCE_ENDPOINT,
-                body,
-                { headers },
-              )
-              .pipe(
-                map(data => data.data.message),
-                switchMap(message => {
-                  if (message < item.qty) {
-                    return throwError(
-                      new BadRequestException(`
+            return from(
+              this.stockLedgerService.asyncAggregate([
+                {
+                  $match: {
+                    item_code: item.item_code,
+                    warehouse: body.warehouse,
+                  },
+                },
+                {
+                  $group: { _id: null, sum: { $sum: '$actual_qty' } },
+                },
+                { $project: { sum: 1 } },
+              ]),
+            ).pipe(
+              switchMap((stockCount: [{ sum: number }]) => {
+                const message = stockCount.find(summedData => summedData).sum;
+                if (message < item.qty) {
+                  return throwError(
+                    new BadRequestException(`
                   Only ${message} available in stock for item ${item.item_name}, 
                   at warehouse ${item.s_warehouse}.
                   `),
-                    );
-                  }
-                  return of(true);
-                }),
-              );
+                  );
+                }
+                return of(true);
+              }),
+            );
           }),
         );
       }),

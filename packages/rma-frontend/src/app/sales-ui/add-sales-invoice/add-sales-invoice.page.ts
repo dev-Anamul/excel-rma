@@ -291,7 +291,7 @@ export class AddSalesInvoicePage implements OnInit {
         if (item.name) {
           this.getWarehouseStock(item).subscribe({
             next: res => {
-              data[index].stock = res.message;
+              data[index].stock = res;
               this.dataSource.update(data);
             },
           });
@@ -315,7 +315,7 @@ export class AddSalesInvoicePage implements OnInit {
     is_stock_item?: number;
   }) {
     if (item.bundle_items || item.has_bundle_item || item.is_stock_item === 0) {
-      return of({ message: 1000000 });
+      return of(1000000);
     }
     return this.itemPriceService.getStockBalance(
       item.item_code,
@@ -334,7 +334,7 @@ export class AddSalesInvoicePage implements OnInit {
         next: res => {
           row.qty = 1;
           row.rate = item.rate;
-          row.stock = res.message;
+          row.stock = res;
           this.calculateTotal(this.dataSource.data().slice());
           this.dataSource.update(copy);
         },

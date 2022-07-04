@@ -17,6 +17,7 @@ import {
   CONTENT_TYPE,
   ACCEPT,
   APPLICATION_JSON_CONTENT_TYPE,
+  TOKEN_HEADER_VALUE_PREFIX,
 } from '../../../constants/app-strings';
 import { TokenCache } from '../../../auth/entities/token-cache/token-cache.entity';
 import {
@@ -75,6 +76,7 @@ import {
   PURCHASE_RECEIPT_ON_CANCEL_ENDPOINT,
   EXCEL_BACKGROUND_AFTER_INSERT_ENDPOINT,
   EXCEL_PRODUCT_BUNDLE_AFTER_UPDATE_ENDPOINT,
+  FRAPPE_API_FISCAL_YEAR_ENDPOINT,
 } from '../../../constants/routes';
 import { TokenCacheService } from '../../../auth/entities/token-cache/token-cache.service';
 import {
@@ -109,6 +111,19 @@ export class SettingsService extends AggregateRoot {
     return headers;
   }
 
+  getFiscalYear(serverSettings: ServerSettings) {
+    const url = `${serverSettings.authServerURL}${FRAPPE_API_FISCAL_YEAR_ENDPOINT}`;
+    const headers = {};
+    headers[AUTHORIZATION] = TOKEN_HEADER_VALUE_PREFIX;
+    headers[AUTHORIZATION] += serverSettings.serviceAccountApiKey + ':';
+    headers[AUTHORIZATION] += serverSettings.serviceAccountApiSecret;
+    return this.http.get(url, { headers }).pipe(
+      map(data => data.data.data),
+      switchMap((response: { name: string }[]) => {
+        return of(response.find(fiscalYear => fiscalYear).name);
+      }),
+    );
+  }
   async updateFrappeWebhookKey() {
     const settings = await this.serverSettingsService.find();
     if (!settings) throw new NotImplementedException(PLEASE_RUN_SETUP);

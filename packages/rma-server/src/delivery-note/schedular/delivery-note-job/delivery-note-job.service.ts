@@ -14,7 +14,7 @@ import {
 } from '../../../constants/app-strings';
 import { DirectService } from '../../../direct/aggregates/direct/direct.service';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
-import { of, throwError, Observable } from 'rxjs';
+import { of, throwError, Observable, from } from 'rxjs';
 import { CreateDeliveryNoteInterface } from '../../entity/delivery-note-service/create-delivery-note-interface';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { DateTime } from 'luxon';
@@ -43,6 +43,10 @@ import {
   SerialNoHistoryInterface,
 } from '../../../serial-no/entity/serial-no-history/serial-no-history.entity';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
+import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { DeliveryNoteItemDto } from '../../../serial-no/entity/serial-no/assign-serial-dto';
+import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 export const CREATE_STOCK_ENTRY_JOB = 'CREATE_STOCK_ENTRY_JOB';
 
 @Injectable()
@@ -58,6 +62,8 @@ export class DeliveryNoteJobService {
     private readonly csvService: JsonToCSVParserService,
     private readonly importData: DataImportService,
     private readonly serialNoHistoryService: SerialNoHistoryService,
+    private readonly stockLedgerService: StockLedgerService,
+    private readonly settingsService: SettingsService,
   ) {}
 
   execute(job) {
@@ -118,7 +124,7 @@ export class DeliveryNoteJobService {
         { serial_no: { $in: serials } },
         {
           $unset: {
-            'queue_state.delivery_note': null,
+            'queue_state.delivery_note': 1,
           },
         },
       )
@@ -353,7 +359,58 @@ export class DeliveryNoteJobService {
       .then(success => {})
       .catch(error => {});
 
+    from(payload.items).forEach((item: DeliveryNoteItemDto) => {
+      this.createStockLedgerPayload(
+        { warehouse: payload.set_warehouse, deliveryNoteItem: item },
+        token,
+        settings,
+      )
+        .pipe(
+          switchMap((response: StockLedger) => {
+            return from(this.stockLedgerService.create(response));
+          }),
+        )
+        .subscribe();
+    });
+
     return of(true);
+  }
+
+  createStockLedgerPayload(
+    payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
+    token,
+    settings: ServerSettings,
+  ) {
+    return this.settingsService.getFiscalYear(settings).pipe(
+      switchMap(fiscalYear => {
+        const date = new DateTime(settings.timeZone).toJSDate();
+        const stockPayload = new StockLedger();
+        stockPayload.name = uuidv4();
+        stockPayload.modified = date;
+        stockPayload.modified_by = token.email;
+        stockPayload.warehouse = payload.warehouse;
+        stockPayload.item_code = payload.deliveryNoteItem.item_code;
+        stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
+        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+        stockPayload.batch_no = '';
+        stockPayload.posting_date = date;
+        stockPayload.posting_time = date;
+        stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
+        stockPayload.voucher_no =
+          payload.deliveryNoteItem.against_sales_invoice;
+        stockPayload.voucher_detail_no = '';
+        stockPayload.incoming_rate = 0;
+        stockPayload.outgoing_rate = 0;
+        stockPayload.qty_after_transaction = stockPayload.actual_qty;
+        stockPayload.stock_value =
+          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+        stockPayload.stock_value_difference =
+          stockPayload.actual_qty * stockPayload.valuation_rate;
+        stockPayload.company = settings.defaultCompany;
+        stockPayload.fiscal_year = fiscalYear;
+        return of(stockPayload);
+      }),
+    );
   }
 
   getStatus(sales_invoice: SalesInvoice) {

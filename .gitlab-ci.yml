@@ -30,9 +30,6 @@ test_rma_frontend:
     - npm run format:check
     # Test backend unit tests
     - npm run test
-    # Test backend e2e
-    # - npm run e2e
-    - npm run build -- --prod
   tags:
     - docker
 
@@ -88,9 +85,8 @@ test_rma_warranty:
     - npm run format:check
     # Test backend unit tests
     - npm run test
-    # Test backend e2e
     # - npm run e2e
-    - npm run build -- --prod
+    # - npm run build -- --prod
   tags:
     - docker
 
@@ -127,7 +123,7 @@ pack_rma_server_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -142,7 +138,7 @@ pack_rma_frontend_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -157,7 +153,7 @@ pack_rma_warranty_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-warranty/**/*
   before_script:
@@ -172,7 +168,7 @@ pack_rma_pos_staging:
   stage: pack
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-pos/**/*
   before_script:
@@ -187,7 +183,7 @@ deploy_staging_frontend:
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -200,20 +196,19 @@ deploy_staging_pos:
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-pos/**/*
   before_script:
     - apk add curl bash
   script:
     - curl -Ss -X POST $POS_UPDATE_KEY
-    
 deploy_staging_server:
   image: alpine:latest
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -226,7 +221,7 @@ deploy_staging_warranty:
   stage: deploy
   only:
     refs:
-      - develop
+      - main
     changes:
       - packages/rma-warranty/**/*
   before_script:
@@ -239,9 +234,7 @@ pack_rma_server_prod:
   stage: pack
   only:
     refs:
-      - master
-    changes:
-      - packages/rma-server/**/*
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -255,9 +248,7 @@ pack_rma_frontend_prod:
   stage: pack
   only:
     refs:
-      - master
-    changes:
-      - packages/rma-frontend/**/*
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -271,9 +262,7 @@ pack_rma_warranty_prod:
   stage: pack
   only:
     refs:
-      - master
-    changes:
-      - packages/rma-warranty/**/*
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -287,9 +276,7 @@ pack_rma_pos_prod:
   stage: pack
   only:
     refs:
-      - master
-    changes:
-      - packages/rma-pos/**/*
+      - tags
   before_script:
     - apk add git
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com

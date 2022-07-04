@@ -11,6 +11,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MaterialModule } from '../../material/material.module';
 import { SalesService } from '../../sales-ui/services/sales.service';
+import { CsvJsonService } from '../../api/csv-json/csv-json.service';
 
 describe('StockAvailabilityPage', () => {
   let component: StockAvailabilityPage;
@@ -34,14 +35,18 @@ describe('StockAvailabilityPage', () => {
           provide: SalesService,
           useValue: {
             getItemList: () => of([{}]),
-            getDoctypeCount: (...args) => of(0),
-            relayStockAvailabilityList: () => of([{}]),
+            getDocCount: (...args) => of(0),
+            relayStockAvailabilityList: () => of(),
             getStore: () => ({
               getItemAsync: (...args) => of([]),
             }),
             getItemGroupList: (...args) => of([]),
             getItemBrandList: (...args) => of([]),
           },
+        },
+        {
+          provide: CsvJsonService,
+          useValue: {},
         },
       ],
     }).compileComponents();

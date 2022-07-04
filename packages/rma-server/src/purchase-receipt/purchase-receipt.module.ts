@@ -11,9 +11,11 @@ import { DirectModule } from '../direct/direct.module';
 import { PurchaseReceiptSchedularManager } from './schedular';
 import { PurchaseOrderEntitiesModule } from '../purchase-order/entity/entity.module';
 import { PurchaseReceiptWebhookController } from './controllers/purchase-receipt-webhook/purchase-receipt-webhook.controller';
+import { StockLedgerEntitiesModule } from '../stock-ledger/entity/entity.module';
 
 @Module({
   imports: [
+    StockLedgerEntitiesModule,
     PurchaseInvoiceEntitiesModule,
     SerialNoEntitiesModule,
     DirectModule,

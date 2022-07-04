@@ -6,6 +6,7 @@ import { SerialNoHistoryPoliciesService } from '../../../serial-no/policies/seri
 import { AgendaJobService } from '../../../sync/entities/agenda-job/agenda-job.service';
 import { HttpService } from '@nestjs/common';
 import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('StockEntryPoliciesService', () => {
   let service: StockEntryPoliciesService;
@@ -14,6 +15,10 @@ describe('StockEntryPoliciesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StockEntryPoliciesService,
+        {
+          provide: StockLedgerService,
+          useValue: {},
+        },
         {
           provide: SerialNoService,
           useValue: {},

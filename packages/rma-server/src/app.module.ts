@@ -5,12 +5,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from './config/config.module';
 import { AuthModule } from './auth/auth.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
-import {
-  connectTypeORM,
-  connectTypeORMTokenCache,
-  TOKEN_CACHE_CONNECTION,
-  DEFAULT,
-} from './constants/typeorm.connection';
+import { connectTypeORM, connectTypeORMTokenCache, TOKEN_CACHE_CONNECTION, DEFAULT } from './constants/typeorm.connection';
 import { ConfigService } from './config/config.service';
 import { DirectModule } from './direct/direct.module';
 import { CustomerModule } from './customer/customer.module';
@@ -37,6 +32,7 @@ import { ServiceInvoiceModule } from './service-invoice/service-invoice.module';
 import { PrintModule } from './print/print-module';
 import { TermsAndConditionsModule } from './terms-and-conditions/terms-and-conditions.module';
 import { ReportModule } from './report/report.module';
+import { StockLedgerModule } from './stock-ledger/stock-ledger.module';
 
 @Module({
   imports: [
@@ -80,6 +76,7 @@ import { ReportModule } from './report/report.module';
     ServiceInvoiceModule,
     TermsAndConditionsModule,
     ReportModule,
+    StockLedgerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

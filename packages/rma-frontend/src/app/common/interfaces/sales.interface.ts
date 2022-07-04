@@ -75,6 +75,7 @@ export interface SerialNo {
   rate?: number;
   amount?: number;
   serial_no?: string[];
+  has_serial_no?: number;
 }
 
 export interface AggregatedDocument {
@@ -83,4 +84,31 @@ export interface AggregatedDocument {
   total_qty?: number;
   sales_person?: string;
   created_by?: string;
+}
+
+export class StockRow {
+  s_warehouse?: string;
+  t_warehouse?: string;
+  warranty_date?: string;
+  item_code: string;
+  transferWarehouse?: string;
+  has_serial_no?: number;
+  item_name: string;
+  qty: number;
+  serial_no?: any;
+  [key: string]: any;
+}
+
+export class MaterialPrintDto {
+  stock_entry_type: string;
+  uuid?: string;
+  company: string;
+  territory: string;
+  remarks: string;
+  customer?: string;
+  posting_date: string;
+  posting_time: string;
+  items: StockRow[];
+  status?: string;
+  names?: string;
 }

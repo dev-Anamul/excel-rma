@@ -15,6 +15,7 @@ import {
   ACCESS_TOKEN,
   DEFAULT_SELLING_PRICE_LIST,
   HUNDRED_NUMBERSTRING,
+  AUTH_SERVER_URL,
 } from '../../constants/storage';
 import {
   LIST_SALES_INVOICE_ENDPOINT,
@@ -43,17 +44,24 @@ import {
   VALIDATE_RETURN_SERIALS,
   GET_CUSTOMER_ENDPOINT,
   CUSTOMER_ENDPOINT,
-  GET_DOCTYPE_COUNT_METHOD,
+  // GET_DOCTYPE_COUNT_METHOD,
   GET_PRODUCT_BUNDLE_ITEMS,
   REMOVE_SALES_INVOICE_ENDPOINT,
   RELAY_GET_ITEM_GROUP_ENDPOINT,
-  RELAY_GET_DATE_WISE_STOCK_BALANCE_ENDPOINT,
   RELAY_GET_ITEM_BRAND_ENDPOINT,
   PRINT_DELIVERY_INVOICE_ENDPOINT,
   STOCK_AVAILABILITY_ENDPOINT,
   UPDATE_DELIVERY_STATUS_ENDPOINT,
   UPDATE_SALES_INVOICE_ITEM_MRP,
   RELAY_LIST_SALES_RETURN_ENDPOINT,
+  GET_STOCK_BALANCE_ENDPOINT,
+  INVOICE_LIST,
+  INVOICE_PUT,
+  STOCK_AVAILABILITY_COUNT_ENDPOINT,
+  GET_DOCTYPE_COUNT_METHOD,
+  GET_STOCK_ENTRY,
+  SYNC_STOCK_PRINT_ENDPOINT,
+  PRINT_SALES_INVOICE_PDF_METHOD,
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -63,6 +71,7 @@ import {
   JSON_BODY_MAX_SIZE,
   NON_SERIAL_ITEM,
   TERRITORY,
+  EXCEL_STOCK_PRINT,
 } from '../../constants/app-string';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -291,12 +300,33 @@ export class SalesService {
 
   assignSerials(assignSerial: SerialAssign) {
     const url = ASSIGN_SERIAL_ENDPOINT;
-
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.post(url, assignSerial, {
           headers,
         });
+      }),
+    );
+  }
+
+  assignInvoice(invoiceName: any) {
+    const params = new HttpParams().set('name', invoiceName);
+    const url = INVOICE_LIST;
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => res.data),
+    );
+  }
+  updateInvoice(invoiceBody: any, invoiceName: any) {
+    const params = new HttpParams()
+      .set('name', invoiceName)
+      .set('body', invoiceBody);
+    const url = INVOICE_PUT;
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.put<any>(url, { headers, params });
       }),
     );
   }
@@ -440,11 +470,11 @@ export class SalesService {
   getItemStock(item_codes: string[], warehouse: string, date: string) {
     return from(item_codes).pipe(
       mergeMap(code => {
-        return this.getStockBalance(code, warehouse, date).pipe(
+        return this.getStockBalance(code, warehouse).pipe(
           switchMap(data =>
             of({
               ...data,
-              item_code: data.item,
+              item_code: data.item_code,
             }),
           ),
         );
@@ -459,16 +489,18 @@ export class SalesService {
       }),
     );
   }
-
-  getStockBalance(item_code: string, warehouse: string, date) {
-    const url = RELAY_GET_DATE_WISE_STOCK_BALANCE_ENDPOINT;
-    const body = { item: item_code, warehouse, date };
-
+  getStockBalance(item_code: string, warehouse: string) {
+    const url = GET_STOCK_BALANCE_ENDPOINT;
+    const params = new HttpParams()
+      .set('item_code', item_code)
+      .set('warehouse', warehouse);
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.post<any>(url, body, { headers });
+        return this.http.get<any>(url, { headers, params });
       }),
-      map(data => data.message),
+      switchMap(qty => {
+        return of({ item_code, qty });
+      }),
     );
   }
 
@@ -536,7 +568,6 @@ export class SalesService {
 
   relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
     const url = STOCK_AVAILABILITY_ENDPOINT;
-
     const params = new HttpParams({
       fromObject: {
         fields: '["*"]',
@@ -549,7 +580,9 @@ export class SalesService {
       switchMap(headers => {
         return this.http.get<any>(url, { headers, params });
       }),
-      map(res => res.data),
+      map(res => {
+        return res;
+      }),
     );
   }
 
@@ -567,6 +600,26 @@ export class SalesService {
         return this.http.get<any>(url, { headers, params });
       }),
       map(res => res.message),
+    );
+  }
+
+  getDocCount(pageIndex = 0, pageSize = 30, filters) {
+    const url = STOCK_AVAILABILITY_COUNT_ENDPOINT;
+    const params = new HttpParams({
+      fromObject: {
+        fields: '["*"]',
+        filters: JSON.stringify(filters),
+        limit_page_length: pageSize.toString(),
+        limit_start: (pageIndex * pageSize).toString(),
+      },
+    });
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => {
+        return res;
+      }),
     );
   }
 
@@ -822,6 +875,18 @@ export class SalesService {
     return this.http.get<any>(API_INFO_ENDPOINT);
   }
 
+  sendDocument(invoice: any) {
+    const params = new HttpParams().set('invoice', invoice);
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.post(SYNC_STOCK_PRINT_ENDPOINT, {
+          headers,
+          params,
+        });
+      }),
+    );
+  }
+
   getAggregatedDocument(res: AggregatedDocument[]) {
     const itemsHashMap = {};
     const doc: any = res[0];
@@ -881,5 +946,28 @@ export class SalesService {
           });
         },
       });
+  }
+
+  openPdf(format, uuid) {
+    this.storage.getItem(AUTH_SERVER_URL).then(auth_url => {
+      window.open(
+        `${auth_url}${PRINT_SALES_INVOICE_PDF_METHOD}?doctype=${EXCEL_STOCK_PRINT}` +
+          `&name=${uuid}` +
+          `&format=${EXCEL_STOCK_PRINT}` +
+          `&no_letterhead=1` +
+          `&_lang=en`,
+        '_blank',
+      );
+    });
+  }
+
+  getStockEntry(uuid: string) {
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get(`${GET_STOCK_ENTRY}${uuid}`, {
+          headers,
+        });
+      }),
+    );
   }
 }

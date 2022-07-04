@@ -16,6 +16,7 @@ export const ITEM_AFTER_INSERT_ENDPOINT = '/api/item/webhook/v1/create';
 export const ITEM_ON_UPDATE_ENDPOINT = '/api/item/webhook/v1/update';
 export const ITEM_ON_TRASH_ENDPOINT = '/api/item/webhook/v1/delete';
 export const FRAPPE_API_SERIAL_NO_ENDPOINT = '/api/resource/Serial%20No';
+export const FRAPPE_API_FISCAL_YEAR_ENDPOINT = '/api/resource/Fiscal%20Year';
 export const FRAPPE_API_SALES_INVOICE_ENDPOINT =
   '/api/resource/Sales%20Invoice';
 export const FRAPPE_API_SALES_INVOICE_ITEM_ENDPOINT =
@@ -95,3 +96,6 @@ export const RELAY_GET_STOCK_BALANCE_ENDPOINT =
   '/api/method/erpnext.stock.utils.get_stock_balance';
 export const POST_WARRANTY_PRINT_ENDPOINT =
   '/api/resource/Excel%20Warranty%20Print';
+
+export const POST_STOCK_PRINT_ENDPOINT = '/api/resource/Excel%20Stock%20Print';
+export const INVOICE_LIST = '/api/resource/Sales%20Invoice';

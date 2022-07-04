@@ -8,6 +8,7 @@ import { StockEntrySyncService } from './stock-entry-sync.service';
 import { StockEntryService } from '../../entities/stock-entry.service';
 import { AgendaJobService } from '../../../sync/entities/agenda-job/agenda-job.service';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('StockEntryJobService', () => {
   let service: StockEntrySyncService;
@@ -19,6 +20,10 @@ describe('StockEntryJobService', () => {
         { provide: AGENDA_TOKEN, useValue: {} },
         {
           provide: DirectService,
+          useValue: {},
+        },
+        {
+          provide: StockLedgerService,
           useValue: {},
         },
         {

@@ -215,4 +215,5 @@ export class Payments {
   default?: boolean;
   amount?: number;
   account?: string;
+  excel_serials: string;
 }

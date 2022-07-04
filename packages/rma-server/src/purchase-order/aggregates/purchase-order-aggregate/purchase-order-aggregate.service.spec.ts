@@ -8,6 +8,7 @@ import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-hist
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { PurchaseReceiptService } from '../../../purchase-receipt/entity/purchase-receipt.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('PurchaseOrderAggregateService', () => {
   let service: PurchaseOrderAggregateService;
@@ -23,6 +24,10 @@ describe('PurchaseOrderAggregateService', () => {
         },
         {
           provide: SerialNoHistoryService,
+          useValue: {},
+        },
+        {
+          provide: StockLedgerService,
           useValue: {},
         },
         {

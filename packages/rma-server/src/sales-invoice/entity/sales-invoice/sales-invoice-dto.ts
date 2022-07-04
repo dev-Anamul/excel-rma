@@ -217,6 +217,10 @@ export class ItemDto {
   @IsNotEmpty()
   @IsNumber()
   amount: number;
+
+  @IsOptional()
+  @IsString()
+  excel_serials: string;
 }
 
 export class PaymentsDto {

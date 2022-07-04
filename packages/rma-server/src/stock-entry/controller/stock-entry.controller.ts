@@ -149,4 +149,23 @@ export class StockEntryController {
       clientHttpRequest,
     );
   }
+
+  @Get('v1/get_stock_balance')
+  @UseGuards(TokenGuard)
+  getStockBalance(
+    @Query('item_code') item_code = '',
+    @Query('warehouse') warehouse = '',
+  ) {
+    return this.aggregate.getStockBalance({ item_code, warehouse });
+  }
+
+  @Post('v1/sync_stock_document')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  syncStockEntryDocument(@Req() req) {
+    // const body: WarrantyPrintDetails = JSON.parse(file.buffer);
+    return this.aggregate.syncStockEntryDocument(
+      req,
+      req.body.params.updates[0].value,
+    );
+  }
 }
