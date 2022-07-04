@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.1](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@2.0.0-alpha.0...rma-server@2.0.0-alpha.1) (2022-07-04)
+
+**Note:** Version bump only for package rma-server
+
+
+
+
+
 # [1.15.0](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@1.14.0...rma-server@1.15.0) (2021-09-07)
 
 

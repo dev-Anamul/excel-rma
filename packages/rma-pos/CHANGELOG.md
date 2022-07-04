@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.1](https://gitlab.com/castlecraft/excel-rma/compare/rma-pos@2.0.0-alpha.0...rma-pos@2.0.0-alpha.1) (2022-07-04)
+
+**Note:** Version bump only for package rma-pos
+
+
+
+
+
 ## [1.12.3](https://gitlab.com/castlecraft/excel-rma/compare/rma-frontend@1.12.2...rma-frontend@1.12.3) (2021-10-30)
 
 **Note:** Version bump only for package rma-frontend
