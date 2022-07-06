@@ -20,7 +20,14 @@ import { SalesInvoiceUpdateDto } from '../../entity/sales-invoice/sales-invoice-
 import { SALES_INVOICE_CANNOT_BE_UPDATED } from '../../../constants/messages';
 import { SalesInvoiceSubmittedEvent } from '../../event/sales-invoice-submitted/sales-invoice-submitted.event';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
-import { switchMap, map, catchError, toArray, concatMap } from 'rxjs/operators';
+import {
+  switchMap,
+  map,
+  catchError,
+  toArray,
+  concatMap,
+  tap,
+} from 'rxjs/operators';
 import { throwError, of, from, forkJoin } from 'rxjs';
 import {
   AUTHORIZATION,
@@ -36,13 +43,11 @@ import {
   INVOICE_DELIVERY_STATUS,
   CANCELED_STATUS,
   REJECTED_STATUS,
-  DELIVERY_NOTE_DOCTYPE,
 } from '../../../constants/app-strings';
 import { ACCEPT } from '../../../constants/app-strings';
 import { APP_WWW_FORM_URLENCODED } from '../../../constants/app-strings';
 import {
   FRAPPE_API_SALES_INVOICE_ENDPOINT,
-  POST_DELIVERY_NOTE_ENDPOINT,
   LIST_CREDIT_NOTE_ENDPOINT,
   FRAPPE_API_SALES_INVOICE_ITEM_ENDPOINT,
 } from '../../../constants/routes';
@@ -51,7 +56,6 @@ import {
   CreateSalesReturnDto,
   SalesReturnItemDto,
 } from '../../entity/sales-invoice/sales-return-dto';
-import { DeliveryNote } from '../../../delivery-note/entity/delivery-note-service/delivery-note.entity';
 import {
   CreateDeliveryNoteInterface,
   CreateDeliveryNoteItemInterface,
@@ -73,7 +77,6 @@ import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { Item } from '../../../item/entity/item/item.entity';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
-import { ServerSettings } from 'src/system-settings/entities/server-settings/server-settings.entity';
 @Injectable()
 export class SalesInvoiceAggregateService extends AggregateRoot {
   constructor(
@@ -421,74 +424,70 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
           switchMap(({ salesInvoice }) => {
             delete createReturnPayload.delivery_note_names;
             const serialMap = this.getSerialMap(createReturnPayload);
-            let deliveryNote = new DeliveryNote();
-            Object.assign(deliveryNote, createReturnPayload);
-            deliveryNote.instructions = createReturnPayload.remarks;
-            delete deliveryNote.credit_note_items;
-            deliveryNote = this.setDeliveryNoteDefaults(deliveryNote);
 
-            return this.http
-              .post(
-                settings.authServerURL + POST_DELIVERY_NOTE_ENDPOINT,
-                deliveryNote,
-                {
-                  headers: {
-                    [AUTHORIZATION]:
-                      BEARER_HEADER_VALUE_PREFIX +
-                      clientHttpRequest.token.accessToken,
-                    [CONTENT_TYPE]: APP_WWW_FORM_URLENCODED,
-                    [ACCEPT]: APPLICATION_JSON_CONTENT_TYPE,
+            return this.createCreditNote(
+              settings,
+              createReturnPayload,
+              clientHttpRequest,
+              salesInvoice,
+            ).pipe(
+              map(response => response.data.data),
+              tap(async returnInvoice => {
+                let items = returnInvoice.items.map(item => {
+                  item.serial_no = serialMap[item.item_code];
+                  return item;
+                });
+
+                items = this.mapSerialsFromItem(items);
+
+                const { returned_items_map } = this.getReturnedItemsMap(
+                  items,
+                  salesInvoice,
+                );
+
+                await this.salesInvoiceService.updateOne(
+                  { uuid: salesInvoice.uuid },
+                  {
+                    $set: {
+                      returned_items_map,
+                      credit_note: returnInvoice.name,
+                    },
                   },
-                },
-              )
-              .pipe(
-                map(data => data.data.data),
-                switchMap((response: DeliveryNoteWebhookDto) => {
-                  response.items.filter(item => {
-                    item.serial_no = serialMap[item.item_code];
-                    return item;
-                  });
-                  this.createCreditNote(
-                    settings,
-                    createReturnPayload,
-                    clientHttpRequest,
-                    salesInvoice,
-                  );
-                  const items = this.mapSerialsFromItem(response.items);
+                );
 
-                  const { returned_items_map } = this.getReturnedItemsMap(
-                    items,
-                    salesInvoice,
-                  );
+                this.updateInvoiceItemsQuantities(items, salesInvoice.uuid)
+                  .pipe(
+                    catchError(err => {
+                      this.errorLogService.createErrorLog(
+                        err,
+                        'Credit Note',
+                        'salesInvoice',
+                        clientHttpRequest,
+                      );
+                      return throwError(err);
+                    }),
+                  )
+                  .subscribe();
 
-                  this.linkSalesReturn(
-                    items,
-                    response.name,
-                    clientHttpRequest.token,
-                    salesInvoice,
-                    response.set_warehouse,
-                    settings,
-                  );
-
-                  this.salesInvoiceService
-                    .updateOne(
-                      { uuid: salesInvoice.uuid },
-                      { $set: { returned_items_map } },
-                    )
-                    .then(success => {})
-                    .catch(error => {});
-                  return of({});
-                }),
-                catchError(err => {
-                  this.errorLogService.createErrorLog(
-                    err,
-                    'Delivery Note',
-                    'deliveryNote',
-                    clientHttpRequest,
-                  );
-                  return throwError(err);
-                }),
-              );
+                this.linkSalesReturn(
+                  items,
+                  returnInvoice.name,
+                  clientHttpRequest.token,
+                  salesInvoice,
+                  createReturnPayload.set_warehouse,
+                  settings,
+                );
+              }),
+              catchError(err => {
+                this.errorLogService.createErrorLog(
+                  err,
+                  'Credit Note',
+                  'salesInvoice',
+                  clientHttpRequest,
+                );
+                return throwError(err);
+              }),
+            );
           }),
         );
       }),
@@ -499,15 +498,6 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
         return throwError(err);
       }),
     );
-  }
-
-  setDeliveryNoteDefaults(deliveryNote: DeliveryNote) {
-    deliveryNote.naming_series = DEFAULT_NAMING_SERIES.delivery_return;
-    deliveryNote.items.forEach(item => {
-      item.excel_serials = item.serial_no;
-      delete item.serial_no;
-    });
-    return deliveryNote;
   }
 
   getSerialMap(createReturnPayload: CreateSalesReturnDto) {
@@ -575,24 +565,29 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       .then(updated => {})
       .catch(error => {});
 
-    from(items)
+    this.settingsService
+      .getFiscalYear(settings)
       .pipe(
-        concatMap((item: SalesReturnItemDto) => {
-          return this.createStockLedgerPayload(
-            {
-              stock_entry_no: sales_invoice.name,
-              salesInvoice: sales_invoice,
-              deliveryNoteItem: item,
-            },
-            token,
-            settings,
-          ).pipe(
-            switchMap((response: StockLedger) => {
-              return from(this.stockLedgerService.create(response));
-            }),
+        switchMap((fiscalYear: string) => {
+          return from(items).pipe(
+            map((item: SalesReturnItemDto) =>
+              this.createStockLedgerPayload(
+                {
+                  saleReturnName: sales_return_name,
+                  salesInvoice: sales_invoice as SalesInvoiceDto,
+                  returnItem: item,
+                },
+                token,
+                fiscalYear,
+                settings.timeZone,
+                settings.defaultCompany,
+              ),
+            ),
+            tap(stockLedger =>
+              from(this.stockLedgerService.create(stockLedger)),
+            ),
           );
         }),
-        toArray(),
       )
       .subscribe();
 
@@ -607,44 +602,60 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       .catch(error => {});
   }
 
-  createStockLedgerPayload(
-    payload: {
-      stock_entry_no: string;
-      salesInvoice: SalesInvoiceDto;
-      deliveryNoteItem: SalesReturnItemDto;
-    },
-    token,
-    settings: ServerSettings,
+  updateInvoiceItemsQuantities(
+    items: SalesReturnItemDto[],
+    salesInvoiceUuid: string,
   ) {
-    return this.settingsService.getFiscalYear(settings).pipe(
-      switchMap(fiscalYear => {
-        const date = new DateTime(settings.timeZone).toJSDate();
-        const stockPayload = new StockLedger();
-        stockPayload.name = uuidv4();
-        stockPayload.modified = date;
-        stockPayload.modified_by = token.email;
-        stockPayload.item_code = payload.deliveryNoteItem.item_code;
-        stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
-        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
-        stockPayload.batch_no = '';
-        stockPayload.posting_date = date;
-        stockPayload.posting_time = date;
-        stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
-        stockPayload.voucher_no = payload.stock_entry_no;
-        stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
-        stockPayload.outgoing_rate = 0;
-        stockPayload.qty_after_transaction = stockPayload.actual_qty;
-        stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
-        stockPayload.stock_value =
-          stockPayload.qty_after_transaction * stockPayload.valuation_rate;
-        stockPayload.stock_value_difference =
-          stockPayload.actual_qty * stockPayload.valuation_rate;
-        stockPayload.company = settings.defaultCompany;
-        stockPayload.fiscal_year = fiscalYear;
-        return of(stockPayload);
+    return from(items).pipe(
+      tap(async item => {
+        return of(
+          await this.salesInvoiceService.updateOneWithOptions(
+            { uuid: salesInvoiceUuid },
+            { $inc: { 'items.$[e].qty': item.qty } },
+            { arrayFilters: [{ 'e.item_code': item.item_code }] },
+          ),
+        );
       }),
     );
+  }
+
+  createStockLedgerPayload(
+    payload: {
+      saleReturnName: string;
+      salesInvoice: SalesInvoiceDto;
+      returnItem: SalesReturnItemDto;
+    },
+    token,
+    fiscalYear: string,
+    timeZone: any,
+    defaultCompany: string,
+  ) {
+    const date = new DateTime(timeZone).toJSDate();
+    const stockPayload = new StockLedger();
+    stockPayload.name = uuidv4();
+    stockPayload.modified = date;
+    stockPayload.modified_by = token.email;
+    stockPayload.item_code = payload.returnItem.item_code;
+    stockPayload.actual_qty = -payload.returnItem.qty;
+    stockPayload.valuation_rate = payload.returnItem.rate;
+    stockPayload.batch_no = '';
+    stockPayload.posting_date = date;
+    stockPayload.posting_time = date;
+    // stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
+    stockPayload.voucher_no = payload.saleReturnName;
+    stockPayload.voucher_detail_no = '';
+    stockPayload.incoming_rate = 0;
+    stockPayload.outgoing_rate = 0;
+    stockPayload.qty_after_transaction = stockPayload.actual_qty;
+    stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
+    stockPayload.stock_value =
+      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+    stockPayload.stock_value_difference =
+      stockPayload.actual_qty * stockPayload.valuation_rate;
+    stockPayload.company = defaultCompany;
+    stockPayload.fiscal_year = fiscalYear;
+
+    return stockPayload;
   }
 
   updateOutstandingAmount(invoice_name: string) {
@@ -699,35 +710,18 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     salesInvoice: SalesInvoice,
   ) {
     const body = this.mapCreditNote(assignPayload, salesInvoice);
-    return this.http
-      .post(settings.authServerURL + LIST_CREDIT_NOTE_ENDPOINT, body, {
+    return this.http.post(
+      settings.authServerURL + LIST_CREDIT_NOTE_ENDPOINT,
+      body,
+      {
         headers: {
           [AUTHORIZATION]:
             BEARER_HEADER_VALUE_PREFIX + clientHttpRequest.token.accessToken,
           [CONTENT_TYPE]: APPLICATION_JSON_CONTENT_TYPE,
           [ACCEPT]: APPLICATION_JSON_CONTENT_TYPE,
         },
-      })
-      .pipe(map(data => data.data.data))
-      .subscribe({
-        next: (success: { name: string }) => {
-          this.salesInvoiceService
-            .updateOne(
-              { name: salesInvoice.name },
-              { $set: { credit_note: success.name } },
-            )
-            .then(created => {})
-            .catch(error => {});
-        },
-        error: err => {
-          this.errorLogService.createErrorLog(
-            err,
-            'Credit Note',
-            'salesInvoice',
-            clientHttpRequest,
-          );
-        },
-      });
+      },
+    );
   }
 
   mapCreditNote(
