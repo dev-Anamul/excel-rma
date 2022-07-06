@@ -17,7 +17,10 @@ import { SalesInvoiceService } from '../../entity/sales-invoice/sales-invoice.se
 import { SalesInvoiceRemovedEvent } from '../../event/sales-invoice-removed/sales-invoice-removed.event';
 import { SalesInvoiceUpdatedEvent } from '../../event/sales-invoice-updated/sales-invoice-updated.event';
 import { SalesInvoiceUpdateDto } from '../../entity/sales-invoice/sales-invoice-update-dto';
-import { SALES_INVOICE_CANNOT_BE_UPDATED } from '../../../constants/messages';
+import {
+  PLEASE_RUN_SETUP,
+  SALES_INVOICE_CANNOT_BE_UPDATED,
+} from '../../../constants/messages';
 import { SalesInvoiceSubmittedEvent } from '../../event/sales-invoice-submitted/sales-invoice-submitted.event';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import {
@@ -50,6 +53,7 @@ import {
   FRAPPE_API_SALES_INVOICE_ENDPOINT,
   LIST_CREDIT_NOTE_ENDPOINT,
   FRAPPE_API_SALES_INVOICE_ITEM_ENDPOINT,
+  FRAPPE_CLIENT_CANCEL,
 } from '../../../constants/routes';
 import { SalesInvoicePoliciesService } from '../../../sales-invoice/policies/sales-invoice-policies/sales-invoice-policies.service';
 import {
@@ -77,6 +81,10 @@ import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { Item } from '../../../item/entity/item/item.entity';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { SalesReturnCancelDto } from 'src/sales-invoice/entity/sales-invoice/sales-return-cancel-dto';
+import { ServerSettings } from 'src/system-settings/entities/server-settings/server-settings.entity';
+import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
+
 @Injectable()
 export class SalesInvoiceAggregateService extends AggregateRoot {
   constructor(
@@ -91,6 +99,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     private readonly itemService: ItemService,
     private readonly itemAggregateService: ItemAggregateService,
     private readonly stockLedgerService: StockLedgerService,
+    private serialNoPolicyService: SerialNoPoliciesService,
   ) {
     super();
   }
@@ -500,6 +509,200 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     );
   }
 
+  private cancelDoc(docName: string, settings: ServerSettings, request: any) {
+    const headers = {
+      [AUTHORIZATION]: BEARER_HEADER_VALUE_PREFIX + request.token.accessToken,
+    };
+
+    return this.http.post(
+      settings.authServerURL + FRAPPE_CLIENT_CANCEL,
+      { doctype: 'Sales Invoice', name: docName },
+      { headers },
+    );
+  }
+
+  private async resetSalesReturnItemsQuantities(
+    items: CreateDeliveryNoteItemInterface[],
+    salesInvoice: SalesInvoice,
+  ) {
+    const { returned_items_map } = this.getReturnedItemsMap(
+      items,
+      salesInvoice,
+    );
+
+    await this.salesInvoiceService.updateOne(
+      { name: salesInvoice.name },
+      { $set: { returned_items_map } },
+    );
+  }
+
+  private async resetSalesReturnSerials(
+    returnInvoiceName: string,
+    salesInvoice: SalesInvoice,
+  ) {
+    await this.serialNoHistoryService.deleteMany({
+      document_no: returnInvoiceName,
+    });
+
+    const serials = await this.serialNoService.find({
+      sales_return_name: returnInvoiceName,
+    });
+
+    const serialNumbers = serials.map(serial => serial.serial_no);
+
+    const deliveryHistory = await this.serialNoHistoryService.findOne({
+      parent_document: salesInvoice.name,
+      document_type: 'Delivery Note',
+    });
+
+    await this.serialNoService.updateMany(
+      { serial_no: { $in: serialNumbers } },
+      {
+        $set: {
+          customer: salesInvoice.customer,
+          sales_invoice_name: salesInvoice.name,
+          'warranty.soldOn': salesInvoice.posting_date,
+          warehouse: salesInvoice.delivery_warehouse,
+          delivery_note: deliveryHistory.document_no,
+        },
+        $unset: { sales_return_name: undefined },
+      },
+    );
+  }
+
+  private async resetItemsInvoiceAndLedgers(
+    ledgers: StockLedger[],
+    returnInvoiceName: string,
+    salesInvoiceName: string,
+  ) {
+    const pullReturnedItemsPromises = [];
+    const updateSalesInvoicePromises = [];
+    const deleteStockLedgersPromises = [];
+
+    for (const ledger of ledgers) {
+      updateSalesInvoicePromises.push(
+        this.salesInvoiceService.updateOneWithOptions(
+          { name: salesInvoiceName },
+          { $inc: { 'items.$[e].qty': ledger.actual_qty } },
+          { arrayFilters: [{ 'e.item_code': ledger.item_code }] },
+        ),
+      );
+
+      pullReturnedItemsPromises.push(
+        this.salesInvoiceService.updateOne(
+          { name: salesInvoiceName },
+          {
+            $pull: {
+              returned_items: {
+                item_code: ledger.item_code,
+                sales_return_name: returnInvoiceName,
+              },
+            },
+          },
+        ),
+      );
+
+      deleteStockLedgersPromises.push(
+        this.stockLedgerService.deleteOne({
+          name: ledger.name,
+        }),
+      );
+    }
+
+    await Promise.all(
+      [].concat(
+        updateSalesInvoicePromises,
+        pullReturnedItemsPromises,
+        deleteStockLedgersPromises,
+      ),
+    );
+  }
+
+  async cancelSalesReturn(
+    cancelSalesReturnDto: SalesReturnCancelDto,
+    request: any,
+  ) {
+    const { returnInvoiceName, saleInvoiceName } = cancelSalesReturnDto;
+    let salesInvoice: SalesInvoice;
+
+    try {
+      const settings = await this.settingsService.find().toPromise();
+
+      if (!settings.authServerURL) {
+        throw new NotImplementedException(PLEASE_RUN_SETUP);
+      }
+
+      salesInvoice = await this.salesInvoiceService.findOne({
+        name: saleInvoiceName,
+      });
+
+      const returnedInvoiceItems = salesInvoice.returned_items.filter(
+        item => item.sales_return_name === returnInvoiceName,
+      );
+
+      const returnedItemsSerialNos = [];
+      returnedInvoiceItems.forEach(item => {
+        if (
+          item.serial_no &&
+          item.serial_no.toLowerCase() !== 'non serial item'
+        ) {
+          returnedItemsSerialNos.push(...item.serial_no.split('\n'));
+        }
+      });
+
+      if (returnedItemsSerialNos.length) {
+        const invalidSerialNos = await this.serialNoPolicyService.findInvalidCancelReturnSerials(
+          returnedItemsSerialNos,
+          saleInvoiceName,
+        );
+
+        if (invalidSerialNos.length) {
+          const serialNosString = invalidSerialNos.join(' ');
+
+          const message =
+            invalidSerialNos.length > 1
+              ? `Serial numbers (${serialNosString}) are ` +
+                `already sold. You cannot cancel this return.`
+              : `Serial number (${serialNosString}) is ` +
+                `already sold. You cannot cancel this return.`;
+
+          throw new BadRequestException(message);
+        }
+      }
+
+      await this.cancelDoc(returnInvoiceName, settings, request).toPromise();
+
+      salesInvoice = await this.salesInvoiceService.findOne({
+        name: saleInvoiceName,
+      });
+
+      const ledgers = await this.stockLedgerService.find({
+        voucher_no: returnInvoiceName,
+      });
+
+      const items = ledgers.map(ledger => {
+        const item: CreateDeliveryNoteItemInterface = {
+          item_code: ledger.item_code,
+          qty: ledger.actual_qty,
+          has_serial_no: 0,
+        };
+
+        return item;
+      });
+
+      await this.resetItemsInvoiceAndLedgers(
+        ledgers,
+        returnInvoiceName,
+        salesInvoice.name,
+      );
+      await this.resetSalesReturnItemsQuantities(items, salesInvoice);
+      await this.resetSalesReturnSerials(returnInvoiceName, salesInvoice);
+    } catch (error) {
+      this.errorLogService.createErrorLog(error, 'Credit Note', 'creditNote');
+      throw error;
+    }
+  }
+
   getSerialMap(createReturnPayload: CreateSalesReturnDto) {
     const hash_map = {};
     createReturnPayload.items.forEach(item => {
@@ -508,6 +711,14 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
         : (hash_map[item.item_code] = item.serial_no);
     });
     return hash_map;
+  }
+
+  getItemSerialNumbers(items: any[]) {
+    const serials = items
+      .filter(item => item.serial_no)
+      .map(item => item.serial_no.split('\n'));
+
+    return serials;
   }
 
   linkSalesReturn(
@@ -537,9 +748,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
           $set: { sales_return_name, warehouse },
           $unset: {
             customer: undefined,
-            'warranty.salesWarrantyDate': undefined,
             'warranty.soldOn': undefined,
-            delivery_note: undefined,
             sales_invoice_name: undefined,
           },
         },
@@ -594,9 +803,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     this.salesInvoiceService
       .updateMany(
         { name: sales_invoice.name },
-        {
-          $push: { returned_items: { $each: items } },
-        },
+        { $push: { returned_items: { $each: items } } },
       )
       .then(success => {})
       .catch(error => {});

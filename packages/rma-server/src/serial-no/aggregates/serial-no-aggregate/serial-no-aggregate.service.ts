@@ -4,6 +4,7 @@ import {
   HttpService,
   NotImplementedException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AggregateRoot } from '@nestjs/cqrs';
 import { v4 as uuidv4 } from 'uuid';
@@ -320,6 +321,29 @@ export class SerialNoAggregateService extends AggregateRoot {
       offset,
       limit,
     );
+  }
+
+  async getSalesInvoiceReturnSerials(
+    sales_invoice_name: string,
+    offset: number,
+    limit: number,
+  ) {
+    try {
+      const salesInvoice = await this.salesInvoiceService.findOne({
+        name: sales_invoice_name,
+      });
+      const serialNumbers = salesInvoice.returned_items.map(
+        item => item.serial_no,
+      );
+
+      return await this.serialNoService.listReturnInvoicesSerials(
+        serialNumbers,
+        offset,
+        limit,
+      );
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   retrieveDirectSerialNo(serial_no: string) {

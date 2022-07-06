@@ -9,6 +9,7 @@ import {
   Param,
   Get,
   Query,
+  Put,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { TokenGuard } from '../../../auth/guards/token.guard';
@@ -25,6 +26,8 @@ import { CreateSalesReturnDto } from '../../entity/sales-invoice/sales-return-dt
 import { SalesInvoiceListQueryDto } from '../../../constants/listing-dto/sales-invoice-list-query';
 import { SalesInvoiceAggregateService } from '../../aggregates/sales-invoice-aggregate/sales-invoice-aggregate.service';
 import { SalesInvoiceResetAggregateService } from '../../aggregates/sales-invoice-reset-aggregate/sales-invoice-reset-aggregate.service';
+import { SalesReturnCancelDto } from '../../../sales-invoice/entity/sales-invoice/sales-return-cancel-dto';
+import { CancelSalesReturnCommand } from '../../../sales-invoice/command/cancel-sales-return/cancel-sales-return.command';
 
 @Controller('sales_invoice')
 export class SalesInvoiceController {
@@ -70,6 +73,15 @@ export class SalesInvoiceController {
   @UseGuards(TokenGuard)
   cancelSalesInvoice(@Param('uuid') uuid: string, @Req() req) {
     return this.salesInvoiceResetAggregate.cancel(uuid, req);
+  }
+
+  @Put('v1/cancel_return/:creditNoteName')
+  @UseGuards(TokenGuard)
+  @UsePipes(new ValidationPipe())
+  cancelSalesReturn(@Body() cancelReturnDto: SalesReturnCancelDto, @Req() req) {
+    return this.commandBus.execute(
+      new CancelSalesReturnCommand(cancelReturnDto, req),
+    );
   }
 
   @Get('v1/get/:uuid')
