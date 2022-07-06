@@ -25,7 +25,6 @@ import {
 import { AssignSerialDto } from '../../entity/serial-no/assign-serial-dto';
 import { AssignSerialNoCommand } from '../../command/assign-serial-no/assign-serial-no.command';
 import { ValidateSerialsQuery } from '../../query/validate-serial/validate-serial.query';
-import { RetrieveSalesInvoiceDeliveredSerialNoQuery } from '../../query/retrieve-sales-invoice-delivered-serial-no/retrieve-sales-invoice-delivered-serial-no.query'; // eslint-disable-line
 import {
   DELIVERY_NOTE,
   PURCHASE_RECEIPT,
@@ -34,7 +33,8 @@ import { SerialNoAggregateService } from '../../aggregates/serial-no-aggregate/s
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RetrieveDirectSerialNoQuery } from '../../query/get-direct-serial-no/retrieve-direct-serial-no.query';
 import { RetrieveSerialNoHistoryQuery } from '../../query/get-serial-no-history/get-serial-no-history.query';
-import { RetrieveSalesInvoiceReturnedSerialNoQuery } from '../../../serial-no/query/retrieve-sales-invoice-return-serial-no/retrieve-sales-invoice-return-serial-no.query';
+import { RetrieveSalesInvoiceDeliveredSerialNoQuery } from '../../query/retrieve-sales-invoice-delivered-serial-no/retrieve-sales-invoice-delivered-serial-no.query'; // eslint-disable-line
+import { RetrieveSalesInvoiceReturnedSerialNoQuery } from '../../../serial-no/query/retrieve-sales-invoice-return-serial-no/retrieve-sales-invoice-return-serial-no.query'; // eslint-disable-line
 
 @Controller('serial_no')
 export class SerialNoController {
