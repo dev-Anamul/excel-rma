@@ -1,3 +1,4 @@
+import { SerialNoHistoryService } from './../../entity/serial-no-history/serial-no-history.service';
 import {
   Injectable,
   BadRequestException,
@@ -10,7 +11,7 @@ import {
   ValidateReturnSerialsDto,
 } from '../../entity/serial-no/serial-no-dto';
 import { from, of, throwError } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { concatMap, map, switchMap, toArray } from 'rxjs/operators';
 import {
   SERIAL_NO_ALREADY_EXIST,
   ITEM_NOT_FOUND,
@@ -18,11 +19,13 @@ import {
 } from '../../../constants/messages';
 import { ItemService } from '../../../item/entity/item/item.service';
 import { SupplierService } from '../../../supplier/entity/supplier/supplier.service';
+import { EventType } from '../../../serial-no/entity/serial-no-history/serial-no-history.entity';
 
 @Injectable()
 export class SerialNoPoliciesService {
   constructor(
     private readonly serialNoService: SerialNoService,
+    private readonly serialNoHistoryService: SerialNoHistoryService,
     private readonly itemService: ItemService,
     private readonly supplierService: SupplierService,
   ) {}
@@ -125,6 +128,35 @@ export class SerialNoPoliciesService {
           },
         ),
       );
+  }
+
+  async findInvalidCancelReturnSerials(
+    serialNumbers: string[],
+    salesInvoiceName: string,
+  ) {
+    const recentSerialNoHistories = await from(serialNumbers)
+      .pipe(
+        concatMap(async serialNumber => {
+          return await this.serialNoHistoryService
+            .asyncAggregate([
+              { $match: { serial_no: serialNumber } },
+              { $sort: { created_on: -1 } },
+              { $limit: 1 },
+            ])
+            .pipe(map(histories => histories[0]))
+            .toPromise();
+        }),
+        toArray(),
+      )
+      .toPromise();
+
+    const invalidSerials = recentSerialNoHistories.filter(
+      recentSerialHistory =>
+        recentSerialHistory.parent_document !== salesInvoiceName ||
+        recentSerialHistory.eventType !== EventType.SerialReturned,
+    );
+
+    return invalidSerials.map(invalidSerial => invalidSerial.serial_no);
   }
 
   validateSerialsForDeliveryNote(payload: ValidateSerialsDto) {

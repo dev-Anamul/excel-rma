@@ -7,8 +7,10 @@ import {
   AUTHORIZATION,
   BEARER_TOKEN_PREFIX,
 } from '../../../constants/storage';
-import { LIST_CREDIT_NOTE_ENDPOINT } from '../../../constants/url-strings';
-
+import {
+  CANCEL_SALES_RETURN_ENDPOINT,
+  LIST_CREDIT_NOTE_ENDPOINT,
+} from '../../../constants/url-strings';
 import { map, switchMap } from 'rxjs/operators';
 
 @Injectable({
@@ -39,6 +41,15 @@ export class CreditNoteService {
           headers,
         });
       }),
+    );
+  }
+
+  cancelCreditNote(returnInvoiceName: string, saleInvoiceName: string) {
+    const url = `${CANCEL_SALES_RETURN_ENDPOINT}/${returnInvoiceName}`;
+    return this.getHeaders().pipe(
+      switchMap(headers =>
+        this.http.put(url, { saleInvoiceName, returnInvoiceName }, { headers }),
+      ),
     );
   }
 
