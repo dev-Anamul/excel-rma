@@ -348,7 +348,7 @@ export class PurchaseReceiptSyncService {
             return this.createStockLedgerPayload(
               {
                 pr_no: receipt.purchase_invoice_name,
-                purchaseReciept: item,
+                purchaseReceipt: item,
               },
               token,
               settings,
@@ -366,7 +366,7 @@ export class PurchaseReceiptSyncService {
   }
 
   createStockLedgerPayload(
-    payload: { pr_no: string; purchaseReciept: PurchaseReceiptItemDto },
+    payload: { pr_no: string; purchaseReceipt: PurchaseReceiptItemDto },
     token,
     settings: ServerSettings,
   ) {
@@ -377,18 +377,18 @@ export class PurchaseReceiptSyncService {
         stockPayload.name = uuidv4();
         stockPayload.modified = date;
         stockPayload.modified_by = token.email;
-        stockPayload.warehouse = payload.purchaseReciept.warehouse;
-        stockPayload.item_code = payload.purchaseReciept.item_code;
-        stockPayload.actual_qty = payload.purchaseReciept.qty;
-        stockPayload.valuation_rate = payload.purchaseReciept.rate;
+        stockPayload.warehouse = payload.purchaseReceipt.warehouse;
+        stockPayload.item_code = payload.purchaseReceipt.item_code;
+        stockPayload.actual_qty = payload.purchaseReceipt.qty;
+        stockPayload.valuation_rate = payload.purchaseReceipt.rate;
         stockPayload.batch_no = '';
-        stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
+        stockPayload.stock_uom = payload.purchaseReceipt.stock_uom;
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
         stockPayload.voucher_no = payload.pr_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = payload.purchaseReciept.rate;
+        stockPayload.incoming_rate = payload.purchaseReceipt.rate;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =

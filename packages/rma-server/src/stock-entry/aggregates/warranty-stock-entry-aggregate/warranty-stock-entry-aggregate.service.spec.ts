@@ -8,6 +8,7 @@ import { StockEntryService } from '../../entities/stock-entry.service';
 import { WarrantyClaimService } from '../../../warranty-claim/entity/warranty-claim/warranty-claim.service';
 import { StockEntryPoliciesService } from '../../../stock-entry/policies/stock-entry-policies/stock-entry-policies.service';
 import { WarrantyClaimAggregateService } from '../../../warranty-claim/aggregates/warranty-claim-aggregate/warranty-claim-aggregate.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('WarrantyStockEntryAggregateService', () => {
   let service: WarrantyStockEntryAggregateService;
@@ -45,6 +46,10 @@ describe('WarrantyStockEntryAggregateService', () => {
           provide: WarrantyClaimAggregateService,
           useValue: {},
         },
+        {
+          provide: StockLedgerService,
+          useValue: {},
+        },
       ],
     }).compile();
 
@@ -52,7 +57,7 @@ describe('WarrantyStockEntryAggregateService', () => {
       WarrantyStockEntryAggregateService,
     );
   });
-  WarrantyStockEntryAggregateService;
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
