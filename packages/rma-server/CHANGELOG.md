@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.2](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@2.0.0-alpha.1...rma-server@2.0.0-alpha.2) (2022-07-17)
+
+
+### Bug Fixes
+
+* **rma-server:** Disconnect create of DeliveryNote type in ERPNext. Only create CreditNote type in ERPNext and StockLedger in MongoDB. ([95f16ef](https://gitlab.com/castlecraft/excel-rma/commit/95f16eff5e77b27953ea6ea79945bb9277890a16))
+* **rma-server:** List all serials returned in a sales invoice including serial ranges. ([b62c50a](https://gitlab.com/castlecraft/excel-rma/commit/b62c50a95ae7fdff2caada44890258e1ccd13034))
+
+
+
+
+
 # [2.0.0-alpha.1](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@2.0.0-alpha.0...rma-server@2.0.0-alpha.1) (2022-07-04)
 
 **Note:** Version bump only for package rma-server
