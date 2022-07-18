@@ -20,6 +20,7 @@ import { LIST_CREDIT_NOTE_ENDPOINT } from '../../constants/routes';
 import {
   CREDIT_NOTE_IS_RETURN_QUERY,
   CREDIT_NOTE_FILTER_BY_SALES_INVOICE_QUERY,
+  CREDIT_NOTE_IS_CANCEL_QUERY,
 } from '../../constants/query';
 
 @Injectable()
@@ -42,6 +43,7 @@ export class CreditNoteService {
         const params = {
           filters: JSON.stringify([
             CREDIT_NOTE_IS_RETURN_QUERY,
+            CREDIT_NOTE_IS_CANCEL_QUERY,
             [...CREDIT_NOTE_FILTER_BY_SALES_INVOICE_QUERY, sales_invoice],
           ]),
           fields: JSON.stringify(CREDIT_NOTE_LIST_FIELD),

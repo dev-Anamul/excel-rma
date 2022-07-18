@@ -20,7 +20,7 @@ export class SerialNoHistoryPoliciesService {
         {
           $match: {
             serial_no: {
-              $in: serial_no,
+              $in: [serial_no],
             },
           },
         },

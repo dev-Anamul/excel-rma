@@ -111,6 +111,22 @@ export class SerialNoService {
     };
   }
 
+  async listReturnInvoicesSerials(
+    serial_numbers: string[],
+    offset: number,
+    limit: number,
+  ) {
+    return {
+      data: await this.aggregateList(offset, limit, {
+        serial_no: { $in: serial_numbers },
+      }).toPromise(),
+      length: await this.serialNoRepository.count({
+        serial_no: { $in: serial_numbers },
+      }),
+      offset,
+    };
+  }
+
   async deleteOne(query, options?) {
     return await this.serialNoRepository.deleteOne(query, options);
   }

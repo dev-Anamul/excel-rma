@@ -28,6 +28,7 @@ import { SalesService } from '../../services/sales.service';
 export class PrintComponent implements OnInit {
   invoice_name: string = '';
   printSalesInvoiceURL: string = '';
+  printSalesChallanURL: string = '';
   printMRPSalesInvoiceURL: string = '';
   deliveryNoteNames: string[] = [];
   printDeliveryNoteURL: string = '';
@@ -44,6 +45,7 @@ export class PrintComponent implements OnInit {
   ngOnInit() {
     this.invoice_name = this.navParams.data.invoice_name;
     this.getPrintSalesInvoiceURL();
+    this.getprintSalesChallanURL();
     this.getPrintMRPSalesInvoiceURL();
     this.getPrintDeliveryNoteURL();
   }
@@ -56,6 +58,17 @@ export class PrintComponent implements OnInit {
     const no_letterhead = 'no_letterhead=0';
     this.printSalesInvoiceURL = `${url}?doctype=${doctype}&${name}&format=${
       PRINT_FORMAT_PREFIX + doctype
+    }&${no_letterhead}`;
+  }
+
+  async getprintSalesChallanURL() {
+    const authURL = await this.storage.getItem(AUTH_SERVER_URL);
+    const url = `${authURL}${PRINT_SALES_INVOICE_PDF_METHOD}`;
+    const doctype = 'Sales Invoice';
+    const name = `name=${this.invoice_name}`;
+    const no_letterhead = 'no_letterhead=0';
+    this.printSalesChallanURL = `${url}?doctype=${doctype}&${name}&format=${
+      PRINT_FORMAT_PREFIX + 'Sales Challan'
     }&${no_letterhead}`;
   }
 

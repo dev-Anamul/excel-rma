@@ -14,7 +14,7 @@ import { Location } from '@angular/common';
 import { Item } from '../../../common/interfaces/sales.interface';
 import { AUTH_SERVER_URL } from '../../../constants/storage';
 import { filter } from 'rxjs/operators';
-import { LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { ViewSalesInvoiceSubjectService } from '../view-sales-invoice-subject.service';
 import { PERMISSION_STATE } from '../../../constants/permission-roles';
 import { ConfirmationDialog } from '../../item-price/item-price.page';
@@ -205,7 +205,34 @@ export class DetailsComponent implements OnInit {
     });
   }
 
+  canCancelSalesInvoice(): boolean {
+    const returnedItemsMapKeys = Object.keys(
+      this.salesInvoiceDetails.returned_items_map,
+    );
+
+    for (const key of returnedItemsMapKeys) {
+      if (this.salesInvoiceDetails.returned_items_map[key] < 0) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   async cancelSalesInvoice() {
+    if (!this.canCancelSalesInvoice()) {
+      const okDialog = new AlertController().create({
+        header: 'Cancel Credit Notes',
+        message:
+          'Please cancel all your sales returns(credit notes) ' +
+          'before cancelling an invoice.',
+        buttons: [{ text: 'OK' }],
+      });
+
+      (await okDialog).present();
+      return;
+    }
+
     const dialog = this.dialog.open(ConfirmationDialog, {
       data: {
         event: `
