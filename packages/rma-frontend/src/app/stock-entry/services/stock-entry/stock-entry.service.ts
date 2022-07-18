@@ -6,6 +6,7 @@ import {
   ACCESS_TOKEN,
   AUTHORIZATION,
   BEARER_TOKEN_PREFIX,
+  HUNDRED_NUMBERSTRING,
 } from '../../../constants/storage';
 import { map, switchMap } from 'rxjs/operators';
 import {
@@ -153,6 +154,22 @@ export class StockEntryService {
           params,
           headers,
         });
+      }),
+    );
+  }
+
+  getFilteredAccountingDimensions(url, filter) {
+    const params = new HttpParams({
+      fromObject: {
+        filters: filter,
+        limit_page_length: (HUNDRED_NUMBERSTRING * 10).toString(),
+      },
+    });
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http
+          .get<any>(url, { params, headers })
+          .pipe(map(res => res.data));
       }),
     );
   }

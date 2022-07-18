@@ -138,13 +138,14 @@
               }"
             >
               {{
-                row.docstatus === 0 ? 'Not Submitted' : 
+                row.docstatus === 0 ? 'Draft' : 
                 row.docstatus === 1 ? 'Submitted' : 'Canceled'
               }}
             </ion-text>
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
+        
 
         <mat-header-row
           *matHeaderRowDef="displayedColumns; sticky: true"

@@ -195,4 +195,7 @@ export class WarrantyClaimDto {
 
   @IsOptional()
   customer_code: string;
+
+  @IsOptional()
+  subclaim_state: string;
 }

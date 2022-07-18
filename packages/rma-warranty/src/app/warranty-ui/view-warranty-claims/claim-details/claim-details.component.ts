@@ -13,6 +13,8 @@ import { LoadingController } from '@ionic/angular';
 import { PERMISSION_STATE } from '../../../constants/permission-roles';
 import { PrintSettingDialog } from '../../shared-warranty-modules/print-setting-dialog/print-setting-dialog';
 import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../common/components/confirm-dialog/confirm-dialog.component';
+import { map } from 'rxjs/operators';
 @Component({
   selector: 'claim-details',
   templateUrl: './claim-details.component.html',
@@ -36,6 +38,7 @@ export class ClaimDetailsComponent implements OnInit {
     'servicing_amount',
   ];
   warrantyClaimsDetails: WarrantyClaimsDetails;
+  bulkClaimNo: string;
   permissionState = PERMISSION_STATE;
   dataSource: WarrantyItem[];
   invoiceUuid: string;
@@ -63,7 +66,10 @@ export class ClaimDetailsComponent implements OnInit {
   }
   getWarrantyClaim(uuid: string) {
     this.warrantyService.getWarrantyClaim(uuid).subscribe({
-      next: (res: any) => {
+      next: async (res: any) => {
+        this.bulkClaimNo = res?.parent
+          ? await this.getWarrantyBulkClaimNo(res?.parent).toPromise()
+          : '';
         this.warrantyClaimsDetails = res;
         this.warrantyClaimsDetails.address_display = this.warrantyClaimsDetails
           .address_display
@@ -132,6 +138,17 @@ export class ClaimDetailsComponent implements OnInit {
       });
   }
 
+  openConfirmDialog(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.data) {
+        this.resetEntry();
+      }
+    });
+  }
+
   openDialog(): void {
     const dialogRef = this.dialog.open(PrintSettingDialog, {
       width: '300px',
@@ -143,5 +160,11 @@ export class ClaimDetailsComponent implements OnInit {
         this.getPrint(result);
       }
     });
+  }
+
+  getWarrantyBulkClaimNo(uuid: string) {
+    return this.warrantyService
+      .getWarrantyClaim(uuid)
+      .pipe(map((res: any) => res.claim_no));
   }
 }

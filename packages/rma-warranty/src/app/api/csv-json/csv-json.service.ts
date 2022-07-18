@@ -96,12 +96,12 @@ export class CsvJsonService {
 
   async downloadAsCSV(data: any[], fields: string[], filename) {
     const parsedFields = {};
-    Object.keys(data[0]).forEach(key => {
+    Object.keys(Object.assign({}, ...data)).forEach(key => {
       parsedFields[key] = false;
       if (fields.includes(key)) {
         parsedFields[key] = true;
       }
-      if (!['string', 'number'].includes(typeof data[0][key])) {
+      if (['object'].includes(typeof data[0][key])) {
         delete parsedFields[key];
       }
     });

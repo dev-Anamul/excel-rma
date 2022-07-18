@@ -119,7 +119,7 @@ export class WarrantyPage implements OnInit {
               undefined,
               {},
               {
-                set: [CATEGORY.BULK, CATEGORY.SINGLE],
+                set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
               },
             );
           }
@@ -178,14 +178,14 @@ export class WarrantyPage implements OnInit {
     });
   }
 
-  getUpdate(event) {
+  getUpdate(event?) {
     const query: any = {};
     if (this.f.customer_name.value)
-      query.customer = this.f.customer_name.value.name;
+      query.customer = this.f.customer_name.value.customer_name;
     if (this.f.claim_no.value) query.claim_no = this.f.claim_no.value;
     if (this.f.third_party_name.value)
       query.third_party_name = this.f.third_party_name.value;
-    if (this.f.product.value) query.product = this.f.product.value.item_name;
+    if (this.f.product.value) query.item_name = this.f.product.value.item_name;
     if (this.claim_status) query.claim_status = this.claim_status;
     if (this.f.claim_type.value) query.claim_type = this.f.claim_type.value;
     if (this.f.territory.value) query.receiving_branch = this.f.territory.value;
@@ -220,7 +220,7 @@ export class WarrantyPage implements OnInit {
       query,
       {
         territory: this.territoryList,
-        set: [CATEGORY.BULK, CATEGORY.SINGLE],
+        set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
       },
     );
   }
@@ -264,8 +264,10 @@ export class WarrantyPage implements OnInit {
 
     this.dataSource.loadItems(this.sortQuery, undefined, undefined, query, {
       territory: this.territoryList,
-      set: [CATEGORY.BULK, CATEGORY.SINGLE, 'Part'],
+      set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
     });
+
+    this.getUpdate();
   }
 
   getBulkClaims() {
@@ -279,7 +281,7 @@ export class WarrantyPage implements OnInit {
     if (status === 'All') {
       this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
         territory: this.territoryList,
-        set: [CATEGORY.BULK, CATEGORY.SINGLE],
+        set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
       });
     } else {
       this.claim_status = status;
@@ -317,7 +319,7 @@ export class WarrantyPage implements OnInit {
     this.paginator.firstPage();
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
       territory: this.territoryList,
-      set: [CATEGORY.BULK, CATEGORY.SINGLE],
+      set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
     });
   }
 
@@ -345,7 +347,7 @@ export class WarrantyPage implements OnInit {
       { parent: row.uuid },
       {
         territory: this.territoryList,
-        set: ['Part'],
+        set: [CATEGORY.PART],
       },
     );
   }

@@ -288,18 +288,34 @@ export class WarrantyService {
       });
   }
 
+  getAllSubClaims(warrantyDetail: WarrantyClaimsDetails) {
+    return this.getWarrantyClaimsList(
+      { createdOn: 'asc' },
+      undefined,
+      undefined,
+      { parent: warrantyDetail.uuid },
+      {
+        set: [CATEGORY.PART],
+      },
+    ).pipe(
+      switchMap(res => {
+        return this.getWarrantyClaimsList(
+          { createdOn: 'asc' },
+          undefined,
+          res.length,
+          { parent: warrantyDetail.uuid },
+          {
+            set: [CATEGORY.PART],
+          },
+        );
+      }),
+      map(res => res.docs),
+    );
+  }
+
   mapWarrantyItems(warrantyDetail: WarrantyClaimsDetails) {
     if (warrantyDetail.set === CATEGORY.BULK) {
-      return this.getWarrantyClaimsList(
-        undefined,
-        undefined,
-        undefined,
-        { parent: warrantyDetail.uuid },
-        {
-          set: ['Part'],
-        },
-      ).pipe(
-        map(res => res.docs),
+      return this.getAllSubClaims(warrantyDetail).pipe(
         switchMap((res: WarrantyClaimsDetails[]) => {
           return from(res).pipe(
             filter(
@@ -391,16 +407,7 @@ export class WarrantyService {
 
   mapBulkServiceInvoice(warrantyDetail: WarrantyClaimsDetails) {
     if (warrantyDetail.set === CATEGORY.BULK) {
-      return this.getWarrantyClaimsList(
-        undefined,
-        undefined,
-        undefined,
-        { parent: warrantyDetail.uuid },
-        {
-          set: ['Part'],
-        },
-      ).pipe(
-        map(res => res.docs),
+      return this.getAllSubClaims(warrantyDetail).pipe(
         switchMap(res => {
           return from(res).pipe(
             filter(
@@ -451,16 +458,7 @@ export class WarrantyService {
 
   mapBulkDeliveryNotes(warrantyDetail: WarrantyClaimsDetails) {
     if (warrantyDetail.set === CATEGORY.BULK) {
-      return this.getWarrantyClaimsList(
-        undefined,
-        undefined,
-        undefined,
-        { parent: warrantyDetail.uuid },
-        {
-          set: ['Part'],
-        },
-      ).pipe(
-        map(res => res.docs),
+      return this.getAllSubClaims(warrantyDetail).pipe(
         switchMap(res => {
           return from(res).pipe(
             filter(
@@ -493,6 +491,7 @@ export class WarrantyService {
       claim_no: warrantyDetail.claim_no,
       item_name: warrantyDetail.item_name,
       serial_no: warrantyDetail.serial_no,
+      third_party_name: warrantyDetail.third_party_name,
       warranty_end_date: warrantyDetail.warranty_end_date
         ? warrantyDetail.warranty_end_date.toString().split('T')[0]
         : '',
@@ -570,11 +569,21 @@ export class WarrantyService {
         erpBody.items = JSON.stringify([
           ...mappedWarrantyDetails.mappedWarrantyItemsPayload,
         ]);
+        erpBody.third_party_name = mappedWarrantyDetails.mappedWarrantyItemsPayload.find(
+          res => {
+            return res;
+          },
+        ).third_party_name;
+        erpBody.remarks = mappedWarrantyDetails.mappedWarrantyItemsPayload.find(
+          res => {
+            return res;
+          },
+        ).remarks;
         return this.singleInvoiceMap(
           mappedWarrantyDetails.serviceInvoice.docs,
         ).pipe(
           switchMap(warrantyInvoices => {
-            if (!erpBody.bulk_products) {
+            if (erpBody.set !== 'Bulk') {
               erpBody.warranty_invoices = JSON.stringify([warrantyInvoices]);
               return of([]);
             }

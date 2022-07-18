@@ -6,7 +6,10 @@ import { IonicModule } from '@ionic/angular';
 
 import { AddWarrantyClaimPageRoutingModule } from './add-warranty-claim-routing.module';
 
-import { AddWarrantyClaimPage } from './add-warranty-claim.page';
+import {
+  AddWarrantyClaimPage,
+  RetryDialogComponent,
+} from './add-warranty-claim.page';
 import { MaterialModule } from '../../material/material.module';
 
 @NgModule({
@@ -18,6 +21,6 @@ import { MaterialModule } from '../../material/material.module';
     MaterialModule,
     ReactiveFormsModule,
   ],
-  declarations: [AddWarrantyClaimPage],
+  declarations: [AddWarrantyClaimPage, RetryDialogComponent],
 })
 export class AddWarrantyClaimPageModule {}

@@ -163,7 +163,21 @@ export class InlineEditComponent {
                     map(priceListArray => {
                       switch (this.stock_type) {
                         case 'Returned':
-                          if (!item.warranty.salesWarrantyDate) {
+                          if (
+                            item.delivery_note
+                              ? item.delivery_note.startsWith('WSDR')
+                              : false
+                          ) {
+                            this.snackbar.open(
+                              'Item Not Sold.It cannot be returned',
+                              'Close',
+                              {
+                                duration: DURATION,
+                              },
+                            );
+                            return {};
+                          }
+                          if (!item.warranty.soldOn) {
                             this.snackbar.open(
                               'Item Not Sold.It cannot be returned',
                               'Close',
@@ -178,16 +192,27 @@ export class InlineEditComponent {
                             item,
                           };
                         case 'Delivered':
-                          if (item.warranty.salesWarrantyDate) {
-                            this.snackbar.open('Serial already sold', 'Close', {
-                              duration: DURATION,
-                            });
-                            return {};
+                          if (
+                            item.delivery_note
+                              ? item.delivery_note.startsWith('WSDR')
+                              : false
+                          ) {
+                            return {
+                              priceListArray,
+                              item,
+                            };
                           }
-                          return {
-                            priceListArray,
-                            item,
-                          };
+                          if (!item.warranty.soldOn) {
+                            return {
+                              priceListArray,
+                              item,
+                            };
+                          }
+                          this.snackbar.open('Serial already sold', 'Close', {
+                            duration: DURATION,
+                          });
+                          return {};
+
                         default:
                           this.snackbar.open(
                             'Check Stock Entry Type',

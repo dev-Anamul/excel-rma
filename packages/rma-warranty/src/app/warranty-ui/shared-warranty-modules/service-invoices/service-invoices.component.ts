@@ -45,7 +45,9 @@ export class ServiceInvoicesComponent implements OnInit {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(val => {
-        this.dataSource.loadItems(this.route.snapshot.params.uuid);
+        this.dataSource.loadItems({
+          warrantyClaimUuid: this.route.snapshot.params.uuid,
+        });
         this.getTotal();
       });
   }

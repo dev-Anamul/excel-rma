@@ -25,16 +25,15 @@ export class WarrantyClaimService {
   }
 
   async create(warrantyclaim: WarrantyClaim) {
-    warrantyclaim.claim_no = await this.generateNamingSeries(warrantyclaim.set);
-    const data = await this.warrantyClaimRepository
-      .insertOne(warrantyclaim)
-      .catch(err => {
-        return this.generateErrorNamingSeries(warrantyclaim.set).then(res => {
-          warrantyclaim.claim_no = res;
-          return this.warrantyClaimRepository.insertOne(warrantyclaim);
-        });
-      });
-    return data;
+    if (!['Bulk', 'Part'].includes(warrantyclaim.set)) {
+      warrantyclaim.claim_no = await this.generateNamingSeries(
+        warrantyclaim.set,
+      );
+      const data = await this.warrantyClaimRepository.insertOne(warrantyclaim);
+      return data;
+    }
+    warrantyclaim.claim_no = warrantyclaim.uuid;
+    return this.warrantyClaimRepository.insertOne(warrantyclaim);
   }
 
   async findOne(param, options?) {
@@ -106,6 +105,79 @@ export class WarrantyClaimService {
     };
   }
 
+  async report(filter_query) {
+    let dateQuery = {};
+    if (filter_query?.fromDate && filter_query?.toDate) {
+      dateQuery = {
+        createdOn: {
+          $gte: new Date(new Date(filter_query.fromDate).setHours(0, 0, 0, 0)),
+          $lte: new Date(
+            new Date(filter_query.toDate).setHours(23, 59, 59, 59),
+          ),
+        },
+      };
+    }
+
+    let deliveryQuery = {};
+    if (filter_query?.delivery_status) {
+      deliveryQuery = {
+        status_history: {
+          $elemMatch: { delivery_status: filter_query?.delivery_status },
+        },
+      };
+    }
+
+    const $or: any[] = [
+      {
+        'status_history.transfer_branch': {
+          $in: [filter_query?.territory],
+        },
+      },
+      {
+        'status_history.status_from': {
+          $in: [filter_query?.territory],
+        },
+      },
+    ];
+
+    const $and: any[] = [
+      filter_query.territory ? { $or } : {},
+      filter_query ? this.getReportFilterQuery(filter_query) : {},
+      deliveryQuery,
+      dateQuery,
+    ];
+
+    const where: { $and: any } = { $and };
+
+    const results = await this.warrantyClaimRepository.findAndCount({
+      where,
+    });
+
+    return {
+      docs: results[0] || [],
+      length: results[1],
+    };
+  }
+
+  getReportFilterQuery(query) {
+    const keys = Object.keys(query);
+    keys.forEach(key => {
+      if (query[key]) {
+        if (
+          key === 'fromDate' ||
+          key === 'toDate' ||
+          key === 'delivery_status' ||
+          key === 'territory'
+        ) {
+          delete query[key];
+        }
+      } else {
+        delete query[key];
+      }
+    });
+    return query;
+  }
+
   getFilterQuery(query) {
     const keys = Object.keys(query);
     keys.forEach(key => {
@@ -133,8 +205,16 @@ export class WarrantyClaimService {
     return await this.warrantyClaimRepository.deleteOne(query, options);
   }
 
+  async deleteMany(query, options?) {
+    return await this.warrantyClaimRepository.deleteMany(query, options);
+  }
+
   async updateOne(query, options?) {
     return await this.warrantyClaimRepository.updateOne(query, options);
+  }
+
+  async updateMany(query, options?) {
+    return await this.warrantyClaimRepository.updateMany(query, options);
   }
 
   async insertMany(query, options?) {
@@ -145,8 +225,8 @@ export class WarrantyClaimService {
     return await this.warrantyClaimRepository.count(query);
   }
 
-  asyncAggregate(query) {
-    return of(this.warrantyClaimRepository.aggregate(query)).pipe(
+  asyncAggregate(query, collation) {
+    return of(this.warrantyClaimRepository.aggregate(query, collation)).pipe(
       switchMap((aggregateData: any) => {
         return aggregateData.toArray();
       }),
@@ -156,71 +236,73 @@ export class WarrantyClaimService {
   async generateNamingSeries(type: string) {
     const settings = await this.settings.find().toPromise();
     const date = new DateTime(settings.timeZone).year;
-    let count;
+    let sortedDocument;
     switch (type) {
       case 'Bulk':
-        count = await this.asyncAggregate([
+        sortedDocument = await this.asyncAggregate(
+          [
+            {
+              $match: {
+                claim_no: { $regex: PARSE_REGEX('RMA-'), $options: 'i' },
+                $expr: { $eq: [{ $year: '$createdOn' }, date] },
+                set: type,
+              },
+            },
+            { $sort: { claim_no: -1 } },
+            { $limit: 1 },
+          ],
           {
-            $match: {
-              $expr: { $eq: [{ $year: '$createdOn' }, date] },
-              set: type,
+            collation: {
+              locale: 'en_US',
+              numericOrdering: true,
             },
           },
-          { $count: 'total' },
-        ]).toPromise();
-        count = (count[0]?.total || 0) + 1;
-        return DEFAULT_NAMING_SERIES.bulk_warranty_claim + date + '-' + count;
+        ).toPromise();
+        if (!sortedDocument.length) {
+          return DEFAULT_NAMING_SERIES.bulk_warranty_claim + date + '-' + '1';
+        }
+        return this.generateClaimString(sortedDocument.find(x => x).claim_no);
 
       default:
-        count = await this.asyncAggregate([
+        sortedDocument = await this.asyncAggregate(
+          [
+            {
+              $match: {
+                claim_no: { $regex: PARSE_REGEX('RMA-'), $options: 'i' },
+                $expr: {
+                  $and: [
+                    { $eq: [{ $year: '$createdOn' }, date] },
+                    { $ne: ['$claim_no', '$uuid'] },
+                  ],
+                },
+                $or: [{ set: CATEGORY.SINGLE }, { set: CATEGORY.PART }],
+              },
+            },
+            { $sort: { claim_no: -1 } },
+            { $limit: 1 },
+          ],
           {
-            $match: {
-              $expr: { $eq: [{ $year: '$createdOn' }, date] },
-              $or: [{ set: CATEGORY.SINGLE }, { set: CATEGORY.PART }],
+            collation: {
+              locale: 'en_US',
+              numericOrdering: true,
             },
           },
-          { $count: 'total' },
-        ]).toPromise();
-        count = (count[0]?.total || 0) + 1;
-        return DEFAULT_NAMING_SERIES.warranty_claim + date + '-' + count;
+        ).toPromise();
+        if (!sortedDocument.length) {
+          return DEFAULT_NAMING_SERIES.warranty_claim + date + '-' + '1';
+        }
+        return this.generateClaimString(
+          sortedDocument.find(x => x).claim_no,
+          date,
+        );
     }
   }
 
-  async generateErrorNamingSeries(type: string) {
-    const settings = await this.settings.find().toPromise();
-    const date = new DateTime(settings.timeZone).year;
-    let lastCreatedClaim;
-    switch (type) {
-      case 'Bulk':
-        lastCreatedClaim = await this.asyncAggregate([
-          {
-            $match: {
-              $expr: { $eq: [{ $year: '$createdOn' }, date] },
-              set: type,
-            },
-          },
-          { $sort: { createdOn: -1 } },
-          { $limit: 1 },
-        ]).toPromise();
-        return this.generateClaimString(lastCreatedClaim);
-
-      default:
-        lastCreatedClaim = await this.asyncAggregate([
-          {
-            $match: {
-              $expr: { $eq: [{ $year: '$createdOn' }, date] },
-              $or: [{ set: CATEGORY.SINGLE }, { set: CATEGORY.PART }],
-            },
-          },
-          { $sort: { createdOn: -1 } },
-          { $limit: 1 },
-        ]).toPromise();
-        return this.generateClaimString(lastCreatedClaim);
+  generateClaimString(claim_no, date?) {
+    if (!claim_no) {
+      return DEFAULT_NAMING_SERIES.warranty_claim;
     }
-  }
-
-  generateClaimString(claim_no) {
-    claim_no = claim_no[0].claim_no.split('-');
+    claim_no = claim_no.split('-');
     claim_no[2] = parseInt(claim_no[2], 10) + 1;
     claim_no = claim_no.join('-');
     return claim_no;

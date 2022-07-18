@@ -115,6 +115,7 @@ export class SettingsService {
   updateSettings(
     authServerURL: string,
     appURL: string,
+    posAppURL: string,
     defaultCompany: string,
     frontendClientId: string,
     backendClientId: string,
@@ -156,6 +157,7 @@ export class SettingsService {
             serviceAccountApiKey,
             serviceAccountApiSecret,
             warrantyAppURL,
+            posAppURL,
             posProfile,
             headerImageURL,
             headerWidth,

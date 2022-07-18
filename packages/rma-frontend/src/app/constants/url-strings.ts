@@ -171,6 +171,8 @@ export const PURCHASE_ORDER_RESET_ENDPOINT =
   '/api/purchase_order/v1/reset_order';
 export const RELAY_GET_SALES_PERSON_STOCK_ENDPOINT =
   '/api/command/user/api/resource/Sales Person';
+export const RELAY_LIST_PROJECT_ENDPOINT =
+  '/api/command/user/api/resource/Project';
 export const GET_PRODUCT_BUNDLE_ITEMS = '/api/item/v1/get_bundle_items';
 export const STOCK_ENTRY_RESET_ENDPOINT = '/api/stock_entry/v1/reset/';
 export const REMOVE_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/remove';

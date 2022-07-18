@@ -122,7 +122,9 @@ export class SalesInvoiceDto {
   payment_schedule: any[];
 
   @IsOptional()
-  payments: any[];
+  @ValidateNested()
+  @Type(() => PaymentsDto)
+  payments: PaymentsDto[];
 
   @IsOptional()
   sales_team: any[];
@@ -136,6 +138,13 @@ export class SalesInvoiceDto {
   @IsOptional()
   @IsString()
   delivery_status: string;
+
+  @IsOptional()
+  is_pos: boolean;
+
+  @IsOptional()
+  @IsString()
+  pos_profile: string;
 }
 
 export class TaxDto {
@@ -212,6 +221,24 @@ export class ItemDto {
   @IsOptional()
   @IsString()
   excel_serials: string;
+}
+
+export class PaymentsDto {
+  @IsNotEmpty()
+  @IsString()
+  mode_of_payment: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  amount: number;
+
+  @IsOptional()
+  @IsBoolean()
+  default?: boolean;
+
+  @IsNotEmpty()
+  @IsString()
+  account: string;
 }
 
 export class MRPRateUpdateInterface {

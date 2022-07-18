@@ -6,7 +6,7 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
 import { WarrantyService } from '../../warranty-tabs/warranty.service';
 import { WarrantyClaimsDataSource } from '../../warranty/warranty-claims-datasource';
-import { CLOSE } from '../../../constants/app-string';
+import { CLAIM_STATUS, CLOSE } from '../../../constants/app-string';
 import { LoadingController } from '@ionic/angular';
 import { MatDialog } from '@angular/material/dialog';
 import { PrintSettingDialog } from '../../shared-warranty-modules/print-setting-dialog/print-setting-dialog';
@@ -113,6 +113,19 @@ export class BulkClaimDetailsComponent implements OnInit {
         next: res => {},
         error: err => {},
       });
+  }
+
+  checkSubclaimStatus() {
+    if (
+      this.dataSource.data
+        ? this.dataSource.data.find(
+            element => element.claim_status !== CLAIM_STATUS.DELIVERED,
+          )
+        : false
+    ) {
+      return true;
+    }
+    return false;
   }
 
   getUpdate(event) {

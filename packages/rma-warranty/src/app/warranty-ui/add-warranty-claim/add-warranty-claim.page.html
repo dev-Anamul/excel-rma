@@ -105,19 +105,65 @@
       <ion-card-content>
         <ion-grid class="i-no-padding">
           <ion-row class="align">
-            <ion-col *ngIf="warrantyState?.serial_no?.active">
+            <ion-col *ngIf="warrantyState?.serial_no?.active && route!='edit'">
               <mat-form-field class="example-full-width">
                 <input
                   matInput
                   type="text"
                   placeholder="Serial no"
                   formControlName="serial_no"
+                  (change)="f.claim_type.disable()"
                   (keyup.enter)="serialChanged($event.target.value)"
+                  oninput="this.value = this.value.toUpperCase()"
                 />
                 <mat-error *ngIf="f.serial_no.hasError('required')">
                   Serial no is <strong>required</strong>
                 </mat-error>
+                <button
+                  matSuffix
+                  mat-raised-button
+                  color="primary"
+                  fill="outline"
+                  (click)="serialChanged(f.serial_no.value)"
+                >
+                  Search
+                </button>
               </mat-form-field>
+            </ion-col>
+            <ion-col *ngIf="warrantyState?.serial_no?.active && route =='edit' && warrantyObject?.set !='Bulk'">
+              <mat-form-field class="example-full-width">
+                <input
+                  matInput
+                  type="text"
+                  placeholder="Serial no"
+                  formControlName="serial_no"
+                  readonly
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </mat-form-field>
+            </ion-col>
+            <ion-col *ngIf="warrantyState?.serial_no?.active && route =='edit' && warrantyObject?.set=='Bulk'">
+              <mat-form-field class="example-full-width">
+                <input
+                  matInput
+                  type="text"
+                  placeholder="Serial no"
+                  formControlName="serial_no"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              <mat-error *ngIf="f.serial_no.hasError('required')">
+                Serial no is <strong>required</strong>
+              </mat-error>
+              <button
+                matSuffix
+                mat-raised-button
+                color="primary"
+                fill="outline"
+                (click)="serialChanged(f.serial_no.value)"
+              >
+                Search
+              </button>
+            </mat-form-field>
             </ion-col>
             <ion-col *ngIf="warrantyState?.warranty_end_date?.active">
               <mat-form-field class="example-full-width">
@@ -257,6 +303,13 @@
               >
                 Add
               </ion-button>
+              <ion-button
+              color="tertiary"
+              *ngIf="warrantyObject?.set  === 'Bulk'"
+              (click)="clearProductDetails()"
+            >
+              Clear
+            </ion-button>
             </ion-col>
             <ion-col class="ion-text-left" *ngIf="route ==='add'">
               <ion-button
@@ -266,6 +319,13 @@
                 [disabled]="warrantyClaimForm.invalid"
               >
                 Add
+              </ion-button>
+              <ion-button
+                color="tertiary"
+                *ngIf="f.category.value === 'Bulk'"
+                (click)="clearProductDetails()"
+              >
+                Clear
               </ion-button>
             </ion-col>
             <ion-col> </ion-col>
@@ -293,9 +353,16 @@
               *ngFor="let column of displayedColumns"
             >
               <mat-header-cell *matHeaderCellDef>{{column}}</mat-header-cell>
-              <mat-cell *matCellDef="let row">
+              <mat-cell *matCellDef="let row;let i=index">
                 <ng-container *ngIf="row[column]">
                   {{ row[column] }}
+                </ng-container>
+                <ng-container *ngIf="column==='remove'">
+                  <button type="button" mat-mini-fab color="warn" 
+                  (click)="removeSubclaim(i)"
+                  aria-label="">
+                    <mat-icon>delete_forever</mat-icon>
+                  </button>
                 </ng-container>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
@@ -337,6 +404,7 @@
                   matInput
                   formControlName="customer_name"
                   [matAutocomplete]="auto"
+                  (focusout)="validateInput(f.customer_name, filteredCustomerList)"
                 />
                 <mat-autocomplete
                   autoActiveFirstOption
@@ -354,6 +422,11 @@
                 </mat-autocomplete>
                 <mat-error *ngIf="f.customer_name.hasError('required')">
                   Customer is <strong>required</strong>
+                </mat-error>
+                <mat-error *ngIf="f.customer_name.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{f.customer_name.value}}'</strong> is not
+                  allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>
@@ -505,8 +578,9 @@
                   Warehouse is <strong>required</strong>
                 </mat-error>
                 <mat-error *ngIf="f.receiving_branch.hasError('falseValse')">
-                  You should select a value from dropdown only. 
-                  <strong>'{{f.receiving_branch.value}}'</strong> is not allowed.
+                  You should select a value from dropdown only.
+                  <strong>'{{f.receiving_branch.value}}'</strong> is not
+                  allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>
@@ -534,9 +608,9 @@
                   </mat-option>
                 </mat-autocomplete>
                 <mat-error *ngIf="f.delivery_branch.hasError('falseValse')">
-                You should select a value from dropdown only. 
-                <strong>'{{f.delivery_branch.value}}'</strong> is not allowed.
-              </mat-error>
+                  You should select a value from dropdown only.
+                  <strong>'{{f.delivery_branch.value}}'</strong> is not allowed.
+                </mat-error>
               </mat-form-field>
             </ion-col>
           </ion-row>
