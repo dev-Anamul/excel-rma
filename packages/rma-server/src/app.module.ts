@@ -5,7 +5,12 @@ import { AppService } from './app.service';
 import { ConfigModule } from './config/config.module';
 import { AuthModule } from './auth/auth.module';
 import { SystemSettingsModule } from './system-settings/system-settings.module';
-import { connectTypeORM, connectTypeORMTokenCache, TOKEN_CACHE_CONNECTION, DEFAULT } from './constants/typeorm.connection';
+import {
+  connectTypeORM,
+  connectTypeORMTokenCache,
+  TOKEN_CACHE_CONNECTION,
+  DEFAULT,
+} from './constants/typeorm.connection';
 import { ConfigService } from './config/config.service';
 import { DirectModule } from './direct/direct.module';
 import { CustomerModule } from './customer/customer.module';

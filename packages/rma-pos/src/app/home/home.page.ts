@@ -3,7 +3,13 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter, map, delay, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { from, forkJoin, of } from 'rxjs';
-import { ACCESS_TOKEN, AUTHORIZATION, BEARER_TOKEN_PREFIX, LOGGED_IN, AUTH_SERVER_URL } from '../constants/storage';
+import {
+  ACCESS_TOKEN,
+  AUTHORIZATION,
+  BEARER_TOKEN_PREFIX,
+  LOGGED_IN,
+  AUTH_SERVER_URL,
+} from '../constants/storage';
 import {
   DIRECT_PROFILE_ENDPOINT,
   //  IS_BACKEND_CONNECTED_ENDPOINT,
@@ -131,7 +137,11 @@ export class HomePage implements OnInit {
   loadNoteList() {
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - 1);
-    const date = [currentDate.getDate(), currentDate.getMonth() + 1, currentDate.getFullYear()].join('-');
+    const date = [
+      currentDate.getDate(),
+      currentDate.getMonth() + 1,
+      currentDate.getFullYear(),
+    ].join('-');
 
     this.appService.getNoteList(date).subscribe({
       next: (response: { data: any[] }) => {

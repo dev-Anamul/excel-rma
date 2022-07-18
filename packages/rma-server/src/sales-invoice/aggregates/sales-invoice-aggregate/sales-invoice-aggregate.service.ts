@@ -1,17 +1,36 @@
-import { Injectable, NotFoundException, BadRequestException, NotImplementedException, HttpService } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  NotImplementedException,
+  HttpService,
+} from '@nestjs/common';
 import { AggregateRoot } from '@nestjs/cqrs';
 import { v4 as uuidv4 } from 'uuid';
-import { MRPRateUpdateInterface, SalesInvoiceDto } from '../../entity/sales-invoice/sales-invoice-dto';
+import {
+  MRPRateUpdateInterface,
+  SalesInvoiceDto,
+} from '../../entity/sales-invoice/sales-invoice-dto';
 import { SalesInvoice } from '../../entity/sales-invoice/sales-invoice.entity';
 import { SalesInvoiceAddedEvent } from '../../event/sales-invoice-added/sales-invoice-added.event';
 import { SalesInvoiceService } from '../../entity/sales-invoice/sales-invoice.service';
 import { SalesInvoiceRemovedEvent } from '../../event/sales-invoice-removed/sales-invoice-removed.event';
 import { SalesInvoiceUpdatedEvent } from '../../event/sales-invoice-updated/sales-invoice-updated.event';
 import { SalesInvoiceUpdateDto } from '../../entity/sales-invoice/sales-invoice-update-dto';
-import { PLEASE_RUN_SETUP, SALES_INVOICE_CANNOT_BE_UPDATED } from '../../../constants/messages';
+import {
+  PLEASE_RUN_SETUP,
+  SALES_INVOICE_CANNOT_BE_UPDATED,
+} from '../../../constants/messages';
 import { SalesInvoiceSubmittedEvent } from '../../event/sales-invoice-submitted/sales-invoice-submitted.event';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
-import { switchMap, map, catchError, toArray, concatMap, tap } from 'rxjs/operators';
+import {
+  switchMap,
+  map,
+  catchError,
+  toArray,
+  concatMap,
+  tap,
+} from 'rxjs/operators';
 import { throwError, of, from, forkJoin } from 'rxjs';
 import {
   AUTHORIZATION,
@@ -37,7 +56,10 @@ import {
   FRAPPE_CLIENT_CANCEL,
 } from '../../../constants/routes';
 import { SalesInvoicePoliciesService } from '../../../sales-invoice/policies/sales-invoice-policies/sales-invoice-policies.service';
-import { CreateSalesReturnDto, SalesReturnItemDto } from '../../entity/sales-invoice/sales-return-dto';
+import {
+  CreateSalesReturnDto,
+  SalesReturnItemDto,
+} from '../../entity/sales-invoice/sales-return-dto';
 import {
   CreateDeliveryNoteInterface,
   CreateDeliveryNoteItemInterface,
@@ -49,7 +71,10 @@ import { ClientTokenManagerService } from '../../../auth/aggregates/client-token
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 import { TokenCache } from '../../../auth/entities/token-cache/token-cache.entity';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
-import { EventType, SerialNoHistoryInterface } from '../../../serial-no/entity/serial-no-history/serial-no-history.entity';
+import {
+  EventType,
+  SerialNoHistoryInterface,
+} from '../../../serial-no/entity/serial-no-history/serial-no-history.entity';
 import { ItemService } from '../../../item/entity/item/item.service';
 import { ItemAggregateService } from '../../../item/aggregates/item-aggregate/item-aggregate.service';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
@@ -84,27 +109,36 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
   addSalesInvoice(salesInvoicePayload: SalesInvoiceDto, clientHttpRequest) {
     return this.settingsService.find().pipe(
       switchMap(settings => {
-        return this.validateSalesInvoicePolicy.validateCustomer(salesInvoicePayload).pipe(
-          switchMap(() => {
-            return this.validateSalesInvoicePolicy.validateItems(salesInvoicePayload.items);
-          }),
-          switchMap(() => {
-            const salesInvoice = new SalesInvoice();
-            Object.assign(salesInvoice, salesInvoicePayload);
-            salesInvoice.createdByEmail = clientHttpRequest.token.email;
-            salesInvoice.createdBy = clientHttpRequest.token.fullName;
-            salesInvoice.uuid = uuidv4();
-            salesInvoice.delivery_status = INVOICE_DELIVERY_STATUS.DELIVERED_TO_CUSTOMER;
-            salesInvoice.created_on = new DateTime(settings.timeZone).toJSDate();
-            salesInvoice.timeStamp = {
-              created_on: getParsedPostingDate(salesInvoice),
-            };
-            salesInvoice.isSynced = false;
-            salesInvoice.inQueue = false;
-            this.apply(new SalesInvoiceAddedEvent(salesInvoice, clientHttpRequest));
-            return of(salesInvoice);
-          }),
-        );
+        return this.validateSalesInvoicePolicy
+          .validateCustomer(salesInvoicePayload)
+          .pipe(
+            switchMap(() => {
+              return this.validateSalesInvoicePolicy.validateItems(
+                salesInvoicePayload.items,
+              );
+            }),
+            switchMap(() => {
+              const salesInvoice = new SalesInvoice();
+              Object.assign(salesInvoice, salesInvoicePayload);
+              salesInvoice.createdByEmail = clientHttpRequest.token.email;
+              salesInvoice.createdBy = clientHttpRequest.token.fullName;
+              salesInvoice.uuid = uuidv4();
+              salesInvoice.delivery_status =
+                INVOICE_DELIVERY_STATUS.DELIVERED_TO_CUSTOMER;
+              salesInvoice.created_on = new DateTime(
+                settings.timeZone,
+              ).toJSDate();
+              salesInvoice.timeStamp = {
+                created_on: getParsedPostingDate(salesInvoice),
+              };
+              salesInvoice.isSynced = false;
+              salesInvoice.inQueue = false;
+              this.apply(
+                new SalesInvoiceAddedEvent(salesInvoice, clientHttpRequest),
+              );
+              return of(salesInvoice);
+            }),
+          );
       }),
     );
   }
@@ -115,18 +149,36 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     if (!territory.includes(ALL_TERRITORIES)) {
       filter = { territory: { $in: territory } };
     }
-    const provider = await this.salesInvoiceService.findOne({ $or: [{ uuid }, { name: uuid }], ...filter }, undefined, true);
+    const provider = await this.salesInvoiceService.findOne(
+      { $or: [{ uuid }, { name: uuid }], ...filter },
+      undefined,
+      true,
+    );
     if (!provider) throw new NotFoundException();
     return provider;
   }
 
-  async getSalesInvoiceList(offset, limit, sort, filter_query, clientHttpRequest: { token: TokenCache }) {
+  async getSalesInvoiceList(
+    offset,
+    limit,
+    sort,
+    filter_query,
+    clientHttpRequest: { token: TokenCache },
+  ) {
     const territory = this.getUserTerritories(clientHttpRequest);
-    return await this.salesInvoiceService.list(offset || 0, limit || 10, sort, filter_query, territory);
+    return await this.salesInvoiceService.list(
+      offset || 0,
+      limit || 10,
+      sort,
+      filter_query,
+      territory,
+    );
   }
 
   getUserTerritories(clientHttpRequest: { token: TokenCache }) {
-    return clientHttpRequest.token.roles.includes(SYSTEM_MANAGER) ? [ALL_TERRITORIES] : clientHttpRequest.token.territory;
+    return clientHttpRequest.token.roles.includes(SYSTEM_MANAGER)
+      ? [ALL_TERRITORIES]
+      : clientHttpRequest.token.territory;
   }
 
   async remove(uuid: string) {
@@ -135,14 +187,21 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       throw new NotFoundException();
     }
     if (salesInvoice.status !== SALES_INVOICE_STATUS.draft) {
-      return throwError(new BadRequestException(`Sales Invoice with ${salesInvoice.status} status cannot be deleted.`));
+      return throwError(
+        new BadRequestException(
+          `Sales Invoice with ${salesInvoice.status} status cannot be deleted.`,
+        ),
+      );
     }
     this.apply(new SalesInvoiceRemovedEvent(salesInvoice));
   }
 
   async update(updatePayload: SalesInvoiceUpdateDto, clientHttpRequest: any) {
-    const isValid = await this.validateSalesInvoicePolicy.validateItems(updatePayload.items).toPromise();
-    if (!isValid) throw new BadRequestException('Failed to validate Sales Invoice Items.');
+    const isValid = await this.validateSalesInvoicePolicy
+      .validateItems(updatePayload.items)
+      .toPromise();
+    if (!isValid)
+      throw new BadRequestException('Failed to validate Sales Invoice Items.');
     const provider = await this.salesInvoiceService.findOne({
       uuid: updatePayload.uuid,
     });
@@ -150,7 +209,9 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       throw new NotFoundException();
     }
     if (provider.status !== DRAFT_STATUS) {
-      throw new BadRequestException(provider.status + SALES_INVOICE_CANNOT_BE_UPDATED);
+      throw new BadRequestException(
+        provider.status + SALES_INVOICE_CANNOT_BE_UPDATED,
+      );
     }
     this.apply(new SalesInvoiceUpdatedEvent(updatePayload));
   }
@@ -158,35 +219,56 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
   submitSalesInvoice(uuid: string, clientHttpRequest: any) {
     return this.validateSalesInvoicePolicy.validateSalesInvoice(uuid).pipe(
       switchMap(salesInvoice => {
-        return this.validateSalesInvoicePolicy.validateCustomer(salesInvoice).pipe(
-          switchMap(() => {
-            return this.validateSalesInvoicePolicy.validateItems(salesInvoice.items);
-          }),
-          switchMap(() => {
-            return this.validateSalesInvoicePolicy.validateCustomerCreditLimit(salesInvoice);
-          }),
-          switchMap(() => {
-            return this.validateSalesInvoicePolicy.validateSubmittedState(salesInvoice);
-          }),
-          switchMap(() => {
-            return this.validateSalesInvoicePolicy.validateQueueState(salesInvoice);
-          }),
-          switchMap(() => {
-            return this.validateSalesInvoicePolicy.validateSalesInvoiceStock(salesInvoice, clientHttpRequest);
-          }),
-          switchMap(isValid => {
-            salesInvoice.naming_series = DEFAULT_NAMING_SERIES.sales_invoice;
-            return from(this.salesInvoiceService.updateOne({ uuid: salesInvoice.uuid }, { $set: { inQueue: true } }));
-          }),
-          toArray(),
-          switchMap(() => {
-            return this.syncSubmittedSalesInvoice(salesInvoice, clientHttpRequest);
-          }),
-          switchMap(() => {
-            this.apply(new SalesInvoiceSubmittedEvent(salesInvoice));
-            return of(salesInvoice);
-          }),
-        );
+        return this.validateSalesInvoicePolicy
+          .validateCustomer(salesInvoice)
+          .pipe(
+            switchMap(() => {
+              return this.validateSalesInvoicePolicy.validateItems(
+                salesInvoice.items,
+              );
+            }),
+            switchMap(() => {
+              return this.validateSalesInvoicePolicy.validateCustomerCreditLimit(
+                salesInvoice,
+              );
+            }),
+            switchMap(() => {
+              return this.validateSalesInvoicePolicy.validateSubmittedState(
+                salesInvoice,
+              );
+            }),
+            switchMap(() => {
+              return this.validateSalesInvoicePolicy.validateQueueState(
+                salesInvoice,
+              );
+            }),
+            switchMap(() => {
+              return this.validateSalesInvoicePolicy.validateSalesInvoiceStock(
+                salesInvoice,
+                clientHttpRequest,
+              );
+            }),
+            switchMap(isValid => {
+              salesInvoice.naming_series = DEFAULT_NAMING_SERIES.sales_invoice;
+              return from(
+                this.salesInvoiceService.updateOne(
+                  { uuid: salesInvoice.uuid },
+                  { $set: { inQueue: true } },
+                ),
+              );
+            }),
+            toArray(),
+            switchMap(() => {
+              return this.syncSubmittedSalesInvoice(
+                salesInvoice,
+                clientHttpRequest,
+              );
+            }),
+            switchMap(() => {
+              this.apply(new SalesInvoiceSubmittedEvent(salesInvoice));
+              return of(salesInvoice);
+            }),
+          );
       }),
     );
   }
@@ -216,7 +298,10 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     );
   }
 
-  syncSubmittedSalesInvoice(salesInvoice: SalesInvoice, clientHttpRequest: any) {
+  syncSubmittedSalesInvoice(
+    salesInvoice: SalesInvoice,
+    clientHttpRequest: any,
+  ) {
     return this.settingsService
       .find()
       .pipe(
@@ -238,13 +323,19 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
           }
           const body = this.mapSalesInvoice(salesInvoice);
 
-          return this.http.post(settings.authServerURL + FRAPPE_API_SALES_INVOICE_ENDPOINT, body, {
-            headers: {
-              [AUTHORIZATION]: BEARER_HEADER_VALUE_PREFIX + clientHttpRequest.token.accessToken,
-              [CONTENT_TYPE]: APP_WWW_FORM_URLENCODED,
-              [ACCEPT]: APPLICATION_JSON_CONTENT_TYPE,
+          return this.http.post(
+            settings.authServerURL + FRAPPE_API_SALES_INVOICE_ENDPOINT,
+            body,
+            {
+              headers: {
+                [AUTHORIZATION]:
+                  BEARER_HEADER_VALUE_PREFIX +
+                  clientHttpRequest.token.accessToken,
+                [CONTENT_TYPE]: APP_WWW_FORM_URLENCODED,
+                [ACCEPT]: APPLICATION_JSON_CONTENT_TYPE,
+              },
             },
-          });
+          );
         }),
       )
       .pipe(map(data => data.data.data))
@@ -266,7 +357,12 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
           );
         }),
         catchError(err => {
-          this.errorLogService.createErrorLog(err, 'Sales Invoice', 'salesInvoice', clientHttpRequest);
+          this.errorLogService.createErrorLog(
+            err,
+            'Sales Invoice',
+            'salesInvoice',
+            clientHttpRequest,
+          );
           this.salesInvoiceService
             .updateOne(
               { uuid: salesInvoice.uuid },
@@ -281,7 +377,9 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
             )
             .then(updated => {})
             .catch(error => {});
-          return throwError(new BadRequestException(err.response ? err.response.data.exc : err));
+          return throwError(
+            new BadRequestException(err.response ? err.response.data.exc : err),
+          );
         }),
       );
   }
@@ -314,7 +412,10 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     };
   }
 
-  createSalesReturn(createReturnPayload: CreateSalesReturnDto, clientHttpRequest) {
+  createSalesReturn(
+    createReturnPayload: CreateSalesReturnDto,
+    clientHttpRequest,
+  ) {
     // pretty bad code. will need cleanup. could be done when this is changed to queue.
     return this.settingsService.find().pipe(
       switchMap(settings => {
@@ -322,16 +423,29 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
           return throwError(new NotImplementedException());
         }
         return forkJoin({
-          items: this.validateSalesInvoicePolicy.validateSalesReturnItems(createReturnPayload),
-          salesInvoice: this.validateSalesInvoicePolicy.validateSalesReturn(createReturnPayload),
-          valid: this.validateSalesInvoicePolicy.validateReturnSerials(createReturnPayload),
-          validSerialHistory: this.validateSerialNoHistoryPolicy.validateSerialHistory(createReturnPayload),
+          items: this.validateSalesInvoicePolicy.validateSalesReturnItems(
+            createReturnPayload,
+          ),
+          salesInvoice: this.validateSalesInvoicePolicy.validateSalesReturn(
+            createReturnPayload,
+          ),
+          valid: this.validateSalesInvoicePolicy.validateReturnSerials(
+            createReturnPayload,
+          ),
+          validSerialHistory: this.validateSerialNoHistoryPolicy.validateSerialHistory(
+            createReturnPayload,
+          ),
         }).pipe(
           switchMap(({ salesInvoice }) => {
             delete createReturnPayload.delivery_note_names;
             const serialMap = this.getSerialMap(createReturnPayload);
 
-            return this.createCreditNote(settings, createReturnPayload, clientHttpRequest, salesInvoice).pipe(
+            return this.createCreditNote(
+              settings,
+              createReturnPayload,
+              clientHttpRequest,
+              salesInvoice,
+            ).pipe(
               map(response => response.data.data),
               tap(async returnInvoice => {
                 let items = returnInvoice.items.map(item => {
@@ -341,7 +455,10 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
 
                 items = this.mapSerialsFromItem(items);
 
-                const { returned_items_map } = this.getReturnedItemsMap(items, salesInvoice);
+                const { returned_items_map } = this.getReturnedItemsMap(
+                  items,
+                  salesInvoice,
+                );
 
                 await this.salesInvoiceService.updateOne(
                   { uuid: salesInvoice.uuid },
@@ -356,16 +473,33 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
                 this.updateInvoiceItemsQuantities(items, salesInvoice.uuid)
                   .pipe(
                     catchError(err => {
-                      this.errorLogService.createErrorLog(err, 'Credit Note', 'salesInvoice', clientHttpRequest);
+                      this.errorLogService.createErrorLog(
+                        err,
+                        'Credit Note',
+                        'salesInvoice',
+                        clientHttpRequest,
+                      );
                       return throwError(err);
                     }),
                   )
                   .subscribe();
 
-                this.linkSalesReturn(items, returnInvoice.name, clientHttpRequest.token, salesInvoice, createReturnPayload.set_warehouse, settings);
+                this.linkSalesReturn(
+                  items,
+                  returnInvoice.name,
+                  clientHttpRequest.token,
+                  salesInvoice,
+                  createReturnPayload.set_warehouse,
+                  settings,
+                );
               }),
               catchError(err => {
-                this.errorLogService.createErrorLog(err, 'Credit Note', 'salesInvoice', clientHttpRequest);
+                this.errorLogService.createErrorLog(
+                  err,
+                  'Credit Note',
+                  'salesInvoice',
+                  clientHttpRequest,
+                );
                 return throwError(err);
               }),
             );
@@ -386,16 +520,32 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       [AUTHORIZATION]: BEARER_HEADER_VALUE_PREFIX + request.token.accessToken,
     };
 
-    return this.http.post(settings.authServerURL + FRAPPE_CLIENT_CANCEL, { doctype: 'Sales Invoice', name: docName }, { headers });
+    return this.http.post(
+      settings.authServerURL + FRAPPE_CLIENT_CANCEL,
+      { doctype: 'Sales Invoice', name: docName },
+      { headers },
+    );
   }
 
-  private async resetSalesReturnItemsQuantities(items: CreateDeliveryNoteItemInterface[], salesInvoice: SalesInvoice) {
-    const { returned_items_map } = this.getReturnedItemsMap(items, salesInvoice);
+  private async resetSalesReturnItemsQuantities(
+    items: CreateDeliveryNoteItemInterface[],
+    salesInvoice: SalesInvoice,
+  ) {
+    const { returned_items_map } = this.getReturnedItemsMap(
+      items,
+      salesInvoice,
+    );
 
-    await this.salesInvoiceService.updateOne({ name: salesInvoice.name }, { $set: { returned_items_map } });
+    await this.salesInvoiceService.updateOne(
+      { name: salesInvoice.name },
+      { $set: { returned_items_map } },
+    );
   }
 
-  private async resetSalesReturnSerials(returnInvoiceName: string, salesInvoice: SalesInvoice) {
+  private async resetSalesReturnSerials(
+    returnInvoiceName: string,
+    salesInvoice: SalesInvoice,
+  ) {
     await this.serialNoHistoryService.deleteMany({
       document_no: returnInvoiceName,
     });
@@ -426,7 +576,11 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     );
   }
 
-  private async resetItemsInvoiceAndLedgers(ledgers: StockLedger[], returnInvoiceName: string, salesInvoiceName: string) {
+  private async resetItemsInvoiceAndLedgers(
+    ledgers: StockLedger[],
+    returnInvoiceName: string,
+    salesInvoiceName: string,
+  ) {
     const pullReturnedItemsPromises = [];
     const updateSalesInvoicePromises = [];
     const deleteStockLedgersPromises = [];
@@ -461,10 +615,19 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       );
     }
 
-    await Promise.all([].concat(updateSalesInvoicePromises, pullReturnedItemsPromises, deleteStockLedgersPromises));
+    await Promise.all(
+      [].concat(
+        updateSalesInvoicePromises,
+        pullReturnedItemsPromises,
+        deleteStockLedgersPromises,
+      ),
+    );
   }
 
-  async cancelSalesReturn(cancelSalesReturnDto: SalesReturnCancelDto, request: any) {
+  async cancelSalesReturn(
+    cancelSalesReturnDto: SalesReturnCancelDto,
+    request: any,
+  ) {
     const { returnInvoiceName, saleInvoiceName } = cancelSalesReturnDto;
     let salesInvoice: SalesInvoice;
 
@@ -479,25 +642,35 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
         name: saleInvoiceName,
       });
 
-      const returnedInvoiceItems = salesInvoice.returned_items.filter(item => item.sales_return_name === returnInvoiceName);
+      const returnedInvoiceItems = salesInvoice.returned_items.filter(
+        item => item.sales_return_name === returnInvoiceName,
+      );
 
       const returnedItemsSerialNos = [];
       returnedInvoiceItems.forEach(item => {
-        if (item.serial_no && item.serial_no.toLowerCase() !== 'non serial item') {
+        if (
+          item.serial_no &&
+          item.serial_no.toLowerCase() !== 'non serial item'
+        ) {
           returnedItemsSerialNos.push(...item.serial_no.split('\n'));
         }
       });
 
       if (returnedItemsSerialNos.length) {
-        const invalidSerialNos = await this.serialNoPolicyService.findInvalidCancelReturnSerials(returnedItemsSerialNos, saleInvoiceName);
+        const invalidSerialNos = await this.serialNoPolicyService.findInvalidCancelReturnSerials(
+          returnedItemsSerialNos,
+          saleInvoiceName,
+        );
 
         if (invalidSerialNos.length) {
           const serialNosString = invalidSerialNos.join(' ');
 
           const message =
             invalidSerialNos.length > 1
-              ? `Serial numbers (${serialNosString}) are ` + `already sold. You cannot cancel this return.`
-              : `Serial number (${serialNosString}) is ` + `already sold. You cannot cancel this return.`;
+              ? `Serial numbers (${serialNosString}) are ` +
+                `already sold. You cannot cancel this return.`
+              : `Serial number (${serialNosString}) is ` +
+                `already sold. You cannot cancel this return.`;
 
           throw new BadRequestException(message);
         }
@@ -523,7 +696,11 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
         return item;
       });
 
-      await this.resetItemsInvoiceAndLedgers(ledgers, returnInvoiceName, salesInvoice.name);
+      await this.resetItemsInvoiceAndLedgers(
+        ledgers,
+        returnInvoiceName,
+        salesInvoice.name,
+      );
       await this.resetSalesReturnItemsQuantities(items, salesInvoice);
       await this.resetSalesReturnSerials(returnInvoiceName, salesInvoice);
     } catch (error) {
@@ -535,18 +712,29 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
   getSerialMap(createReturnPayload: CreateSalesReturnDto) {
     const hash_map = {};
     createReturnPayload.items.forEach(item => {
-      hash_map[item.item_code] ? (hash_map[item.item_code] += item.serial_no) : (hash_map[item.item_code] = item.serial_no);
+      hash_map[item.item_code]
+        ? (hash_map[item.item_code] += item.serial_no)
+        : (hash_map[item.item_code] = item.serial_no);
     });
     return hash_map;
   }
 
   getItemSerialNumbers(items: any[]) {
-    const serials = items.filter(item => item.serial_no).map(item => item.serial_no.split('\n'));
+    const serials = items
+      .filter(item => item.serial_no)
+      .map(item => item.serial_no.split('\n'));
 
     return serials;
   }
 
-  linkSalesReturn(items: any[], sales_return_name: string, token: any, sales_invoice: SalesInvoice, warehouse, settings) {
+  linkSalesReturn(
+    items: any[],
+    sales_return_name: string,
+    token: any,
+    sales_invoice: SalesInvoice,
+    warehouse,
+    settings,
+  ) {
     const serials = [];
 
     items = items.filter(item => {
@@ -582,10 +770,12 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
         serialHistory.parent_document = sales_invoice.name;
         serialHistory.transaction_from = sales_invoice.customer;
         serialHistory.transaction_to = warehouse;
-        this.serialNoHistoryService.addSerialHistory(serials, serialHistory).subscribe({
-          next: done => {},
-          error: err => {},
-        });
+        this.serialNoHistoryService
+          .addSerialHistory(serials, serialHistory)
+          .subscribe({
+            next: done => {},
+            error: err => {},
+          });
       })
       .then(updated => {})
       .catch(error => {});
@@ -608,19 +798,27 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
                 settings.defaultCompany,
               ),
             ),
-            tap(stockLedger => from(this.stockLedgerService.create(stockLedger))),
+            tap(stockLedger =>
+              from(this.stockLedgerService.create(stockLedger)),
+            ),
           );
         }),
       )
       .subscribe();
 
     this.salesInvoiceService
-      .updateMany({ name: sales_invoice.name }, { $push: { returned_items: { $each: items } } })
+      .updateMany(
+        { name: sales_invoice.name },
+        { $push: { returned_items: { $each: items } } },
+      )
       .then(success => {})
       .catch(error => {});
   }
 
-  updateInvoiceItemsQuantities(items: SalesReturnItemDto[], salesInvoiceUuid: string) {
+  updateInvoiceItemsQuantities(
+    items: SalesReturnItemDto[],
+    salesInvoiceUuid: string,
+  ) {
     return from(items).pipe(
       tap(async item => {
         return of(
@@ -663,8 +861,10 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     stockPayload.outgoing_rate = 0;
     stockPayload.qty_after_transaction = stockPayload.actual_qty;
     stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
-    stockPayload.stock_value = stockPayload.qty_after_transaction * stockPayload.valuation_rate;
-    stockPayload.stock_value_difference = stockPayload.actual_qty * stockPayload.valuation_rate;
+    stockPayload.stock_value =
+      stockPayload.qty_after_transaction * stockPayload.valuation_rate;
+    stockPayload.stock_value_difference =
+      stockPayload.actual_qty * stockPayload.valuation_rate;
     stockPayload.company = defaultCompany;
     stockPayload.fiscal_year = fiscalYear;
 
@@ -677,7 +877,8 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       settings: this.settingsService.find(),
     }).pipe(
       switchMap(({ headers, settings }) => {
-        if (!settings || !settings.authServerURL) return throwError(new NotImplementedException());
+        if (!settings || !settings.authServerURL)
+          return throwError(new NotImplementedException());
         const url = `${settings.authServerURL}${FRAPPE_API_SALES_INVOICE_ENDPOINT}/${invoice_name}`;
         return this.http.get(url, { headers }).pipe(
           map(res => res.data.data),
@@ -715,18 +916,31 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     }
   }
 
-  createCreditNote(settings, assignPayload: CreateSalesReturnDto, clientHttpRequest, salesInvoice: SalesInvoice) {
+  createCreditNote(
+    settings,
+    assignPayload: CreateSalesReturnDto,
+    clientHttpRequest,
+    salesInvoice: SalesInvoice,
+  ) {
     const body = this.mapCreditNote(assignPayload, salesInvoice);
-    return this.http.post(settings.authServerURL + LIST_CREDIT_NOTE_ENDPOINT, body, {
-      headers: {
-        [AUTHORIZATION]: BEARER_HEADER_VALUE_PREFIX + clientHttpRequest.token.accessToken,
-        [CONTENT_TYPE]: APPLICATION_JSON_CONTENT_TYPE,
-        [ACCEPT]: APPLICATION_JSON_CONTENT_TYPE,
+    return this.http.post(
+      settings.authServerURL + LIST_CREDIT_NOTE_ENDPOINT,
+      body,
+      {
+        headers: {
+          [AUTHORIZATION]:
+            BEARER_HEADER_VALUE_PREFIX + clientHttpRequest.token.accessToken,
+          [CONTENT_TYPE]: APPLICATION_JSON_CONTENT_TYPE,
+          [ACCEPT]: APPLICATION_JSON_CONTENT_TYPE,
+        },
       },
-    });
+    );
   }
 
-  mapCreditNote(assignPayload: CreateSalesReturnDto, salesInvoice: SalesInvoice) {
+  mapCreditNote(
+    assignPayload: CreateSalesReturnDto,
+    salesInvoice: SalesInvoice,
+  ) {
     // cleanup math calculations after DTO validations are added
     const body = {
       docstatus: 1,
@@ -755,7 +969,9 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     return body;
   }
 
-  mapCreateDeliveryNote(assignPayload: DeliveryNoteWebhookDto): CreateDeliveryNoteInterface {
+  mapCreateDeliveryNote(
+    assignPayload: DeliveryNoteWebhookDto,
+  ): CreateDeliveryNoteInterface {
     const deliveryNoteBody: CreateDeliveryNoteInterface = {};
     deliveryNoteBody.docstatus = 1;
     deliveryNoteBody.posting_date = assignPayload.posting_date;
@@ -788,7 +1004,10 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     return itemData;
   }
 
-  getReturnedItemsMap(items: CreateDeliveryNoteItemInterface[], sales_invoice: SalesInvoice) {
+  getReturnedItemsMap(
+    items: CreateDeliveryNoteItemInterface[],
+    sales_invoice: SalesInvoice,
+  ) {
     const returnItemsMap = {};
     items.forEach(item => {
       returnItemsMap[Buffer.from(item.item_code).toString('base64')] = item.qty;
@@ -866,7 +1085,9 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
   }
 
   createERPSalesInvoiceItemBody(payload: MRPRateUpdateInterface) {
-    return from(this.itemService.findOne({ item_code: payload.item_code })).pipe(
+    return from(
+      this.itemService.findOne({ item_code: payload.item_code }),
+    ).pipe(
       switchMap((item: Item) => {
         payload.mrp_sales_rate = item.mrp;
         payload.mrp_sales_amount = payload.qty * item.mrp;
@@ -893,7 +1114,11 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
         return this.updateERPSalesInvoiceItems(items, req);
       }),
       switchMap(() => {
-        return this.updateErpSalesInvoice(`${FRAPPE_API_SALES_INVOICE_ENDPOINT}/${invoice_name}`, { mrp_sales_grand_total }, req);
+        return this.updateErpSalesInvoice(
+          `${FRAPPE_API_SALES_INVOICE_ENDPOINT}/${invoice_name}`,
+          { mrp_sales_grand_total },
+          req,
+        );
       }),
     );
   }

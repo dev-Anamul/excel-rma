@@ -208,6 +208,7 @@ export class Item {
   rate: number;
   amount: number;
   serial_no?: string;
+  excel_serials: string;
 }
 
 export class Payments {

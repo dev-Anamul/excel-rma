@@ -81,7 +81,9 @@ describe('SalesInvoiceAggregateService', () => {
       ],
     }).compile();
 
-    service = module.get<SalesInvoiceAggregateService>(SalesInvoiceAggregateService);
+    service = module.get<SalesInvoiceAggregateService>(
+      SalesInvoiceAggregateService,
+    );
   });
   SalesInvoiceAggregateService;
   it('should be defined', () => {
