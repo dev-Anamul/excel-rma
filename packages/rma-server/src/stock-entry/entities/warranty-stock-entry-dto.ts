@@ -42,6 +42,10 @@ export class WarrantyStockEntryDto {
 
   @IsOptional()
   @IsString()
+  status: string;
+
+  @IsOptional()
+  @IsString()
   posting_date: string;
 
   @IsOptional()
@@ -121,7 +125,7 @@ export class WarrantyStockEntryItemDto {
 
   @IsOptional()
   @IsString()
-  serial_no: string;
+  serial_no: string[];
 
   @IsOptional()
   @IsString()
