@@ -84,7 +84,7 @@ export class StockEntry extends BaseEntity {
   item_data: any;
 
   @Column({ unique: true })
-  stock_id:any;
+  stock_id: any;
 
   naming_series?: string;
 }

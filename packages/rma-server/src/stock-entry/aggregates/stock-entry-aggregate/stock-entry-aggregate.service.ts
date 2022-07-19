@@ -65,12 +65,11 @@ export class StockEntryAggregateService {
     private readonly stockEntrySyncService: StockEntrySyncService,
     private readonly stockLedgerService: StockLedgerService,
     private readonly settings: SettingsService,
-
   ) {}
 
   async createStockEntry(payload: StockEntryDto, req) {
     payload = this.parseStockEntryPayload(payload);
-    payload= await this.getAssignStockId(payload)
+    payload = await this.getAssignStockId(payload);
     const settings = this.settingService.find();
     if (payload.status === STOCK_ENTRY_STATUS.draft || !payload.uuid) {
       return this.stockEntryPolicies
@@ -585,7 +584,6 @@ export class StockEntryAggregateService {
   }
 
   getStockEntry(uuid: string, req) {
-    
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
         if (!stockEntry) {
@@ -896,94 +894,79 @@ export class StockEntryAggregateService {
     );
   }
 
-  async getAssignStockId(stockPayload:StockEntryDto){
-    if(stockPayload.stock_entry_type == "Material Transfer"){
+  async getAssignStockId(stockPayload: StockEntryDto) {
+    if (stockPayload.stock_entry_type === 'Material Transfer') {
       const settings = await this.settings.find().toPromise();
       const date = new DateTime(settings.timeZone).year;
-      const $match : any = {
-        "stock_entry_type": "Material Transfer"
-      }
-      const $sort : any = {
-        "createdAt" : -1
-      } 
-      const $limit : any = 1
-      var result : any= await this.stockEntryService.asyncAggregate([
-          {$match},
-          {$sort},
-          {$limit}
-        ]).toPromise()
-      const myArray = result[0].stock_id.split("-")
-      var incrementer = Number(myArray[2]) +1
-      var stockid =`TROUT-${date}-${incrementer}`
-      stockPayload.stock_id = stockid
-      return stockPayload
-
-    }else if(stockPayload.stock_entry_type == "Material Receipt"){
+      const $match: any = {
+        stock_entry_type: 'Material Transfer',
+      };
+      const $sort: any = {
+        createdAt: -1,
+      };
+      const $limit: any = 1;
+      const result: any = await this.stockEntryService
+        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .toPromise();
+      const myArray = result[0].stock_id.split('-');
+      const incrementer = Number(myArray[2]) + 1;
+      const stockid = `TROUT-${date}-${incrementer}`;
+      stockPayload.stock_id = stockid;
+      return stockPayload;
+    } else if (stockPayload.stock_entry_type === 'Material Receipt') {
       const settings = await this.settings.find().toPromise();
       const date = new DateTime(settings.timeZone).year;
-      const $match : any = {
-        "stock_entry_type": "Material Receipt"
-      }
-      const $sort : any = {
-        "createdAt" : -1
-      } 
-      const $limit : any = 1
-      var result : any= await this.stockEntryService.asyncAggregate([
-          {$match},
-          {$sort},
-          {$limit}
-        ]).toPromise()
-      const myArray = result[0].stock_id.split("-")
-      var incrementer = Number(myArray[2]) +1
-      var stockid =`PAQ-${date}-${incrementer}`
-      stockPayload.stock_id = stockid
-      return stockPayload
-
-
-    }else if(stockPayload.stock_entry_type == "Material Issue"){
+      const $match: any = {
+        stock_entry_type: 'Material Receipt',
+      };
+      const $sort: any = {
+        createdAt: -1,
+      };
+      const $limit: any = 1;
+      const result: any = await this.stockEntryService
+        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .toPromise();
+      const myArray = result[0].stock_id.split('-');
+      const incrementer = Number(myArray[2]) + 1;
+      const stockid = `PAQ-${date}-${incrementer}`;
+      stockPayload.stock_id = stockid;
+      return stockPayload;
+    } else if (stockPayload.stock_entry_type === 'Material Issue') {
       const settings = await this.settings.find().toPromise();
       const date = new DateTime(settings.timeZone).year;
-      const $match : any = {
-        "stock_entry_type": "Material Issue"
-      }
-      const $sort : any = {
-        "createdAt" : -1
-      } 
-      const $limit : any = 1
-      var result : any= await this.stockEntryService.asyncAggregate([
-          {$match},
-          {$sort},
-          {$limit}
-        ]).toPromise()
-      const myArray = result[0].stock_id.split("-")
-      var incrementer = Number(myArray[2]) +1
-      var stockid =`PCM-${date}-${incrementer}`
-      stockPayload.stock_id = stockid
-      return stockPayload
-
-
-    }else if(stockPayload.stock_entry_type == "R&D Products"){
+      const $match: any = {
+        stock_entry_type: 'Material Issue',
+      };
+      const $sort: any = {
+        createdAt: -1,
+      };
+      const $limit: any = 1;
+      const result: any = await this.stockEntryService
+        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .toPromise();
+      const myArray = result[0].stock_id.split('-');
+      const incrementer = Number(myArray[2]) + 1;
+      const stockid = `PCM-${date}-${incrementer}`;
+      stockPayload.stock_id = stockid;
+      return stockPayload;
+    } else if (stockPayload.stock_entry_type === 'R&D Products') {
       const settings = await this.settings.find().toPromise();
       const date = new DateTime(settings.timeZone).year;
-      const $match : any = {
-        "stock_entry_type": "Material Issue"
-      }
-      const $sort : any = {
-        "createdAt" : -1
-      } 
-      const $limit : any = 1
-      var result : any= await this.stockEntryService.asyncAggregate([
-          {$match},
-          {$sort},
-          {$limit}
-        ]).toPromise()
-      const myArray = result[0].stock_id.split("-")
-      var incrementer = Number(myArray[2]) +1
-      var stockid =`RND-${date}-${incrementer}`
-      stockPayload.stock_id = stockid
-      return stockPayload
-
-
+      const $match: any = {
+        stock_entry_type: 'Material Issue',
+      };
+      const $sort: any = {
+        createdAt: -1,
+      };
+      const $limit: any = 1;
+      const result: any = await this.stockEntryService
+        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .toPromise();
+      const myArray = result[0].stock_id.split('-');
+      const incrementer = Number(myArray[2]) + 1;
+      const stockid = `RND-${date}-${incrementer}`;
+      stockPayload.stock_id = stockid;
+      return stockPayload;
     }
   }
 }

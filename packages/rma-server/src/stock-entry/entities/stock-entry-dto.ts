@@ -25,7 +25,6 @@ export class StockEntryDto {
 
   stock_id: string;
 
-
   @IsOptional()
   @IsString()
   status?: string;

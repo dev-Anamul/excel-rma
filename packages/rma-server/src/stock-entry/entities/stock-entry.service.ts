@@ -178,12 +178,11 @@ export class StockEntryService {
     return await this.stockEntryRepository.insertMany(query, options);
   }
 
-   asyncAggregate(query) {
+  asyncAggregate(query) {
     return of(this.stockEntryRepository.aggregate(query)).pipe(
       switchMap((aggregateData: any) => {
         return aggregateData.toArray();
       }),
     );
   }
-
 }

@@ -232,6 +232,7 @@ export class WarrantyStockEntryAggregateService {
     );
     stockEntry.stock_voucher_number = res.name;
     stockEntry.items[0].serial_no = res.items[0].excel_serials;
+    stockEntry.stock_id = res.name;
     return from(this.stockEntryService.create(stockEntry));
   }
 
