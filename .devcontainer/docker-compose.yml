@@ -1,42 +1,45 @@
 version: '3.7'
 
 services:
-  fix-mongodb-permissions:
-    image: busybox
-    user: root
-    command: chown -R 1001:1001 /bitnami
-    volumes:
-      - mongo-vol:/bitnami
-
   mongodb:
     image: bitnami/mongodb:latest
     restart: on-failure
     environment:
-      - MONGODB_PRIMARY_ROOT_USER=root
-      - MONGODB_USERNAME=excel-rma
-      - MONGODB_PASSWORD=admin
-      - MONGODB_DATABASE=excel-rma
       - MONGODB_ROOT_PASSWORD=admin
-      - SERVER_DB=rma-server
-      - SERVER_USER=rma-server
-      - SERVER_DB_PASSWORD=admin
-      - CACHE_DB=cache-db
-      - CACHE_USER=cache-db
-      - CACHE_DB_PASSWORD=admin
+      - MONGODB_DATABASE=rma-server
+      - MONGODB_USERNAME=rma-server
+      - MONGODB_PASSWORD=admin
     volumes:
-      - mongo-vol:/bitnami
-      - ../docker/backing-services/files/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ${HOME}/data/excel-mongo:/bitnami
     depends_on:
       - fix-mongodb-permissions
+
+  mongodb-configuration:
+    image: bitnami/mongodb:latest
+    environment:
+      - MONGODB_ROOT_PASSWORD=admin
+    command:
+      - bash
+      - -c
+      - >
+        sleep 10;
+        mongo cache-db \
+          --host mongodb \
+          --port 27017 \
+          -u root \
+          -p $$MONGODB_ROOT_PASSWORD \
+          --authenticationDatabase admin \
+          --eval "db.createUser({user: 'cache-db', pwd: 'admin', roles:[{role:'dbOwner', db: 'cache-db'}]});";
 
   development:
     build: .
     volumes:
-      - /var/run/docker.sock:/var/run/docker-host.sock
       - ..:/workspace
     working_dir: /workspace
     ports:
       - '8800:8800'
-
-volumes:
-  mongo-vol:
+      - '4700:4700'
+      - '4800:4800'
+      - '4900:4900'
+    extra_hosts:
+      - excel.localhost:172.17.0.1

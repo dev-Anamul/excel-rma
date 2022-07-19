@@ -5,6 +5,7 @@ import { ServerSettingsService } from '../../../system-settings/entities/server-
 import { ClientTokenManagerService } from '../../aggregates/client-token-manager/client-token-manager.service';
 import { ErrorLogService } from '../../../error-log/error-log-service/error-log.service';
 import { AGENDA_TOKEN } from '../../../system-settings/providers/agenda.provider';
+import { TokenCacheService } from '../../../auth/entities/token-cache/token-cache.service';
 
 describe('RevokeExpiredFrappeTokensService', () => {
   let service: RevokeExpiredFrappeTokensService;
@@ -17,6 +18,7 @@ describe('RevokeExpiredFrappeTokensService', () => {
         { provide: ClientTokenManagerService, useValue: {} },
         { provide: HttpService, useValue: {} },
         { provide: ErrorLogService, useValue: {} },
+        { provide: TokenCacheService, useValue: {} },
         { provide: AGENDA_TOKEN, useValue: {} },
       ],
     }).compile();

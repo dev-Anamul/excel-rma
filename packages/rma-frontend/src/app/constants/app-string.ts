@@ -20,6 +20,8 @@ export const MATERIAL_TRANSFER = 'Material Transfer';
 export const PURCHASE_USER = 'Purchase User';
 export const EXCEL_SALES_MANAGER = 'Excel Sales Manager';
 export const EXCEL_SALES_USER = 'Excel Sales User';
+export const EXCEL_STOCK_PRINT = 'Excel Stock Print';
+
 export const SERVICE_INVOICE_STATUS = {
   SUBMITTED: 'Submitted',
 };
@@ -107,3 +109,14 @@ export const DELIVERED_SERIALS_BY = {
   stock_entry_uuid: 'stock_entry_uuid',
 };
 export const NON_SERIAL_ITEM = 'Non serial Item';
+
+export const STOCK_AVAILABILITY_CSV_FILE = 'stock_availability.csv';
+
+export const STOCK_AVAILABILITY_DOWNLOAD_HEADERS = [
+  'item_name',
+  'item_code',
+  'item_group',
+  'brand',
+  'warehouse',
+  'stockAvailability',
+];

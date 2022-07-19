@@ -10,7 +10,11 @@ import { ValidateInputSelected } from '../../common/pipes/validators';
 import { startWith, switchMap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { WAREHOUSES } from '../../constants/app-string';
-
+import { CsvJsonService } from '../../api/csv-json/csv-json.service';
+import {
+  STOCK_AVAILABILITY_CSV_FILE,
+  STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
+} from '../../constants/app-string';
 @Component({
   selector: 'app-stock-availability',
   templateUrl: './stock-availability.page.html',
@@ -46,6 +50,7 @@ export class StockAvailabilityPage implements OnInit {
     private readonly location: Location,
     private readonly salesService: SalesService,
     private route: ActivatedRoute,
+    private csvService: CsvJsonService,
   ) {}
 
   ngOnInit() {
@@ -54,8 +59,8 @@ export class StockAvailabilityPage implements OnInit {
       this.paginator.firstPage();
     });
     if (!this.f.actual_qty.value) {
-      this.filters.push(['actual_qty', '!=', `0`]);
-      this.countFilter.actual_qty = ['!=', `0`];
+      this.filters.push(['actual_qty', '!=', 0]);
+      this.countFilter.actual_qty = ['!=', 0];
     }
     this.dataSource = new StockAvailabilityDataSource(this.salesService);
     this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
@@ -159,28 +164,28 @@ export class StockAvailabilityPage implements OnInit {
       this.filters.push([
         'item_code',
         'like',
-        `%${this.f.itemName.value.item_code}%`,
+        `${this.f.itemName.value.item_code}`,
       ]);
       this.countFilter.item_code = [
         'like',
-        `%${this.f.itemName.value.item_code}%`,
+        `${this.f.itemName.value.item_code}`,
       ];
     }
 
     if (this.f.warehouse.value) {
-      this.filters.push(['warehouse', 'like', `%${this.f.warehouse.value}%`]);
-      this.countFilter.warehouse = ['like', `%${this.f.warehouse.value}%`];
+      this.filters.push(['warehouse', 'like', `${this.f.warehouse.value}`]);
+      this.countFilter.warehouse = ['like', `${this.f.warehouse.value}`];
     }
 
     if (this.f.excel_item_group.value) {
       this.filters.push([
         'excel_item_group',
         'like',
-        `%${this.f.excel_item_group.value.name}%`,
+        `${this.f.excel_item_group.value.name}`,
       ]);
       this.countFilter.excel_item_group = [
         'like',
-        `%${this.f.excel_item_group.value.name}%`,
+        `${this.f.excel_item_group.value.name}`,
       ];
     }
 
@@ -188,17 +193,20 @@ export class StockAvailabilityPage implements OnInit {
       this.filters.push([
         'excel_item_brand',
         'like',
-        `%${this.f.excel_item_brand.value.brand}%`,
+        `${this.f.excel_item_brand.value.brand}`,
       ]);
       this.countFilter.excel_item_brand = [
         'like',
-        `%${this.f.excel_item_brand.value.brand}%`,
+        `${this.f.excel_item_brand.value.brand}`,
       ];
     }
 
     if (!this.f.actual_qty.value) {
-      this.filters.push(['actual_qty', '!=', `0`]);
-      this.countFilter.actual_qty = ['!=', `0`];
+      this.filters.push(['actual_qty', '!=', 0]);
+      this.countFilter.actual_qty = ['!=', 0];
+    } else {
+      this.filters.push(['actual_qty', '==', 0]);
+      this.countFilter.actual_qty = ['==', 0];
     }
 
     this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
@@ -215,5 +223,41 @@ export class StockAvailabilityPage implements OnInit {
       }
       return option.item_group_name;
     }
+  }
+
+  downloadServiceInvoices() {
+    const result: any = this.serializeStockAvailabilityObject(
+      this.dataSource.data,
+    );
+    this.csvService.downloadStockAvailabilityCSV(
+      result,
+      STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
+      `${STOCK_AVAILABILITY_CSV_FILE}`,
+    );
+  }
+
+  serializeStockAvailabilityObject(data: any) {
+    const serializedArray: any = [];
+    data.forEach(element => {
+      if (
+        element.item.item_name &&
+        element.item.item_code &&
+        element.item.item_group &&
+        element.item.brand &&
+        element._id.warehouse &&
+        element.stockAvailability
+      ) {
+        const obj1: any = {
+          item_name: element.item.item_name,
+          item_code: element.item.item_code,
+          item_group: element.item.item_group,
+          brand: element.item.brand,
+          warehouse: element._id.warehouse,
+          stockAvailability: element.stockAvailability,
+        };
+        serializedArray.push(obj1);
+      }
+    });
+    return serializedArray;
   }
 }

@@ -7,7 +7,7 @@
   "service": "development",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
-  "remoteUser": "vscode",
+  "remoteUser": "node",
   "extensions": [
 	"streetsidesoftware.code-spell-checker",
 	"dbaeumer.vscode-eslint",

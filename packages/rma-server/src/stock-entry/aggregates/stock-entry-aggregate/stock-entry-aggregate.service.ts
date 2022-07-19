@@ -3,6 +3,7 @@ import {
   Inject,
   BadRequestException,
   NotFoundException,
+  NotImplementedException,
   HttpService,
 } from '@nestjs/common';
 import { StockEntryService } from '../../entities/stock-entry.service';
@@ -14,6 +15,7 @@ import {
   concatMap,
   toArray,
   catchError,
+  map,
 } from 'rxjs/operators';
 import { StockEntry, StockEntryItem } from '../../entities/stock-entry.entity';
 import { from, throwError, of, forkJoin } from 'rxjs';
@@ -30,6 +32,7 @@ import {
   STOCK_MATERIAL_TRANSFER,
   ACCEPT_STOCK_ENTRY_JOB,
   REJECT_STOCK_ENTRY_JOB,
+  APPLICATION_JSON_CONTENT_TYPE,
 } from '../../../constants/app-strings';
 import { v4 as uuidv4 } from 'uuid';
 import * as Agenda from 'agenda';
@@ -44,7 +47,11 @@ import { DateTime } from 'luxon';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
-import { FRAPPE_CLIENT_CANCEL } from '../../../constants/routes';
+
+import {
+  FRAPPE_CLIENT_CANCEL,
+  POST_STOCK_PRINT_ENDPOINT,
+} from '../../../constants/routes';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { getUserPermissions } from '../../../constants/agenda-job';
 import { StockEntrySyncService } from '../../../stock-entry/schedular/stock-entry-sync/stock-entry-sync.service';
@@ -600,12 +607,13 @@ export class StockEntryAggregateService {
       switchMap(stockEntry => {
         if (stockEntry.status !== STOCK_ENTRY_STATUS.draft) {
           stockEntry.items.filter(item => {
-            if (item.serial_no && item.serial_no.length) {
-              item.serial_no = [
-                item.serial_no[0],
-                item.serial_no[item.serial_no.length - 1],
-              ];
-            }
+            // if (item.serial_no && item.serial_no.length) {
+            //   item.serial_no = [
+            //     item.serial_no[0],
+            //     item.serial_no[item.serial_no.length - 1],
+            //   ];
+            // }
+
             return item;
           });
         }
@@ -968,6 +976,46 @@ export class StockEntryAggregateService {
       stockPayload.stock_id = stockid;
       return stockPayload;
     }
+  }
+  
+  syncStockEntryDocument(req, stockPrintBody) {
+    let url: string = '';
+    return this.settingService.find().pipe(
+      switchMap(setting => {
+        if (!setting.authServerURL) {
+          return throwError(new NotImplementedException());
+        }
+        url = `${setting.authServerURL}${POST_STOCK_PRINT_ENDPOINT}`;
+        return this.http.get(`${url}/${stockPrintBody.uuid}`, {
+          headers: {
+            authorization: req.body.headers.Authorization,
+            Accept: APPLICATION_JSON_CONTENT_TYPE,
+          },
+        });
+      }),
+      map(res => res.data),
+      switchMap(() => {
+        return this.http.put(`${url}/${stockPrintBody.uuid}`, stockPrintBody, {
+          headers: {
+            authorization: req.body.headers.Authorization,
+            Accept: APPLICATION_JSON_CONTENT_TYPE,
+          },
+        });
+      }),
+      map(res => res.data),
+      catchError(err => {
+        if (err.response.status === 404) {
+          return this.http.post(url, stockPrintBody, {
+            headers: {
+              authorization: req.body.headers.Authorization,
+              Accept: APPLICATION_JSON_CONTENT_TYPE,
+            },
+          });
+        }
+        return throwError(new BadRequestException(err.response.statusText));
+      }),
+      map(res => res.data),
+    );
   }
 }
 
