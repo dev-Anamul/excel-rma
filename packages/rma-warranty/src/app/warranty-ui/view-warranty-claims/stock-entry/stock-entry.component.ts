@@ -89,7 +89,7 @@ export class StockEntryComponent implements OnInit {
     this.stockEntryService.removeStockEntry(row).subscribe({
       next: res => {
         loading.dismiss();
-        this.snackbar.open('Stock Entry Cacelled succesfully', 'Close', {
+        this.snackbar.open('Stock Entry Cancelled Successfully', 'Close', {
           duration: DURATION,
         });
         this.dataSource.loadItems('asc', 0, 10, {
