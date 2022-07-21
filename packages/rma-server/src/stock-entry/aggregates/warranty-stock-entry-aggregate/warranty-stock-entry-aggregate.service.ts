@@ -72,7 +72,7 @@ export class WarrantyStockEntryAggregateService {
               settings.find(x => x.settings).settings,
             ).pipe(
               map((res: any) => res.ops[0]),
-              switchMap(res => {
+              switchMap(() => {
                 return this.updateProgressState(deliveryNote);
               }),
             );
@@ -203,7 +203,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  async createStockLedger(
+  createStockLedger(
     payload: WarrantyStockEntryDto,
     token,
     settings: ServerSettings,
@@ -211,7 +211,7 @@ export class WarrantyStockEntryAggregateService {
     return this.createStockLedgerPayload(payload, token, settings).pipe(
       switchMap((stockLedgers: StockLedger[]) => {
         return from(stockLedgers).pipe(
-          switchMap(async stockLedger => {
+          switchMap(stockLedger => {
             return from(this.stockLedgerService.create(stockLedger));
           }),
         );
@@ -219,7 +219,11 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createStockLedgerPayload(res, token, settings: ServerSettings) {
+  createStockLedgerPayload(
+    res: WarrantyStockEntryDto,
+    token,
+    settings: ServerSettings,
+  ) {
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
