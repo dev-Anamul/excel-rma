@@ -336,7 +336,7 @@
               matInput
               type="text"
               placeholder="Upgrade Warehouse"
-              disabled
+              readonly
               [value]="
                 stockEntry?.items?.length
                   ? (stockEntry?.items)[0].s_warehouse
@@ -355,7 +355,7 @@
               [value]="warrantyObject?.replace_warehouse"
               matInput
               type="text"
-              disabled
+              readonly
               placeholder="Replace Warehouse"
             />
           </mat-form-field>
@@ -366,7 +366,7 @@
               matInput
               [value]="warrantyObject?.damage_warehouse"
               type="text"
-              disabled
+              readonly
               placeholder="Damaged Warehouse"
             />
           </mat-form-field>
@@ -380,7 +380,7 @@
               matInput
               [value]="warrantyObject?.replace_product"
               type="text"
-              disabled
+              readonly
               placeholder="Replaced Product"
             />
           </mat-form-field>
@@ -391,7 +391,7 @@
               matInput
               [value]="warrantyObject?.damage_product"
               type="text"
-              disabled
+              readonly
               placeholder="Damaged Product"
             />
           </mat-form-field>
@@ -405,7 +405,7 @@
               matInput
               [value]="warrantyObject?.replace_serial"
               type="text"
-              disabled
+              readonly
               placeholder="Replace Serial"
             />
           </mat-form-field>
@@ -417,7 +417,7 @@
               [value]="warrantyObject?.remarks"
               type="text"
               placeholder="Remarks"
-              disabled
+              readonly
             />
           </mat-form-field>
         </ion-col>

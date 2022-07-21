@@ -33,6 +33,15 @@ export class ServerSettingsDto {
   @IsNotEmpty()
   @IsUrl()
   @ApiProperty({
+    description: 'The URL of the pos-server.',
+    type: 'string',
+    required: true,
+  })
+  posAppURL: string;
+
+  @IsNotEmpty()
+  @IsUrl()
+  @ApiProperty({
     description: 'The URL of the frappe-server.',
     type: 'string',
     required: true,

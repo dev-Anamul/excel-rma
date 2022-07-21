@@ -46,6 +46,7 @@ export const DELIVERY_NOTE_FILTER_BY_SALES_INVOICE_QUERY = [
   '=',
 ];
 export const CREDIT_NOTE_IS_RETURN_QUERY = ['is_return', '=', '1'];
+export const CREDIT_NOTE_IS_CANCEL_QUERY = ['status', '!=', 'Cancelled'];
 export const CREDIT_NOTE_FILTER_BY_SALES_INVOICE_QUERY = [
   'return_against',
   '=',

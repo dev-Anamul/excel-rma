@@ -115,6 +115,7 @@ export interface WarrantyClaimsDetails {
   service_vouchers?: string[];
   print?: any;
   progress_state: StockEntryDetails[];
+  subclaim_state: string;
 }
 
 export class WarrantyBulkProducts {

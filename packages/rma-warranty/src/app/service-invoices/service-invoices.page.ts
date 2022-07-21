@@ -13,6 +13,7 @@ import {
   SERVICE_INVOICE_DOWNLOAD_HEADERS,
   SERVICE_INVOICE_STATUS,
   SORT_ORDER,
+  SUBMIT_STATUS,
 } from '../constants/app-string';
 import { TimeService } from '../api/time/time.service';
 import { FormControl, FormGroup } from '@angular/forms';
@@ -244,6 +245,23 @@ export class ServiceInvoicesPage implements OnInit {
   }
 
   downloadServiceInvoices() {
+    this.dataSource.data.forEach(element => {
+      switch (element.docstatus) {
+        case 0:
+          element.submit = SUBMIT_STATUS.NOT_SUBMITTED;
+          break;
+        case 1:
+          element.submit = SUBMIT_STATUS.SUBMITTED;
+          break;
+        case 2:
+          element.submit = SUBMIT_STATUS.CANCELED;
+          break;
+        default:
+          element.submit = SUBMIT_STATUS.NOT_AVAILABLE;
+          break;
+      }
+    });
+
     this.csvService.downloadAsCSV(
       this.dataSource.data,
       SERVICE_INVOICE_DOWNLOAD_HEADERS,

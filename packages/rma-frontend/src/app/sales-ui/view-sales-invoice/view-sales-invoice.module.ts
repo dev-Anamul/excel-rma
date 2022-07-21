@@ -21,6 +21,7 @@ import { EditTableComponent } from './edit-table/edit-table.component';
 import { AppCommonModule } from '../../common/app-common.module';
 import { PrintComponent } from './print/print.component';
 import { CommonComponentModule } from '../../common/components/common-component.module';
+import { SalesReturnSerialsComponent } from './sales-return-serials/sales-return-serials.component';
 
 const routes: Routes = [
   {
@@ -53,6 +54,7 @@ const routes: Routes = [
     SerialsComponent,
     EditTableComponent,
     PrintComponent,
+    SalesReturnSerialsComponent,
   ],
 })
 export class ViewSalesInvoicePageModule {}

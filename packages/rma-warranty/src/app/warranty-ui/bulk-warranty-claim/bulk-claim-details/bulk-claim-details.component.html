@@ -8,7 +8,7 @@
       </ion-col>
       <ion-col class="ion-text-right">
         <ion-button
-        *ngIf="permissionState.warranty_claim.update"
+          *ngIf="permissionState.warranty_claim.update && checkSubclaimStatus()"
           color="tertiary"
           [disabled]="!dataSource.length"
           fill="outline"
@@ -17,7 +17,7 @@
           Edit
         </ion-button>
         <ion-button
-        *ngIf="permissionState.warranty_claim.read"
+          *ngIf="permissionState.warranty_claim.read"
           color="tertiary"
           [disabled]="!dataSource.length"
           (click)="openDialog()"

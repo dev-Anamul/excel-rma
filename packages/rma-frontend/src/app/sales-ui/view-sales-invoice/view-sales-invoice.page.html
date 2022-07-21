@@ -5,13 +5,9 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>
-      Sales Invoice
-    </ion-title>
+    <ion-title> Sales Invoice </ion-title>
     <ion-buttons slot="end" *ngIf="sales_invoice_name">
-      <ion-button (click)="showJobs()" color="primary">
-        Jobs
-      </ion-button>
+      <ion-button (click)="showJobs()" color="primary"> Jobs </ion-button>
     </ion-buttons>
     <ion-buttons slot="end" *ngIf="sales_invoice_name && status !== 'Canceled'">
       <ion-button (click)="showPrintOptions($event)" color="primary">
@@ -29,23 +25,34 @@
         scrollable="true"
         class="disable-scrollbars"
       >
-        <ion-segment-button value="0" *ngIf="permissionState.sales_invoice.active">
+        <ion-segment-button
+          value="0"
+          *ngIf="permissionState.sales_invoice.active"
+        >
           <ion-label>Details</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="1" *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.delivery_note.active">
+        <ion-segment-button
+          value="1"
+          *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.delivery_note.active"
+        >
           <ion-label>Serials</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="2" *ngIf="status !== 'Canceled' && sales_invoice_name">
+        <ion-segment-button
+          value="2"
+          *ngIf="status !== 'Canceled' && sales_invoice_name"
+        >
           <ion-label>Accounts</ion-label>
         </ion-segment-button>
         <ion-segment-button
           value="3"
-          [disabled]="permissionState.campaign_return.active"
-          *ngIf="status !== 'Canceled' && sales_invoice_name && showReturnTab && permissionState.sales_return.active"
+          *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.delivery_note.active"
         >
-          <ion-label>Sales Return</ion-label>
+          <ion-label>Returned Serials</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="4" *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.warranty_claim.active">
+        <ion-segment-button
+          value="4"
+          *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.warranty_claim.active"
+        >
           <ion-label>Warranty</ion-label>
         </ion-segment-button>
         <ion-segment-button
@@ -69,11 +76,12 @@
       class="width"
       *ngSwitchCase="2"
     ></sales-invoice-accounts>
-    <sales-invoice-return
-      [sales_invoice]="sales_invoice_name"
+    <sales-invoice-return-serials
+      [salesInvoiceName]="sales_invoice_name"
       class="width"
       *ngSwitchCase="3"
-    ></sales-invoice-return>
+    >
+    </sales-invoice-return-serials>
     <sales-invoice-warranty
       class="width"
       *ngSwitchCase="4"

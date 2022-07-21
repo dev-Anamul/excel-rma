@@ -23,6 +23,8 @@ export const SUBMIT_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/submit';
 export const CANCEL_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/cancel';
 export const CREATE_SALES_RETURN_ENDPOINT =
   'api/sales_invoice/v1/create_return';
+export const CANCEL_SALES_RETURN_ENDPOINT =
+  'api/sales_invoice/v1/cancel_return';
 export const GET_SETTINGS_ENDPOINT = '/api/settings/v1/get';
 export const UPDATE_SETTINGS_ENDPOINT = '/api/settings/v1/update';
 export const LIST_SERIAL_ENDPOINT = 'api/serial_no/v1/list';
@@ -65,6 +67,7 @@ export const API_TERRITORY_GET_WAREHOUSES =
   '/api/territory/v1/get_warehouses_for_territories';
 export const LIST_RETURN_VOUCHER_ENDPOINT = 'api/return_voucher/v1/list';
 export const LIST_CREDIT_NOTE_ENDPOINT = 'api/credit_note/v1/list';
+export const CREDIT_NOTE_ENDPOINT = 'api/credit_note/v1';
 export const LIST_DELIVERY_NOTE_ENDPOINT = 'api/delivery_note/v1/list';
 export const API_INFO_ENDPOINT = '/api/info';
 export const API_ITEM_LIST = '/api/item/v1/list';
@@ -107,6 +110,8 @@ export const LIST_WARRANTY_INVOICE_ENDPOINT = 'api/warranty_claim/v1/list';
 export const VIEW_WARRANTY_INVOICE_PAGE_URL = 'view-warranty';
 export const GET_SALES_INVOICE_DELIVERED_SERIALS_ENDPOINT =
   '/api/serial_no/v1/get_sales_invoice_delivered_serials';
+export const GET_SALES_INVOICE_RETURNED_SERIALS_ENDPOINT =
+  '/api/serial_no/v1/get_sales_invoice_returned_serials';
 export const GET_PURCHASE_INVOICE_DELIVERED_SERIALS_ENDPOINT =
   '/api/serial_no/v1/get_purchase_invoice_delivered_serials';
 export const WARRANTY_CLAIM_GET_ONE_ENDPOINT = '/api/warranty_claim/v1/get/';
@@ -166,6 +171,8 @@ export const PURCHASE_ORDER_RESET_ENDPOINT =
   '/api/purchase_order/v1/reset_order';
 export const RELAY_GET_SALES_PERSON_STOCK_ENDPOINT =
   '/api/command/user/api/resource/Sales Person';
+export const RELAY_LIST_PROJECT_ENDPOINT =
+  '/api/command/user/api/resource/Project';
 export const GET_PRODUCT_BUNDLE_ITEMS = '/api/item/v1/get_bundle_items';
 export const STOCK_ENTRY_RESET_ENDPOINT = '/api/stock_entry/v1/reset/';
 export const REMOVE_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/remove';

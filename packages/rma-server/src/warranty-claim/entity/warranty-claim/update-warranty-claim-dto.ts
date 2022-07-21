@@ -195,4 +195,7 @@ export class UpdateWarrantyClaimDto {
 
   @IsOptional()
   customer_code: string;
+
+  @IsOptional()
+  subclaim_state: string;
 }

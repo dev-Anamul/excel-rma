@@ -12,7 +12,7 @@
       class="full-width-table"
       [dataSource]="dataSource"
       matSort
-      style="width: 100%;"
+      style="width: 100%"
     >
       <!-- CN Name Column -->
       <ng-container matColumnDef="name">
@@ -54,6 +54,16 @@
       <ng-container matColumnDef="return_against">
         <th mat-header-cell *matHeaderCellDef>Against SN</th>
         <td mat-cell *matCellDef="let row">{{ row.return_against }}</td>
+      </ng-container>
+
+      <!-- More Column -->
+      <ng-container matColumnDef="more">
+        <th mat-header-cell *matHeaderCellDef>More</th>
+        <td mat-cell *matCellDef="let row">
+          <ion-button color="danger" (click)="cancelReturn(row)">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>

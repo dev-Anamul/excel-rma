@@ -481,14 +481,8 @@ export class StockEntryPoliciesService {
     );
   }
 
-  validateCancelWarrantyStockEntry(
-    parent_document: string,
-    serial_no: string[],
-  ) {
-    if (
-      serial_no.filter(serial => serial.toUpperCase() !== NON_SERIAL_ITEM)
-        .length
-    ) {
+  validateCancelWarrantyStockEntry(parent_document: string, serial_no) {
+    if (serial_no.toUpperCase() !== NON_SERIAL_ITEM.length) {
       return this.serialNoHistoryPolicyService
         .validateLatestEventWithParent(parent_document, serial_no)
         .pipe(
@@ -512,23 +506,11 @@ export class StockEntryPoliciesService {
     return of(true);
   }
 
-  validateWarrantyStockEntry(payload: StockEntryDto, clientHttpRequest) {
-    return this.settings.find().pipe(
-      switchMap(settings => {
-        return this.validateWarrantyStockSerials(
-          payload.items,
-          settings,
-          clientHttpRequest,
-        );
-      }),
-    );
+  validateWarrantyStockEntry(payload: StockEntryDto) {
+    return this.validateWarrantyStockSerials(payload.items);
   }
 
-  validateWarrantyStockSerials(
-    items: StockEntryItemDto[],
-    settings,
-    clientHttpRequest,
-  ) {
+  validateWarrantyStockSerials(items: StockEntryItemDto[]) {
     return from(items).pipe(
       mergeMap(item => {
         if (!item.has_serial_no) {

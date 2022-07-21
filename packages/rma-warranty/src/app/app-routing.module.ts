@@ -21,6 +21,13 @@ const routes: Routes = [
       import('./callback/callback.module').then(m => m.CallbackPageModule),
   },
   {
+    path: 'balance-summary',
+    loadChildren: () =>
+      import('./stock-balance-summary/stock-balance-summary.module').then(
+        m => m.StockBalanceSummaryPageModule,
+      ),
+  },
+  {
     path: 'callback',
     loadChildren: () =>
       import('./callback/callback.module').then(m => m.CallbackPageModule),

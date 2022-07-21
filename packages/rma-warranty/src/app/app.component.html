@@ -89,6 +89,17 @@
           <ion-menu-toggle auto-hide="false">
             <ion-item
               *ngIf="loggedIn"
+              routerLink="/balance-summary"
+              lines="none"
+              routerLinkActive="active"
+            >
+              <ion-icon slot="start" name="trending-up-outline"></ion-icon>
+              <ion-label>Stock Balance Summary</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle auto-hide="false">
+            <ion-item
+              *ngIf="loggedIn"
               routerLink="/serial-search"
               lines="none"
               routerLinkActive="active"

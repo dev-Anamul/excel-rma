@@ -33,6 +33,7 @@ export class ServiceInvoiceDetails {
   pos_profile?: string;
   payments?: Payments[];
   set_posting_time?: number;
+  submit?: string;
 }
 
 export class Payments {

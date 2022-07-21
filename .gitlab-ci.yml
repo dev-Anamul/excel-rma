@@ -203,7 +203,6 @@ deploy_staging_pos:
     - apk add curl bash
   script:
     - curl -Ss -X POST $POS_UPDATE_KEY
-
 deploy_staging_server:
   image: alpine:latest
   stage: deploy

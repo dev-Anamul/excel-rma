@@ -53,4 +53,5 @@ export class MaterialTransferDto {
   items: StockEntryRow[];
   item_data: any;
   status?: string;
+  project?: string;
 }

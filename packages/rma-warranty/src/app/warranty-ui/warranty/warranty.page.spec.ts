@@ -54,7 +54,10 @@ describe('WarrantyPage', () => {
         },
         {
           provide: StorageService,
-          useValue: {},
+          useValue: {
+            getItem: (...args) => Promise.resolve('Item'),
+            getItems: (...args) => Promise.resolve({}),
+          },
         },
         {
           provide: CsvJsonService,

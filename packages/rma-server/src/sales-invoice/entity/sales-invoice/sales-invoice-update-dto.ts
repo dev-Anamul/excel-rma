@@ -5,6 +5,7 @@ import {
   IsNumber,
   ValidateNested,
   IsEnum,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SALES_INVOICE_STATUS_ENUM } from '../../../constants/app-strings';
@@ -130,7 +131,9 @@ export class SalesInvoiceUpdateDto {
   payment_schedule: any[];
 
   @IsOptional()
-  payments: any[];
+  @ValidateNested()
+  @Type(() => PaymentsDto)
+  payments: PaymentsDto[];
 
   @IsOptional()
   sales_team: any[];
@@ -143,6 +146,13 @@ export class SalesInvoiceUpdateDto {
 
   @IsOptional()
   delivery_status: string;
+
+  @IsOptional()
+  is_pos: boolean;
+
+  @IsOptional()
+  @IsString()
+  pos_profile: string;
 }
 
 export class TaxDto {
@@ -173,4 +183,22 @@ export class TaxDto {
   @IsOptional()
   @IsNumber()
   rate: number;
+}
+
+export class PaymentsDto {
+  @IsNotEmpty()
+  @IsString()
+  mode_of_payment: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  amount: number;
+
+  @IsOptional()
+  @IsBoolean()
+  default?: boolean;
+
+  @IsNotEmpty()
+  @IsString()
+  account: string;
 }

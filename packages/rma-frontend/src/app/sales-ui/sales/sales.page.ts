@@ -203,8 +203,7 @@ export class SalesPage implements OnInit {
     if (this.f.customer_name.value)
       query.customer = this.f.customer_name.value.name;
     if (this.f.status.value) query.status = this.f.status.value;
-    if (this.f.invoice_number.value)
-      query.invoice_number = this.f.invoice_number.value;
+    if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
     if (this.f.salesPerson.value) query.sales_team = this.f.salesPerson.value;
     if (this.f.branch.value) query.territory = this.f.branch.value;
     if (this.campaign) {

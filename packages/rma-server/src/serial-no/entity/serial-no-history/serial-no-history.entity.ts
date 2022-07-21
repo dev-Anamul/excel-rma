@@ -63,6 +63,8 @@ export enum EventType {
   TO_REPLACE = 'Unsolved - To Replace',
   UNSOLVED = 'Unsolved - Return to Owner',
   DELIVER_TO_CUSTOMER = 'Deliver to Customer',
+  SENT_TO_ENG_DEPT = 'Sent to Eng. Dept',
+  SENT_TO_REPAIR_DEPT = 'Sent to Repair Dept',
 }
 
 export class SerialNoHistoryInterface {

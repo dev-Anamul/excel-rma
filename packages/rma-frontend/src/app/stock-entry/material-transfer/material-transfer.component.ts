@@ -65,6 +65,7 @@ import {
   MAT_DATE_FORMATS,
 } from '@angular/material/core';
 import { MY_FORMATS } from '../../constants/date-format';
+import { RELAY_LIST_PROJECT_ENDPOINT } from '../../constants/url-strings';
 
 @Component({
   selector: 'app-material-transfer',
@@ -126,7 +127,11 @@ export class MaterialTransferComponent implements OnInit {
     customer: new FormControl(''),
     remarks: new FormControl(''),
     posting_date: new FormControl(''),
+    project: new FormControl(''),
   });
+
+  filteredProjectList: Observable<any[]>;
+
   materialTransferDisplayedColumns = MATERIAL_TRANSFER_DISPLAYED_COLUMNS;
   itemDataSource: StockItemsDataSource = new StockItemsDataSource();
   itemDisplayedColumns = [
@@ -298,6 +303,18 @@ export class MaterialTransferComponent implements OnInit {
         return of([]);
       }),
     );
+
+    this.filteredProjectList = this.form.get('project').valueChanges.pipe(
+      startWith(''),
+      switchMap(value => {
+        const filter = `[["name", "like", "%${value}%"]]`;
+        return this.stockEntryService.getFilteredAccountingDimensions(
+          RELAY_LIST_PROJECT_ENDPOINT,
+          filter,
+        );
+      }),
+    );
+
     this.accounts = this.form.controls.accounts.valueChanges.pipe(
       debounceTime(500),
       startWith(''),
@@ -765,6 +782,7 @@ export class MaterialTransferComponent implements OnInit {
     );
     body.posting_time = date.time;
     body.stock_entry_type = this.form.controls.stock_entry_type.value;
+    body.project = this.f.project.value;
     body.items = this.materialTransferDataSource.data();
     body.item_data = this.itemDataSource.data();
     body.uuid = this.uuid;
