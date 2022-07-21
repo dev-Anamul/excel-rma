@@ -203,7 +203,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createStockLedger(
+  async createStockLedger(
     payload: WarrantyStockEntryDto,
     token,
     settings: ServerSettings,
@@ -211,7 +211,7 @@ export class WarrantyStockEntryAggregateService {
     return this.createStockLedgerPayload(payload, token, settings).pipe(
       switchMap((stockLedgers: StockLedger[]) => {
         return from(stockLedgers).pipe(
-          switchMap(stockLedger => {
+          switchMap(async stockLedger => {
             return from(this.stockLedgerService.create(stockLedger));
           }),
         );
@@ -232,8 +232,8 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.warehouse = item.warehouse;
             stockPayload.item_code = item.item_code;
             res.stock_entry_type === STOCK_ENTRY_STATUS.returned
-              ? (stockPayload.actual_qty = -item.qty)
-              : (stockPayload.actual_qty = item.qty);
+              ? (stockPayload.actual_qty = item.qty)
+              : (stockPayload.actual_qty = -item.qty);
             stockPayload.valuation_rate = 0;
             stockPayload.batch_no = '';
             stockPayload.posting_date = date;
@@ -350,7 +350,7 @@ export class WarrantyStockEntryAggregateService {
       return of({});
     }
     const serialHistory: SerialNoHistoryInterface = {};
-    serialHistory.serial_no = deliveryNote.items[0].excel_serials;
+    serialHistory.serial_no = deliveryNote.stock_voucher_number;
     serialHistory.created_by = req.token.fullName;
     serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
     serialHistory.document_no = deliveryNote.stock_voucher_number;
@@ -384,7 +384,7 @@ export class WarrantyStockEntryAggregateService {
         break;
     }
     return this.serialNoHistoryService.addSerialHistory(
-      [deliveryNote.items[0].excel_serials],
+      [deliveryNote.stock_voucher_number],
       serialHistory,
     );
   }
@@ -421,17 +421,18 @@ export class WarrantyStockEntryAggregateService {
     return from(
       this.serialService.updateOne(
         { serial_no: deliveryNote.items[0].excel_serials },
-        [
-          {
-            $set: {
-              delivery_note: deliveryNote.stock_voucher_number,
-              warehouse: deliveryNote.set_warehouse,
-            },
+        {
+          $set: {
+            delivery_note: deliveryNote.stock_voucher_number,
+            warehouse: deliveryNote.set_warehouse,
           },
-          {
-            $unset: ['sales_invoice_name', 'warranty.soldOn'],
+          $unset: {
+            customer: '',
+            'warranty.salesWarrantyDate': '',
+            'warranty.soldOn': '',
+            sales_invoice_name: '',
           },
-        ],
+        },
       ),
     );
   }
@@ -572,11 +573,11 @@ export class WarrantyStockEntryAggregateService {
                   { serial_no: stockEntry.items[0]?.serial_no },
                   {
                     $unset: {
-                      customer: 1,
-                      'warranty.salesWarrantyDate': 1,
-                      'warranty.soldOn': 1,
-                      delivery_note: 1,
-                      sales_invoice_name: 1,
+                      customer: '',
+                      'warranty.salesWarrantyDate': '',
+                      'warranty.soldOn': '',
+                      delivery_note: '',
+                      sales_invoice_name: '',
                     },
                   },
                 ),
@@ -598,9 +599,9 @@ export class WarrantyStockEntryAggregateService {
                 { uuid: stockEntry.warrantyClaimUuid },
                 {
                   $unset: {
-                    replace_warehouse: 1,
-                    replace_product: 1,
-                    replace_serial: 1,
+                    replace_warehouse: '',
+                    replace_product: '',
+                    replace_serial: '',
                   },
                 },
               ),
@@ -651,7 +652,6 @@ export class WarrantyStockEntryAggregateService {
             return from(
               this.serialNoHistoryService.deleteOne({
                 document_no: stockEntry.stock_voucher_number,
-                parent_document: stockEntry.warrantyClaimUuid,
               }),
             );
           }
@@ -702,20 +702,17 @@ export class WarrantyStockEntryAggregateService {
         if (!warranty) {
           return from(
             this.serialService.updateOne(
-              { serial_no: stockEntryObject.items.find(x => x)?.serial_no },
+              { serial_no: stockEntryObject.items[0]?.serial_no },
               {
                 $set: {
-                  customer: stockEntryObject.items.find(x => x).customer,
-                  warehouse: stockEntryObject.items.find(x => x).warehouse,
-                  'warranty.salesWarrantyDate': stockEntryObject.items?.find(
-                    x => x,
-                  )?.warranty?.salesWarrantyDate,
-                  'warranty.soldOn': stockEntryObject.items?.find(x => x)
-                    ?.warranty?.soldOn,
-                  sales_invoice_name: stockEntryObject.items.find(x => x)
-                    .sales_invoice_name,
-                  delivery_note: stockEntryObject.items.find(x => x)
-                    .delivery_note,
+                  customer: stockEntryObject.items[0].customer,
+                  warehouse: stockEntryObject.items[0].warehouse,
+                  'warranty.salesWarrantyDate':
+                    stockEntryObject.items[0].warranty.salesWarrantyDate,
+                  'warranty.soldOn': stockEntryObject.items[0].warranty.soldOn,
+                  sales_invoice_name:
+                    stockEntryObject.items[0].sales_invoice_name,
+                  delivery_note: stockEntryObject.items[0].delivery_note,
                 },
               },
             ),
@@ -723,13 +720,15 @@ export class WarrantyStockEntryAggregateService {
         }
         return from(
           this.serialService.updateOne(
-            { serial_no: stockEntryObject.items.find(x => x)?.serial_no },
+            { serial_no: stockEntryObject.items[0]?.serial_no },
             {
               $set: {
                 'warranty.salesWarrantyDate': warranty.received_on,
                 'warranty.soldOn': warranty.received_on,
               },
-              $unset: { delivery_note: 1 },
+              $unset: {
+                delivery_note: '',
+              },
             },
           ),
         );
