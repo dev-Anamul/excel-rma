@@ -16,8 +16,8 @@ export class StockLedgerService {
     return await this.stockLedgerRepository.find(query);
   }
 
-  async create(StockLedger: StockLedger) {
-    return await this.stockLedgerRepository.insertOne(StockLedger);
+  async create(stockLedger: StockLedger) {
+    return await this.stockLedgerRepository.insertOne(stockLedger);
   }
 
   async findOne(param, options?) {

@@ -101,7 +101,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     private readonly itemService: ItemService,
     private readonly itemAggregateService: ItemAggregateService,
     private readonly stockLedgerService: StockLedgerService,
-    private serialNoPolicyService: SerialNoPoliciesService,
+    private readonly serialNoPolicyService: SerialNoPoliciesService,
   ) {
     super();
   }
