@@ -977,7 +977,7 @@ export class StockEntryAggregateService {
       return stockPayload;
     }
   }
-  
+
   syncStockEntryDocument(req, stockPrintBody) {
     let url: string = '';
     return this.settingService.find().pipe(
