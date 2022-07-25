@@ -98,7 +98,7 @@ export class InlineEditComponent {
   getOptionText(option) {
     return option.item_name;
   }
-  1;
+
   getWarehouseOptionText(option) {
     if (option) return option.warehouse;
   }
