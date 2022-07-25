@@ -233,11 +233,15 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.name = uuidv4();
             stockPayload.modified = date;
             stockPayload.modified_by = token.email;
-            stockPayload.warehouse = item.warehouse;
+            if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+              stockPayload.actual_qty = item.qty;
+            } else {
+              stockPayload.actual_qty = -item.qty;
+            }
+            stockPayload.warehouse = item.warehouse
+              ? item.warehouse
+              : item.s_warehouse;
             stockPayload.item_code = item.item_code;
-            res.stock_entry_type === STOCK_ENTRY_STATUS.returned
-              ? (stockPayload.actual_qty = item.qty)
-              : (stockPayload.actual_qty = -item.qty);
             stockPayload.valuation_rate = 0;
             stockPayload.batch_no = '';
             stockPayload.posting_date = date;
@@ -368,16 +372,16 @@ export class WarrantyStockEntryAggregateService {
       return of(true);
     }
     if (
-      deliveryNote.items[0].excel_serials &&
+      deliveryNote.items[0].serial_no &&
       deliveryNote.stock_entry_type === STOCK_ENTRY_STATUS.delivered
     ) {
       deliveryNote.delivery_note = deliveryNote.stock_voucher_number;
-      return this.updateSerialItem(deliveryNote, serial_no, settings);
+      return this.updateSerialItem(deliveryNote, serial_no[0], settings);
     }
     deliveryNote.delivery_note = deliveryNote.stock_voucher_number;
     return from(
       this.serialService.updateOne(
-        { serial_no: deliveryNote.items[0].excel_serials },
+        { serial_no: deliveryNote.items[0].serial_no[0] },
         {
           $set: {
             delivery_note: deliveryNote.stock_voucher_number,
@@ -404,7 +408,7 @@ export class WarrantyStockEntryAggregateService {
             uuid: deliveryNote.singleDeliveryNote.warrantyClaimUuid,
             completed_delivery_note: {
               $elemMatch: {
-                'items.0.excel_serials':
+                'items.0.serial_no':
                   deliveryNote.singleDeliveryNote.items[0].serial_no[0],
                 'items.0.item_code':
                   deliveryNote.singleDeliveryNote.items[0].item_code,
@@ -462,7 +466,7 @@ export class WarrantyStockEntryAggregateService {
       switchMap(state => {
         return from(
           this.serialService.updateOne(
-            { serial_no: payload.items[0].excel_serials },
+            { serial_no: payload.items[0].serial_no[0] },
             {
               $set: {
                 customer: state.progress_state[0].customer,
