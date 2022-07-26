@@ -311,7 +311,7 @@ export class WarrantyStockEntryAggregateService {
       return of({});
     }
     const serialHistory: SerialNoHistoryInterface = {};
-    serialHistory.serial_no = deliveryNote.stock_voucher_number;
+    serialHistory.serial_no = deliveryNote.items[0].serial_no[0];
     serialHistory.created_by = req.token.fullName;
     serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
     serialHistory.document_no = deliveryNote.stock_voucher_number;
@@ -345,7 +345,7 @@ export class WarrantyStockEntryAggregateService {
         break;
     }
     return this.serialNoHistoryService.addSerialHistory(
-      [deliveryNote.stock_voucher_number],
+      [deliveryNote.items[0].serial_no],
       serialHistory,
     );
   }
