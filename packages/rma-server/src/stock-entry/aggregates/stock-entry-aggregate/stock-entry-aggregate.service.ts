@@ -909,15 +909,16 @@ export class StockEntryAggregateService {
       const $match: any = {
         stock_entry_type: 'Material Transfer',
       };
-      const $sort: any = {
-        createdAt: -1,
-      };
-      const $limit: any = 1;
       const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .asyncAggregate([{ $match }])
         .toPromise();
-      const myArray = result[0].stock_id.split('-');
-      const incrementer = Number(myArray[2]) + 1;
+      const maxArray = [];
+      for (let i = 0; i < result.length; i++) {
+        const myArray = result[i].stock_id.split('-');
+        maxArray.push(Number(myArray[2]));
+      }
+      const myArray = Math.max(...maxArray);
+      const incrementer = Number(myArray) + 1;
       const stockid = `TROUT-${date}-${incrementer}`;
       stockPayload.stock_id = stockid;
       return stockPayload;
@@ -927,15 +928,16 @@ export class StockEntryAggregateService {
       const $match: any = {
         stock_entry_type: 'Material Receipt',
       };
-      const $sort: any = {
-        createdAt: -1,
-      };
-      const $limit: any = 1;
       const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .asyncAggregate([{ $match }])
         .toPromise();
-      const myArray = result[0].stock_id.split('-');
-      const incrementer = Number(myArray[2]) + 1;
+      const maxArray = [];
+      for (let i = 0; i < result.length; i++) {
+        const myArray = result[i].stock_id.split('-');
+        maxArray.push(Number(myArray[2]));
+      }
+      const myArray = Math.max(...maxArray);
+      const incrementer = Number(myArray) + 1;
       const stockid = `PAQ-${date}-${incrementer}`;
       stockPayload.stock_id = stockid;
       return stockPayload;
@@ -945,15 +947,17 @@ export class StockEntryAggregateService {
       const $match: any = {
         stock_entry_type: 'Material Issue',
       };
-      const $sort: any = {
-        createdAt: -1,
-      };
-      const $limit: any = 1;
+
       const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .asyncAggregate([{ $match }])
         .toPromise();
-      const myArray = result[0].stock_id.split('-');
-      const incrementer = Number(myArray[2]) + 1;
+      const maxArray = [];
+      for (let i = 0; i < result.length; i++) {
+        const myArray = result[i].stock_id.split('-');
+        maxArray.push(Number(myArray[2]));
+      }
+      const myArray = Math.max(...maxArray);
+      const incrementer = Number(myArray) + 1;
       const stockid = `PCM-${date}-${incrementer}`;
       stockPayload.stock_id = stockid;
       return stockPayload;
@@ -961,17 +965,18 @@ export class StockEntryAggregateService {
       const settings = await this.settings.find().toPromise();
       const date = new DateTime(settings.timeZone).year;
       const $match: any = {
-        stock_entry_type: 'Material Issue',
+        stock_entry_type: 'R&D Products',
       };
-      const $sort: any = {
-        createdAt: -1,
-      };
-      const $limit: any = 1;
       const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }, { $sort }, { $limit }])
+        .asyncAggregate([{ $match }])
         .toPromise();
-      const myArray = result[0].stock_id.split('-');
-      const incrementer = Number(myArray[2]) + 1;
+      const maxArray = [];
+      for (let i = 0; i < result.length; i++) {
+        const myArray = result[i].stock_id.split('-');
+        maxArray.push(Number(myArray[2]));
+      }
+      const myArray = Math.max(...maxArray);
+      const incrementer = Number(myArray) + 1;
       const stockid = `RND-${date}-${incrementer}`;
       stockPayload.stock_id = stockid;
       return stockPayload;

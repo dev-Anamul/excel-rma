@@ -701,7 +701,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  //assigning stock id function
+  // assigning stock id function
 
   getAssignStockId(stockPayload: StockEntry) {
     return this.settingService.find().pipe(
