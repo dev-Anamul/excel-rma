@@ -13,8 +13,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   STOCK_ENTRY_ITEM_TYPE,
   STOCK_ENTRY_STATUS,
-  DURATION,
   WARRANTY_TYPE,
+  CLOSE,
 } from '../../../../constants/app-string';
 import { AddServiceInvoiceService } from '../../../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
 import { DEFAULT_COMPANY } from '../../../../constants/storage';
@@ -43,7 +43,7 @@ export class AddStockEntryPage implements OnInit {
     date: new FormControl('', Validators.required),
     time: new FormControl(),
     description: new FormControl(),
-    items: new FormArray([], this.itemValidator),
+    items: new FormArray([]),
   });
   itemsControl = this.stockEntryForm.get('items') as FormArray;
 
@@ -63,9 +63,10 @@ export class AddStockEntryPage implements OnInit {
   permissionState = PERMISSION_STATE;
   stockEntryType: Array<string> = Object.values(STOCK_ENTRY_ITEM_TYPE);
 
-  get formControl() {
+  get f() {
     return this.stockEntryForm.controls;
   }
+
   constructor(
     private readonly location: Location,
     private readonly time: TimeService,
@@ -73,7 +74,7 @@ export class AddStockEntryPage implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly snackbar: MatSnackBar,
-    private loadingController: LoadingController,
+    private readonly loadingController: LoadingController,
   ) {}
 
   async ngOnInit() {
@@ -104,66 +105,84 @@ export class AddStockEntryPage implements OnInit {
     this.location.back();
   }
 
-  async createDeliveryNotes() {
-    const loading = await this.loadingController.create({
-      message: 'making stock entries...!',
-    });
-    loading.present();
-    from(this.dataSource.data())
-      .pipe(
-        mergeMap(item => {
-          let selectedItem = {} as StockEntryDetails;
-          selectedItem.items = [];
-          if (item.has_serial_no) {
-            return this.addServiceInvoiceService
-              .getSerialItemFromRMAServer(item.serial_no)
-              .pipe(
-                switchMap(res => {
-                  selectedItem = this.mapStockData(res, item);
-                  selectedItem.items = [item];
-                  return of(selectedItem);
-                }),
-              );
-          } else {
-            return this.addServiceInvoiceService
-              .getItemFromRMAServer(item.item_code)
-              .pipe(
-                switchMap(res => {
-                  selectedItem = this.mapStockData(res, item);
-                  selectedItem.items = [item];
-                  return of(selectedItem);
-                }),
-              );
-          }
-        }),
-        toArray(),
-        switchMap(success => {
-          return this.addServiceInvoiceService.createStockEntry(success);
-        }),
-      )
-      .subscribe({
-        next: success => {
-          loading.dismiss();
-          this.snackbar.open(STOCK_ENTRY_CREATED, 'Close', {
-            duration: DURATION,
-          });
-          this.router.navigate([
-            '/warranty/view-warranty-claims',
-            this.activatedRoute.snapshot.params.uuid,
-          ]);
-        },
-        error: (err: any) => {
-          loading.dismiss();
-          if (!err.error.message)
-            err.error.message = STOCK_ENTRY_CREATE_FAILURE;
-          this.snackbar.open(err.error.message, 'Close', {
-            duration: DURATION,
-          });
-        },
-      });
+  //ensure that no fields are empty before submitting
+  validateItems() {
+    const itemsList = this.dataSource
+      .data()
+      .filter(
+        item =>
+          item.warehouse &&
+          item.qty &&
+          item.serial_no &&
+          item.item_name &&
+          item.item_code,
+      );
+    if (itemsList.length === this.dataSource.data().length) {
+      return itemsList;
+    } else {
+      this.presentSnackBar('Please fill all details before submitting');
+      return null;
+    }
   }
 
-  mapStockData(res, item) {
+  async createDeliveryNotes() {
+    if (this.validateItems()) {
+      const loading = await this.loadingController.create({
+        message: 'making stock entries...!',
+      });
+      loading.present();
+      from(this.validateItems())
+        .pipe(
+          mergeMap(item => {
+            let selectedItem = {} as StockEntryDetails;
+            selectedItem.items = [];
+            if (item.has_serial_no) {
+              return this.addServiceInvoiceService
+                .getSerialItemFromRMAServer(item.serial_no)
+                .pipe(
+                  switchMap(res => {
+                    selectedItem = this.mapStockData(res, item);
+                    selectedItem.items = [item];
+                    return of(selectedItem);
+                  }),
+                );
+            } else {
+              return this.addServiceInvoiceService
+                .getItemFromRMAServer(item.item_code)
+                .pipe(
+                  switchMap(res => {
+                    selectedItem = this.mapStockData(res, item);
+                    selectedItem.items = [item];
+                    return of(selectedItem);
+                  }),
+                );
+            }
+          }),
+          toArray(),
+          switchMap(success => {
+            return this.addServiceInvoiceService.createStockEntry(success);
+          }),
+        )
+        .subscribe({
+          next: () => {
+            loading.dismiss();
+            this.presentSnackBar(STOCK_ENTRY_CREATED);
+            this.router.navigate([
+              '/warranty/view-warranty-claims',
+              this.activatedRoute.snapshot.params.uuid,
+            ]);
+          },
+          error: (err: any) => {
+            loading.dismiss();
+            if (!err.error.message)
+              err.error.message = STOCK_ENTRY_CREATE_FAILURE;
+            this.presentSnackBar(err.error.message);
+          },
+        });
+    }
+  }
+
+  mapStockData(res: any, item: StockEntryItems) {
     const selectedItem = {} as StockEntryDetails;
     selectedItem.set_warehouse = item.s_warehouse;
     selectedItem.customer = this.warrantyObject?.customer_code;
@@ -194,30 +213,7 @@ export class AddStockEntryPage implements OnInit {
     if (option) return option;
   }
 
-  selectedPostingDate($event) {}
-
-  itemValidator(items: FormArray) {
-    if (items.length === 0) {
-      return { items: true };
-    } else {
-      const itemList = items
-        .getRawValue()
-        .filter(
-          item =>
-            item.s_warehouse !== undefined &&
-            item.item_name !== undefined &&
-            item.item_code !== undefined &&
-            item.qty !== null &&
-            item.serial_no !== undefined &&
-            item.qty !== undefined,
-        );
-      if (itemList.length !== items.length) {
-        return { items: true };
-      } else return null;
-    }
-  }
-
-  setStockEntryType(type) {
+  setStockEntryType(type: string) {
     this.trimRow();
     if (
       (this.warrantyObject.claim_type !== WARRANTY_TYPE.THIRD_PARTY &&
@@ -251,10 +247,8 @@ export class AddStockEntryPage implements OnInit {
                       stock_entry_type: STOCK_ENTRY_ITEM_TYPE.DELIVERED,
                     });
                   },
-                  error: err => {
-                    this.snackbar.open(`Serial ${ITEM_NOT_FOUND}`, 'Close', {
-                      duration: DURATION,
-                    });
+                  error: () => {
+                    this.presentSnackBar(`Serial ${ITEM_NOT_FOUND}`);
                   },
                 });
             } else {
@@ -272,8 +266,8 @@ export class AddStockEntryPage implements OnInit {
               });
             }
           },
-          error: err => {
-            this.snackbar.open(ITEM_NOT_FOUND, 'Close', { duration: DURATION });
+          error: () => {
+            this.presentSnackBar(ITEM_NOT_FOUND);
           },
         });
     } else {
@@ -344,10 +338,10 @@ export class AddStockEntryPage implements OnInit {
   }
 
   checkActive(length: number) {
-    if (length >= 2) {
-      this.button_active = true;
-    } else {
-      this.button_active = false;
-    }
+    length >= 2 ? (this.button_active = true) : (this.button_active = false);
+  }
+
+  presentSnackBar(message: string) {
+    this.snackbar.open(message, CLOSE);
   }
 }
