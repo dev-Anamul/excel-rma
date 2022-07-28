@@ -34,13 +34,13 @@ export class StockEntryPoliciesService {
     private readonly serialNoPolicy: SerialNoPoliciesService,
     private readonly agendaJob: AgendaJobService,
     private readonly settings: SettingsService,
-    private serialNoHistoryPolicyService: SerialNoHistoryPoliciesService,
+    private readonly serialNoHistoryPolicyService: SerialNoHistoryPoliciesService,
     private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   validateStockEntry(payload: StockEntryDto, clientHttpRequest) {
     return this.validateStockEntryItems(payload).pipe(
-      switchMap(done => {
+      switchMap(() => {
         return this.settings.find().pipe(
           switchMap(settings => {
             return this.validateStockSerials(
@@ -507,7 +507,11 @@ export class StockEntryPoliciesService {
   }
 
   validateWarrantyStockEntry(payload: StockEntryDto) {
-    return this.validateWarrantyStockSerials(payload.items);
+    if (payload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+      return of(true);
+    } else {
+      return this.validateWarrantyStockSerials(payload.items);
+    }
   }
 
   validateWarrantyStockSerials(items: StockEntryItemDto[]) {
@@ -556,7 +560,7 @@ export class StockEntryPoliciesService {
         );
       }),
       toArray(),
-      switchMap(isValid => {
+      switchMap(() => {
         return of(true);
       }),
     );
