@@ -105,7 +105,7 @@ export class AddStockEntryPage implements OnInit {
     this.location.back();
   }
 
-  //ensure that no fields are empty before submitting
+  // ensure that no fields are empty before submitting
   validateItems() {
     const itemsList = this.dataSource
       .data()
