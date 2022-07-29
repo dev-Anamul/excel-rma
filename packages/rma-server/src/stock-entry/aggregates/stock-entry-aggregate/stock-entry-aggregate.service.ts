@@ -524,7 +524,7 @@ export class StockEntryAggregateService {
 
   saveDraft(payload: StockEntryDto, req) {
     if (payload.uuid) {
-      // /payload.stock_id = payload.uuid
+      payload.stock_id = payload.uuid
       return from(
         this.stockEntryService.updateOne(
           { uuid: payload.uuid },
