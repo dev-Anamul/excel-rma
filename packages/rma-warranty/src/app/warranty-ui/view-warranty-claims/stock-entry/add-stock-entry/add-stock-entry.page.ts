@@ -78,9 +78,6 @@ export class AddStockEntryPage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    this.type = Object.keys(STOCK_ENTRY_STATUS).map(
-      key => STOCK_ENTRY_STATUS[key],
-    );
     this.dataSource = new ItemsDataSource();
     this.setDateTime(new Date());
     this.checkActive(this.dataSource.data().length);
@@ -97,6 +94,19 @@ export class AddStockEntryPage implements OnInit {
       .subscribe({
         next: res => {
           this.warrantyObject = res;
+          // if there is a replace product then remove REPLACE option
+          if (this.warrantyObject.replace_product) {
+            this.type = Object.keys(STOCK_ENTRY_STATUS)
+              .filter(
+                value => value !== STOCK_ENTRY_STATUS.REPLACE.toUpperCase(),
+              )
+              .map(key => STOCK_ENTRY_STATUS[key]);
+          } else {
+            // else show all options
+            this.type = Object.keys(STOCK_ENTRY_STATUS).map(
+              key => STOCK_ENTRY_STATUS[key],
+            );
+          }
         },
       });
   }
