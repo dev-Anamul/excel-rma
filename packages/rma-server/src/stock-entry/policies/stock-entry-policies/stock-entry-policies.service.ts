@@ -508,12 +508,33 @@ export class StockEntryPoliciesService {
 
   validateWarrantyStockEntry(payload: StockEntryDto) {
     if (payload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-      return of(true);
+      return this.validateReturns(payload);
     } else {
       return this.validateWarrantyStockSerials(payload.items);
     }
   }
 
+  // check if the product is already returned
+  validateReturns(stockEntry: StockEntryDto) {
+    return from(
+      this.serialNoService.findOne({
+        serial_no: stockEntry.items[0].serial_no[0],
+      }),
+    ).pipe(
+      switchMap(res => {
+        // if the product has delivery note that means it is already sold or delivered to a customer
+        if (res.delivery_note) {
+          return throwError(
+            new BadRequestException(`Cannot Return already Returned Product.`),
+          );
+        } else {
+          return of(true);
+        }
+      }),
+    );
+  }
+
+  // check if the product is in stock
   validateWarrantyStockSerials(items: StockEntryItemDto[]) {
     return from(items).pipe(
       mergeMap(item => {
