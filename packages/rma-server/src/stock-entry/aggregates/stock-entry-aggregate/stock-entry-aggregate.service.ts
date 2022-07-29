@@ -87,6 +87,7 @@ export class StockEntryAggregateService {
         )
         .pipe(switchMap(() => this.saveDraft(payload, req)));
     }
+
     return this.stockEntryPolicies
       .validateStockPermission(
         payload.stock_entry_type,
@@ -98,9 +99,22 @@ export class StockEntryAggregateService {
           this.stockEntryPolicies.validateStockEntry(payload, req),
         ),
         switchMap(valid => {
+          return from(
+            this.stockEntryService.updateOne(
+              { uuid: payload.uuid },
+              {
+                $set: {
+                  stock_id: payload.stock_id,
+                },
+              },
+            ),
+          );
+        }),
+        switchMap(valid => {
           return from(this.stockEntryService.findOne({ uuid: payload.uuid }));
         }),
         switchMap(stockEntry => {
+          stockEntry.stock_id = payload.stock_id;
           if (!stockEntry) {
             return throwError(new BadRequestException('Stock Entry not found'));
           }
@@ -510,6 +524,7 @@ export class StockEntryAggregateService {
 
   saveDraft(payload: StockEntryDto, req) {
     if (payload.uuid) {
+      // /payload.stock_id = payload.uuid
       return from(
         this.stockEntryService.updateOne(
           { uuid: payload.uuid },
@@ -521,6 +536,7 @@ export class StockEntryAggregateService {
       switchMap(settings => {
         const stockEntry = this.setStockEntryDefaults(payload, req, settings);
         stockEntry.status = STOCK_ENTRY_STATUS.draft;
+        stockEntry.stock_id = stockEntry.uuid;
         return from(this.stockEntryService.create(stockEntry)).pipe(
           switchMap(data => of(stockEntry)),
         );
@@ -915,7 +931,9 @@ export class StockEntryAggregateService {
       const maxArray = [];
       for (let i = 0; i < result.length; i++) {
         const myArray = result[i].stock_id.split('-');
-        maxArray.push(Number(myArray[2]));
+        if (myArray.length === 3) {
+          maxArray.push(Number(myArray[2]));
+        }
       }
       const myArray = Math.max(...maxArray);
       const incrementer = Number(myArray) + 1;
@@ -934,7 +952,9 @@ export class StockEntryAggregateService {
       const maxArray = [];
       for (let i = 0; i < result.length; i++) {
         const myArray = result[i].stock_id.split('-');
-        maxArray.push(Number(myArray[2]));
+        if (myArray.length === 3) {
+          maxArray.push(Number(myArray[2]));
+        }
       }
       const myArray = Math.max(...maxArray);
       const incrementer = Number(myArray) + 1;
@@ -954,7 +974,9 @@ export class StockEntryAggregateService {
       const maxArray = [];
       for (let i = 0; i < result.length; i++) {
         const myArray = result[i].stock_id.split('-');
-        maxArray.push(Number(myArray[2]));
+        if (myArray.length === 3) {
+          maxArray.push(Number(myArray[2]));
+        }
       }
       const myArray = Math.max(...maxArray);
       const incrementer = Number(myArray) + 1;
@@ -973,7 +995,9 @@ export class StockEntryAggregateService {
       const maxArray = [];
       for (let i = 0; i < result.length; i++) {
         const myArray = result[i].stock_id.split('-');
-        maxArray.push(Number(myArray[2]));
+        if (myArray.length === 3) {
+          maxArray.push(Number(myArray[2]));
+        }
       }
       const myArray = Math.max(...maxArray);
       const incrementer = Number(myArray) + 1;
