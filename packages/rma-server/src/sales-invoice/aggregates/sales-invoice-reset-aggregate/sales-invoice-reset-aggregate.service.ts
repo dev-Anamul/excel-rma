@@ -101,7 +101,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
           salesInvoice.delivery_note_items.length &&
           !salesInvoice.returned_items.length
         ) {
-          return from(salesInvoice.items).pipe(
+          return from(salesInvoice.delivery_note_items).pipe(
             concatMap(item => {
               return this.createStockLedgerPayload(
                 {
