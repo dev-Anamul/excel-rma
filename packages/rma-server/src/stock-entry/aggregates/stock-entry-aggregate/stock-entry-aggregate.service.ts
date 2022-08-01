@@ -71,24 +71,26 @@ export class StockEntryAggregateService {
     private readonly serialNoService: SerialNoService,
     private readonly stockEntrySyncService: StockEntrySyncService,
     private readonly stockLedgerService: StockLedgerService,
-    private readonly settings: SettingsService,
   ) {}
 
-  async createStockEntry(payload: StockEntryDto, req) {
-    payload = this.parseStockEntryPayload(payload);
-    payload = await this.getAssignStockId(payload);
-    const settings = this.settingService.find();
-    if (payload.status === STOCK_ENTRY_STATUS.draft || !payload.uuid) {
+   createStockEntry(payload: StockEntryDto, req) {
+   return this.parseStockEntryPayload(payload).pipe(switchMap((response:any) =>{
+      payload = response
+      const settings = this.settingService.find();
+      if (payload.status === STOCK_ENTRY_STATUS.draft || !payload.uuid) {
+        return this.stockEntryPolicies
+          .validateStockPermission(
+            payload.stock_entry_type,
+            STOCK_OPERATION.create,
+            req,
+          )
+          .pipe(switchMap(() => 
+           this.saveDraft(payload, req)),
+            catchError(err => {
+              return err
+            }));
+      }
       return this.stockEntryPolicies
-        .validateStockPermission(
-          payload.stock_entry_type,
-          STOCK_OPERATION.create,
-          req,
-        )
-        .pipe(switchMap(() => this.saveDraft(payload, req)));
-    }
-
-    return this.stockEntryPolicies
       .validateStockPermission(
         payload.stock_entry_type,
         STOCK_OPERATION.submit,
@@ -206,6 +208,8 @@ export class StockEntryAggregateService {
           );
         }),
       );
+
+    }))
   }
 
   createMongoSerials(stockEntry: StockEntry, mongoSerials: any, req, settings) {
@@ -255,28 +259,78 @@ export class StockEntryAggregateService {
     );
   }
 
-  parseStockEntryPayload(payload: StockEntryDto) {
-    switch (payload.stock_entry_type) {
-      case STOCK_ENTRY_TYPE.MATERIAL_RECEIPT:
-        return payload;
-
-      case STOCK_ENTRY_TYPE.MATERIAL_ISSUE:
-        payload.items.filter(item => {
-          delete item.basic_rate;
-          return item;
-        });
-        return payload;
-
-      case STOCK_ENTRY_TYPE.MATERIAL_TRANSFER:
-        payload.items.filter(item => {
-          delete item.basic_rate;
-          return item;
-        });
-        return payload;
-
-      default:
-        return payload;
-    }
+parseStockEntryPayload(payload: StockEntryDto) {
+  return this.settingService.find().pipe(
+    switchMap(serverSettings => {
+      const date = new DateTime(serverSettings.timeZone).year;
+      let $match: any;
+      if (payload.stock_entry_type === 'Material Issue') {
+        $match = {
+          stock_entry_type: 'Material Issue',
+        };
+      } else if (payload.stock_entry_type === 'Material Receipt') {
+        $match = {
+          stock_entry_type: 'Material Receipt',
+        };
+      }
+      else if(payload.stock_entry_type === 'R&D Products'){
+        $match = {
+          stock_entry_type: 'R&D Products',
+        };
+      }else if(payload.stock_entry_type === 'Material Transfer'){
+        $match = {
+          stock_entry_type: 'Material Transfer',
+        };
+      }
+      return this.stockEntryService
+        .asyncAggregate([{ $match }])
+        .pipe(
+          map((result: any) => {
+            const maxArray = [];
+            for (let i = 0; i < result.length; i++) {
+              const myArray = result[i].stock_id.split('-');
+              if (myArray.length === 3) {
+                maxArray.push(Number(myArray[2]));
+              }
+            }
+            const myArray = Math.max(...maxArray);
+            const incrementer = Number(myArray) + 1;
+            let stockid: any;
+            if (payload.stock_entry_type === 'Material Transfer') {
+              stockid = `TROUT-${date}-${incrementer}`;
+            } else if (payload.stock_entry_type === 'Material Receipt') {
+              stockid = `PAQ-${date}-${incrementer}`;
+            }else if(payload.stock_entry_type === 'Material Issue'){
+              stockid = `PCM-${date}-${incrementer}`;
+            }else if(payload.stock_entry_type= 'R&D Products'){
+              stockid = `RND-${date}-${incrementer}`;
+            }
+            payload.stock_id = stockid;            
+            switch (payload.stock_entry_type) {
+              case STOCK_ENTRY_TYPE.MATERIAL_RECEIPT:
+                return payload;
+        
+              case STOCK_ENTRY_TYPE.MATERIAL_ISSUE:
+                payload.items.filter(item => {
+                  delete item.basic_rate;
+                  return item;
+                });
+                return payload;
+        
+              case STOCK_ENTRY_TYPE.MATERIAL_TRANSFER:
+                payload.items.filter(item => {
+                  delete item.basic_rate;
+                  return item;
+                });
+                return payload;
+        
+              default:
+                return payload;
+            }
+          }),
+        );
+    }),
+  );
   }
 
   getStockEntryMongoSerials(stockEntry) {
@@ -539,6 +593,9 @@ export class StockEntryAggregateService {
         stockEntry.stock_id = stockEntry.uuid;
         return from(this.stockEntryService.create(stockEntry)).pipe(
           switchMap(data => of(stockEntry)),
+          catchError((err)=>{
+            return throwError(err)
+          })
         );
       }),
     );
@@ -916,95 +973,6 @@ export class StockEntryAggregateService {
         });
       }),
     );
-  }
-
-  async getAssignStockId(stockPayload: StockEntryDto) {
-    if (stockPayload.stock_entry_type === 'Material Transfer') {
-      const settings = await this.settings.find().toPromise();
-      const date = new DateTime(settings.timeZone).year;
-      const $match: any = {
-        stock_entry_type: 'Material Transfer',
-      };
-      const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }])
-        .toPromise();
-      const maxArray = [];
-      for (let i = 0; i < result.length; i++) {
-        const myArray = result[i].stock_id.split('-');
-        if (myArray.length === 3) {
-          maxArray.push(Number(myArray[2]));
-        }
-      }
-      const myArray = Math.max(...maxArray);
-      const incrementer = Number(myArray) + 1;
-      const stockid = `TROUT-${date}-${incrementer}`;
-      stockPayload.stock_id = stockid;
-      return stockPayload;
-    } else if (stockPayload.stock_entry_type === 'Material Receipt') {
-      const settings = await this.settings.find().toPromise();
-      const date = new DateTime(settings.timeZone).year;
-      const $match: any = {
-        stock_entry_type: 'Material Receipt',
-      };
-      const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }])
-        .toPromise();
-      const maxArray = [];
-      for (let i = 0; i < result.length; i++) {
-        const myArray = result[i].stock_id.split('-');
-        if (myArray.length === 3) {
-          maxArray.push(Number(myArray[2]));
-        }
-      }
-      const myArray = Math.max(...maxArray);
-      const incrementer = Number(myArray) + 1;
-      const stockid = `PAQ-${date}-${incrementer}`;
-      stockPayload.stock_id = stockid;
-      return stockPayload;
-    } else if (stockPayload.stock_entry_type === 'Material Issue') {
-      const settings = await this.settings.find().toPromise();
-      const date = new DateTime(settings.timeZone).year;
-      const $match: any = {
-        stock_entry_type: 'Material Issue',
-      };
-
-      const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }])
-        .toPromise();
-      const maxArray = [];
-      for (let i = 0; i < result.length; i++) {
-        const myArray = result[i].stock_id.split('-');
-        if (myArray.length === 3) {
-          maxArray.push(Number(myArray[2]));
-        }
-      }
-      const myArray = Math.max(...maxArray);
-      const incrementer = Number(myArray) + 1;
-      const stockid = `PCM-${date}-${incrementer}`;
-      stockPayload.stock_id = stockid;
-      return stockPayload;
-    } else if (stockPayload.stock_entry_type === 'R&D Products') {
-      const settings = await this.settings.find().toPromise();
-      const date = new DateTime(settings.timeZone).year;
-      const $match: any = {
-        stock_entry_type: 'R&D Products',
-      };
-      const result: any = await this.stockEntryService
-        .asyncAggregate([{ $match }])
-        .toPromise();
-      const maxArray = [];
-      for (let i = 0; i < result.length; i++) {
-        const myArray = result[i].stock_id.split('-');
-        if (myArray.length === 3) {
-          maxArray.push(Number(myArray[2]));
-        }
-      }
-      const myArray = Math.max(...maxArray);
-      const incrementer = Number(myArray) + 1;
-      const stockid = `RND-${date}-${incrementer}`;
-      stockPayload.stock_id = stockid;
-      return stockPayload;
-    }
   }
 
   syncStockEntryDocument(req, stockPrintBody) {
