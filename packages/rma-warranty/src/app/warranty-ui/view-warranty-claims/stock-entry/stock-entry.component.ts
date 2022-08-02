@@ -3,7 +3,7 @@ import { WarrantyClaimsDetails } from '../../../common/interfaces/warranty.inter
 import { StockEntryService } from '../../view-warranty-claims/stock-entry/services/stock-entry/stock-entry.service';
 import { StockEntryListDataSource } from './stock-entry-datasource';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { DURATION } from '../../../constants/app-string';
+import { CLOSE } from '../../../constants/app-string';
 import { LoadingController } from '@ionic/angular';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -40,7 +40,7 @@ export class StockEntryComponent implements OnInit {
     private readonly snackbar: MatSnackBar,
     private readonly loadingController: LoadingController,
     private readonly route: ActivatedRoute,
-    private readonly addserviceInvoiceService: AddServiceInvoiceService,
+    private readonly addServiceInvoiceService: AddServiceInvoiceService,
     private readonly router: Router,
   ) {
     this.router.events
@@ -53,7 +53,7 @@ export class StockEntryComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.addserviceInvoiceService
+    this.addServiceInvoiceService
       .getWarrantyDetail(this.warrantyObject?.uuid)
       .subscribe({
         next: res => {
@@ -87,11 +87,9 @@ export class StockEntryComponent implements OnInit {
     });
     await loading.present();
     this.stockEntryService.removeStockEntry(row).subscribe({
-      next: res => {
+      next: () => {
         loading.dismiss();
-        this.snackbar.open('Stock Entry Cancelled Successfully', 'Close', {
-          duration: DURATION,
-        });
+        this.presentSnackBar('Stock Entry Cancelled Successfully');
         this.dataSource.loadItems('asc', 0, 10, {
           warrantyClaimUuid: this.warrantyClaimUuid,
         });
@@ -99,13 +97,9 @@ export class StockEntryComponent implements OnInit {
       error: err => {
         loading.dismiss();
         if (err && err.error && err.error.message) {
-          this.snackbar.open(err.error.message, 'Close', {
-            duration: DURATION,
-          });
+          this.presentSnackBar(err.error.message);
         }
-        this.snackbar.open('Failed to Cancel Stock Entry', 'Close', {
-          duration: DURATION,
-        });
+        this.presentSnackBar('Failed to Cancel Stock Entry');
         this.dataSource.loadItems('asc', 0, 10, {
           warrantyClaimUuid: this.warrantyClaimUuid,
         });
@@ -124,9 +118,7 @@ export class StockEntryComponent implements OnInit {
         this.dataSource.loadItems(undefined, undefined, undefined, {
           warrantyClaimUuid: this.warrantyClaimUuid,
         });
-        this.snackbar.open('Stock Entries Finalized', 'Close', {
-          duration: DURATION,
-        });
+        this.presentSnackBar('Stock Entries Finalized');
       },
       error: err => {
         loading.dismiss();
@@ -134,18 +126,18 @@ export class StockEntryComponent implements OnInit {
           this.dataSource.loadItems(undefined, undefined, undefined, {
             warrantyClaimUuid: this.warrantyClaimUuid,
           });
-          this.snackbar.open(err.error.message, 'Close', {
-            duration: DURATION,
-          });
+          this.presentSnackBar(err.error.message);
           return;
         }
         this.dataSource.loadItems(undefined, undefined, undefined, {
           warrantyClaimUuid: this.warrantyClaimUuid,
         });
-        this.snackbar.open('Failed to Finalize Stock Entry', 'Close', {
-          duration: DURATION,
-        });
+        this.presentSnackBar('Failed to Finalize Stock Entry');
       },
     });
+  }
+
+  presentSnackBar(message: string) {
+    this.snackbar.open(message, CLOSE);
   }
 }
