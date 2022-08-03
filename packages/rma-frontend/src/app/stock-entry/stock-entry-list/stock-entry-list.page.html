@@ -295,7 +295,7 @@
           <ng-container matColumnDef="name">
             <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
             <mat-cell *matCellDef="let row">
-              <a [routerLink]="['/material-transfer/',row.uuid]" >{{ (row.names && row.names.length) ? row.names[0] : 'Draft' }}</a>
+              <a [routerLink]="['/material-transfer/',row.uuid]" >{{ row.stock_id }}</a>
             </mat-cell>
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>

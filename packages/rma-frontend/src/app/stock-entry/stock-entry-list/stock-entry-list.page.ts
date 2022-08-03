@@ -252,7 +252,19 @@ export class StockEntryListPage implements OnInit {
       );
     }
 
-    if (this.f.names.value) query.names = this.f.names.value;
+    if (this.f.names.value) {
+      if (
+        this.f.names.value.includes('PAQ') ||
+        this.f.names.value.includes('TROUT') ||
+        this.f.names.value.includes('PCM') ||
+        this.f.names.value.includes('RND')
+      ) {
+        query.stock_id = this.f.names.value;
+      } else {
+        query.names = this.f.names.value;
+      }
+    }
+
     sortQuery = { _id: -1 };
 
     if (event) {

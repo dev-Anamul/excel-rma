@@ -71,8 +71,12 @@ export class WarrantyStockEntryAggregateService {
               req,
               settings.find(x => x.settings).settings,
             ).pipe(
-              map((res: any) => res.ops[0]),
-              switchMap(() => {
+              map((res: any) => {
+                res.subscribe((data: any) => {
+                  return data.ops[0];
+                });
+              }),
+              switchMap(res => {
                 return this.updateProgressState(deliveryNote);
               }),
             );
@@ -265,10 +269,18 @@ export class WarrantyStockEntryAggregateService {
   }
 
   makeStockEntry(deliveryNote: WarrantyStockEntryDto, req, settings) {
-    const stockEntry = this.setStockEntryDefaults(deliveryNote, req, settings);
+    const stockEntry: any = this.setStockEntryDefaults(
+      deliveryNote,
+      req,
+      settings,
+    );
     stockEntry.stock_voucher_number = uuidv4();
     stockEntry.items[0].serial_no = deliveryNote.items[0].serial_no;
-    return from(this.stockEntryService.create(stockEntry));
+    return this.getAssignStockId(stockEntry).pipe(
+      map((res: StockEntry) => {
+        return from(this.stockEntryService.create(res));
+      }),
+    );
   }
 
   updateProgressState(deliveryNote) {
@@ -693,6 +705,46 @@ export class WarrantyStockEntryAggregateService {
             },
           ),
         );
+      }),
+    );
+  }
+
+  // assigning stock id function
+
+  getAssignStockId(stockPayload: StockEntry) {
+    return this.settingService.find().pipe(
+      switchMap(serverSettings => {
+        const date = new DateTime(serverSettings.timeZone).year;
+        let $match: any;
+        if (stockPayload.stock_entry_type === 'Returned') {
+          $match = {
+            stock_entry_type: 'Returned',
+          };
+        } else if (stockPayload.stock_entry_type === 'Delivered') {
+          $match = {
+            stock_entry_type: 'Delivered',
+          };
+        }
+        const $sort: any = {
+          createdAt: -1,
+        };
+        const $limit: any = 1;
+        return this.stockEntryService
+          .asyncAggregate([{ $match }, { $sort }, { $limit }])
+          .pipe(
+            map((result: any) => {
+              const myArray = result[0].stock_id.split('-');
+              const incrementer = Number(myArray[2]) + 1;
+              let stockid: any;
+              if (stockPayload.stock_entry_type === 'Returned') {
+                stockid = `WSDR-${date}-${incrementer}`;
+              } else if (stockPayload.stock_entry_type === 'Delivered') {
+                stockid = `WSD-${date}-${incrementer}`;
+              }
+              stockPayload.stock_id = stockid;
+              return stockPayload;
+            }),
+          );
       }),
     );
   }

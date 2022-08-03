@@ -23,6 +23,8 @@ export class StockEntryDto {
   @IsString()
   company: string;
 
+  stock_id: string;
+
   @IsOptional()
   @IsString()
   status?: string;
