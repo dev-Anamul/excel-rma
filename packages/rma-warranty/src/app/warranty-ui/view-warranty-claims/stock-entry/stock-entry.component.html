@@ -86,6 +86,14 @@
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
 
+        <ng-container matColumnDef="stock_entry_type">
+          <mat-header-cell *matHeaderCellDef>Stock Entry Type</mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.stock_entry_type }}
+          </mat-cell>
+          <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+        </ng-container>
+
         <ng-container matColumnDef="date">
           <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
           <mat-cell *matCellDef="let row">
