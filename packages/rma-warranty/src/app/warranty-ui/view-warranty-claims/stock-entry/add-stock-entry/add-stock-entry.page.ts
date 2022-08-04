@@ -183,8 +183,6 @@ export class AddStockEntryPage implements OnInit {
             ]);
           },
           error: (err: any) => {
-            console.log(err);
-
             loading.dismiss();
             if (!err.error.message)
               err.error.message = STOCK_ENTRY_CREATE_FAILURE;
