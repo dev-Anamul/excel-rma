@@ -18,6 +18,7 @@ import {
   STOCK_ENTRY_PERMISSIONS,
   SYSTEM_MANAGER,
   NON_SERIAL_ITEM,
+  PROGRESS_STATUS,
 } from '../../../constants/app-strings';
 import { StockEntry } from '../../entities/stock-entry.entity';
 import { SerialNoHistoryPoliciesService } from '../../../serial-no/policies/serial-no-history-policies/serial-no-history-policies.service';
@@ -26,16 +27,17 @@ import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-p
 import { DateTime } from 'luxon';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { WarrantyClaimService } from '../../../warranty-claim/entity/warranty-claim/warranty-claim.service';
 @Injectable()
 export class StockEntryPoliciesService {
   constructor(
     private readonly serialNoService: SerialNoService,
-    private readonly serialNoHistoryPolicy: SerialNoHistoryPoliciesService,
     private readonly serialNoPolicy: SerialNoPoliciesService,
     private readonly agendaJob: AgendaJobService,
     private readonly settings: SettingsService,
     private readonly serialNoHistoryPolicyService: SerialNoHistoryPoliciesService,
     private readonly stockLedgerService: StockLedgerService,
+    private readonly warrantyClaimService: WarrantyClaimService,
   ) {}
 
   validateStockEntry(payload: StockEntryDto, clientHttpRequest) {
@@ -263,7 +265,7 @@ export class StockEntryPoliciesService {
 
   validateMaterialIssueSerials(invoice: StockEntry) {
     const serials = this.getInvoiceSerials(invoice);
-    return this.serialNoHistoryPolicy
+    return this.serialNoHistoryPolicyService
       .validateLatestEventWithParent(invoice.uuid, serials)
       .pipe(
         switchMap(response => {
@@ -321,7 +323,7 @@ export class StockEntryPoliciesService {
 
   validateMaterialReceiptSerials(invoice: StockEntry) {
     const serials = this.getInvoiceSerials(invoice);
-    return this.serialNoHistoryPolicy
+    return this.serialNoHistoryPolicyService
       .validateLatestEventWithParent(invoice.uuid, serials)
       .pipe(
         switchMap(response => {
@@ -517,15 +519,27 @@ export class StockEntryPoliciesService {
   // check if the product is already returned
   validateReturns(stockEntry: StockEntryDto) {
     return from(
-      this.serialNoService.findOne({
-        serial_no: stockEntry.items[0].serial_no[0],
-      }),
+      this.warrantyClaimService.findOne({ uuid: stockEntry.warrantyClaimUuid }),
     ).pipe(
-      switchMap(res => {
-        // if the product has delivery note that means it is already sold or delivered to a customer
-        if (res.delivery_note) {
-          return throwError(
-            new BadRequestException(`Cannot Return already Returned Product.`),
+      switchMap((res: any) => {
+        if (res.progress_state) {
+          // progress state exists means some actopn has been taken in warranty
+          return from(res.progress_state).pipe(
+            switchMap((data: any) => {
+              if (
+                (data.type === PROGRESS_STATUS.REPLACE ||
+                  data.type === PROGRESS_STATUS.UPGRADE) &&
+                data.stock_entry_type === STOCK_ENTRY_STATUS.delivered
+              ) {
+                return throwError(
+                  new BadRequestException(
+                    `Cannot Return already Returned Product.`,
+                  ),
+                );
+              } else {
+                return of(true);
+              }
+            }),
           );
         } else {
           return of(true);

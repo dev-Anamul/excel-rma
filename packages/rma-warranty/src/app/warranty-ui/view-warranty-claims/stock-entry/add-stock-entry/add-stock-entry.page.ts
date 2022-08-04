@@ -138,7 +138,7 @@ export class AddStockEntryPage implements OnInit {
   async createDeliveryNotes() {
     if (this.validateItems()) {
       const loading = await this.loadingController.create({
-        message: 'making stock entries...!',
+        message: 'Making stock entries...!',
       });
       loading.present();
       from(this.validateItems())
@@ -183,6 +183,8 @@ export class AddStockEntryPage implements OnInit {
             ]);
           },
           error: (err: any) => {
+            console.log(err);
+
             loading.dismiss();
             if (!err.error.message)
               err.error.message = STOCK_ENTRY_CREATE_FAILURE;

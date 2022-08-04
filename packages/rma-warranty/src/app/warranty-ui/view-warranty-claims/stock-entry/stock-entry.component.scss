@@ -9,8 +9,12 @@ table {
   width: 100%;
 }
 
-td.mat-column-star {
-  width: 20px;
+.mat-column-date {
+  max-width: 80px;
+}
+
+.mat-column-rollback {
+  max-width: 70px;
   padding-right: 8px;
 }
 
@@ -21,5 +25,4 @@ td.mat-column-position {
 
 mat-header-cell {
   flex-wrap: nowrap;
-  min-width: 200px;
 }
