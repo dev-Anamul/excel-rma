@@ -334,10 +334,9 @@ export class SerialNoAggregateService extends AggregateRoot {
       });
 
       const serialNumbers = [];
-      salesInvoice.returned_items.forEach(item => {
+      salesInvoice.delivery_note_items.forEach(item => {
         serialNumbers.push(...item.serial_no.split('\n'));
       });
-
       return await this.serialNoService.listReturnInvoicesSerials(
         serialNumbers,
         offset,
