@@ -21,7 +21,7 @@ import {
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 import { WarrantyClaimDto } from '../../../warranty-claim/entity/warranty-claim/warranty-claim-dto';
 import {
-  CALIM_CANCEL_DOCUMENT,
+  CLAIM_CANCEL_DOCUMENT,
   WARRANTY_STATUS,
 } from '../../../constants/app-strings';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
@@ -46,7 +46,7 @@ export class WarrantyClaimPoliciesService {
 
   validateBulkWarrantyClaim(warrantyClaim: BulkWarrantyClaimInterface) {
     return this.validateWarrantySupplier(warrantyClaim.supplier).pipe(
-      switchMap(valid => {
+      switchMap(() => {
         // next validate items inside claims and validate keys for claims data
         return this.validateWarrantyClaims(warrantyClaim.claims);
       }),
@@ -163,7 +163,7 @@ export class WarrantyClaimPoliciesService {
           ) {
             return throwError(
               new BadRequestException(
-                `${CALIM_CANCEL_DOCUMENT} Cancel Stock Entries`,
+                `${CLAIM_CANCEL_DOCUMENT} Cancel Stock Entries`,
               ),
             );
           }
@@ -177,7 +177,7 @@ export class WarrantyClaimPoliciesService {
         }
         return throwError(
           new BadRequestException(
-            `${CALIM_CANCEL_DOCUMENT} Revert The Status History`,
+            `${CLAIM_CANCEL_DOCUMENT} Revert The Status History`,
           ),
         );
       }),
@@ -192,7 +192,7 @@ export class WarrantyClaimPoliciesService {
         if (serviceInvoice) {
           return throwError(
             new BadRequestException(
-              `${CALIM_CANCEL_DOCUMENT} Cancel Service Invoices`,
+              `${CLAIM_CANCEL_DOCUMENT} Cancel Service Invoices`,
             ),
           );
         }

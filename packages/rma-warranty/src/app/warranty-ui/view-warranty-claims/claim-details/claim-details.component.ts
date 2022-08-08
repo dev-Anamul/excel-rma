@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CLOSE } from '../../../constants/app-string';
-import {
-  WarrantyItem,
-  WarrantyClaimsDetails,
-} from '../../../common/interfaces/warranty.interface';
+import { WarrantyClaimsDetails } from '../../../common/interfaces/warranty.interface';
 import { WarrantyService } from '../../warranty-tabs/warranty.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,28 +18,10 @@ import { map } from 'rxjs/operators';
   styleUrls: ['./claim-details.component.scss'],
 })
 export class ClaimDetailsComponent implements OnInit {
-  displayedColumns = [
-    'warranty_status',
-    'replaced_product',
-    'status_date',
-    'replaced_serial',
-    'status_given_by',
-    'replaced_voucher_no',
-    'claim_status',
-    'damaged_voucher_no',
-    'spareparts_consumption',
-    'replacement_item_warehouse',
-    'current_status',
-    'damaged_item_warehouse',
-    'service_invoice_no',
-    'servicing_amount',
-  ];
   warrantyClaimsDetails: WarrantyClaimsDetails;
   bulkClaimNo: string;
   permissionState = PERMISSION_STATE;
-  dataSource: WarrantyItem[];
   invoiceUuid: string;
-  viewWArrantyClaimUrl: string;
   company: string;
   constructor(
     private readonly warrantyService: WarrantyService,
@@ -98,11 +77,11 @@ export class ClaimDetailsComponent implements OnInit {
     });
     await loading.present();
     this.warrantyService.generateWarrantyPrintBody(this.invoiceUuid).subscribe({
-      next: success => {
+      next: () => {
         this.warrantyService.openPdf(format, this.invoiceUuid);
         loading.dismiss();
       },
-      error: err => {
+      error: () => {
         loading.dismiss();
         this.snackBar.open(`Failed To Print`, CLOSE, { duration: 4500 });
       },

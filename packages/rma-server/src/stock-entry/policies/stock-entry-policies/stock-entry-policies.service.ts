@@ -523,7 +523,7 @@ export class StockEntryPoliciesService {
     ).pipe(
       switchMap((res: any) => {
         if (res.progress_state) {
-          // progress state exists means some actopn has been taken in warranty
+          // progress state exists means some action has been taken in warranty
           return from(res.progress_state).pipe(
             switchMap((data: any) => {
               if (
