@@ -76,7 +76,7 @@ export class WarrantyStockEntryAggregateService {
                   return data.ops[0];
                 });
               }),
-              switchMap(res => {
+              switchMap(() => {
                 return this.updateProgressState(deliveryNote);
               }),
             );
@@ -297,7 +297,7 @@ export class WarrantyStockEntryAggregateService {
         break;
       case STOCK_ENTRY_STATUS.delivered:
         serialData = {
-          replace_serial: deliveryNote.items[0].serial_no,
+          replace_serial: deliveryNote.items[0].serial_no[0],
           replace_warehouse: deliveryNote.items[0].warehouse,
           replace_product: deliveryNote.items[0].item_name,
         };
@@ -449,7 +449,7 @@ export class WarrantyStockEntryAggregateService {
         );
       }),
       toArray(),
-      switchMap(res => {
+      switchMap(() => {
         if (correctDeliveryNotes.length) {
           return of(correctDeliveryNotes);
         }

@@ -7,7 +7,7 @@ export class WarrantyClaimAddedEventHandler
   implements IEventHandler<WarrantyClaimAddedEvent> {
   constructor(private readonly warrantyClaimService: WarrantyClaimService) {}
   async handle(event: WarrantyClaimAddedEvent) {
-    const { warrantyclaim: warrantyclaim } = event;
-    await this.warrantyClaimService.create(warrantyclaim);
+    const { warrantyClaim } = event;
+    await this.warrantyClaimService.create(warrantyClaim);
   }
 }

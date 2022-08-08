@@ -121,7 +121,7 @@ export class AddStockEntryPage implements OnInit {
       .data()
       .filter(
         item =>
-          item.warehouse &&
+          (item.warehouse || item.s_warehouse) &&
           item.qty &&
           item.serial_no &&
           item.item_name &&

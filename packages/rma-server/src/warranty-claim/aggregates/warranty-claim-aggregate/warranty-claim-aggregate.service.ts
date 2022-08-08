@@ -39,7 +39,7 @@ import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.s
 import { WARRANTY_TYPE, DELIVERY_STATUS } from '../../../constants/app-strings';
 import { DateTime } from 'luxon';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
-import { CLAIM_TYPE_INVLAID } from '../../../constants/messages';
+import { CLAIM_TYPE_INVALID } from '../../../constants/messages';
 import { WarrantyClaimDto } from '../../../warranty-claim/entity/warranty-claim/warranty-claim-dto';
 import { StatusHistoryDto } from '../../entity/warranty-claim/status-history-dto';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
@@ -107,7 +107,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           }),
         );
 
-      case WARRANTY_TYPE.NON_SERAIL:
+      case WARRANTY_TYPE.NON_SERIAL:
         return this.createNonSerialClaim(
           warrantyClaimPayload,
           clientHttpRequest,
@@ -128,7 +128,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
         );
 
       default:
-        return throwError(new NotImplementedException(CLAIM_TYPE_INVLAID));
+        return throwError(new NotImplementedException(CLAIM_TYPE_INVALID));
     }
   }
 
@@ -176,7 +176,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
             clientHttpRequest.token,
           );
         }),
-        switchMap(nxt => {
+        switchMap(() => {
           return of(true);
         }),
         catchError(err => {
@@ -203,7 +203,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
             clientHttpRequest.token,
           );
         }),
-        switchMap(nxt => {
+        switchMap(() => {
           return of(true);
         }),
         catchError(err => {
@@ -214,7 +214,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
 
   createThirdPartyClaim(claimsPayload: WarrantyClaimDto, clientHttpRequest) {
     return this.addSerialRecord(claimsPayload, clientHttpRequest).pipe(
-      switchMap(res => {
+      switchMap(() => {
         return this.assignFields(claimsPayload, clientHttpRequest);
       }),
       switchMap(warrantyClaimPayload => {
@@ -228,7 +228,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           clientHttpRequest.token,
         );
       }),
-      switchMap(nxt => {
+      switchMap(() => {
         return of(true);
       }),
       catchError(err => {
@@ -280,7 +280,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
     return of(serialBody);
   }
 
-  async retrieveWarrantyClaim(uuid: string, req) {
+  async retrieveWarrantyClaim(uuid: string) {
     const provider = await this.warrantyClaimService.findOne({ uuid });
     if (!provider) throw new NotFoundException();
     return provider;
@@ -319,7 +319,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
     if (!provider) {
       throw new NotFoundException();
     }
-    if (updatePayload.claim_type === WARRANTY_TYPE.NON_SERAIL) {
+    if (updatePayload.claim_type === WARRANTY_TYPE.NON_SERIAL) {
       updatePayload.serial_no = '';
     }
     const update = Object.assign(provider, updatePayload);
@@ -327,8 +327,6 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
     update.modifiedOn = new Date();
     this.apply(new WarrantyClaimUpdatedEvent(update));
   }
-
-  acquireLock(bulk: WarrantyClaimDto) {}
 
   createBulkClaim(claimsPayload: WarrantyClaimDto, clientHttpRequest) {
     let bulk: WarrantyClaimDto;
@@ -345,7 +343,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           clientHttpRequest,
         );
       }),
-      switchMap(nxt => {
+      switchMap(() => {
         return from(
           this.warrantyClaimService.find({
             $or: [{ uuid: bulk.uuid }, { parent: bulk.uuid }],
@@ -358,7 +356,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
       switchMap(() => {
         return of(true);
       }),
-      catchError(err => {
+      catchError(() => {
         let count;
         return from(this.warrantyClaimService.find({ parent: bulk.uuid })).pipe(
           switchMap(subClaimCount => {
@@ -485,7 +483,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           clientHttpRequest,
         );
       }),
-      switchMap(nxt => {
+      switchMap(() => {
         return from(
           this.warrantyClaimService.updateMany(
             { parent: claimsPayload.uuid, subclaim_state: 'Draft' },
@@ -504,7 +502,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
       switchMap(draftSubClaim => {
         return this.AssignNamingSeries(draftSubClaim);
       }),
-      catchError(err => {
+      catchError(() => {
         let count;
         return from(
           this.warrantyClaimService.find({
@@ -565,7 +563,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
         return this.warrantyClaimsPoliciesService
           .validateBulkWarrantyClaim(data)
           .pipe(
-            switchMap(validData => {
+            switchMap(() => {
               this.createBulkSerials(data.claims, clientHttpRequest);
               const mappedWarranty = this.mapWarrantyClaims(data.claims);
               this.apply(new BulkWarrantyClaimsCreatedEvent(mappedWarranty));
@@ -610,8 +608,8 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           }),
         )
         .subscribe({
-          next: success => {},
-          error: err => {},
+          next: () => {},
+          error: () => {},
         });
     });
   }
@@ -663,7 +661,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           ),
         );
       }),
-      switchMap(history => {
+      switchMap(() => {
         return this.setClaimStatus(statusHistoryPayload);
       }),
       switchMap(state => {
@@ -881,7 +879,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
           }),
         );
       }),
-      catchError(error => {
+      catchError(() => {
         return throwError(new BadRequestException('Not a valid object'));
       }),
     );

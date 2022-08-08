@@ -8,7 +8,7 @@ export class RetrieveWarrantyClaimQueryHandler
   constructor(private readonly manager: WarrantyClaimAggregateService) {}
 
   async execute(query: RetrieveWarrantyClaimQuery) {
-    const { req, uuid } = query;
-    return this.manager.retrieveWarrantyClaim(uuid, req);
+    const { uuid } = query;
+    return this.manager.retrieveWarrantyClaim(uuid);
   }
 }
