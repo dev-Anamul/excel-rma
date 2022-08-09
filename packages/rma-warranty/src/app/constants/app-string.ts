@@ -68,7 +68,7 @@ export const CSV_FILE_TYPE = ' serials.csv';
 export const WARRANTY_TYPE = {
   WARRANTY: 'Warranty',
   NON_WARRANTY: 'Non Warranty',
-  NON_SERAIL: 'Non Serial Warranty',
+  NON_SERIAL: 'Non Serial Warranty',
   THIRD_PARTY: 'Third Party Warranty',
 };
 
