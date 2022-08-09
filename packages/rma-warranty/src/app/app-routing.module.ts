@@ -40,14 +40,14 @@ const routes: Routes = [
       ),
   },
   {
-    path: 'warranty/warranty-claim/:name/:uuid',
+    path: 'warranty/edit-warranty-claim/:uuid',
     loadChildren: () =>
       import('./warranty-ui/add-warranty-claim/add-warranty-claim.module').then(
         m => m.AddWarrantyClaimPageModule,
       ),
   },
   {
-    path: 'warranty/warranty-claim/:name',
+    path: 'warranty/add-warranty-claim',
     loadChildren: () =>
       import('./warranty-ui/add-warranty-claim/add-warranty-claim.module').then(
         m => m.AddWarrantyClaimPageModule,

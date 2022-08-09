@@ -5,10 +5,10 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title color="tertiary" *ngIf="route ==='add'">
+    <ion-title color="tertiary" *ngIf="!uuid">
       Warranty Claim Creation Form
     </ion-title>
-    <ion-title color="tertiary" *ngIf="route ==='edit'">Update Claim</ion-title>
+    <ion-title color="tertiary" *ngIf="uuid">Update Claim</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -20,15 +20,11 @@
     color="light"
     horizontal="end"
   >
-    <ion-fab-button
-      *ngIf="route ==='add'"
-      class="fab-position"
-      (click)="createClaim()"
-    >
+    <ion-fab-button *ngIf="!uuid" class="fab-position" (click)="createClaim()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
     <ion-fab-button
-      *ngIf="route ==='edit'"
+      *ngIf="uuid"
       class="fab-position"
       (click)="updateClaim()"
       [disabled]="warrantyClaimForm.invalid"
@@ -56,7 +52,6 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #claimType="matAutocomplete"
-                  [displayWith]="getOption"
                   (optionSelected)="getFormState($event.option.value)"
                 >
                   <mat-option *ngFor="let option of claimList" [value]="option">
@@ -69,7 +64,7 @@
               </mat-form-field>
             </ion-col>
             <ion-col>
-              <mat-form-field class="example-full-width" *ngIf="route ==='add'">
+              <mat-form-field class="example-full-width" *ngIf="!uuid">
                 <input
                   matInput
                   type="text"
@@ -105,7 +100,7 @@
       <ion-card-content>
         <ion-grid class="i-no-padding">
           <ion-row class="align">
-            <ion-col *ngIf="warrantyState?.serial_no?.active && route!='edit'">
+            <ion-col *ngIf="warrantyState?.serial_no?.active && !uuid">
               <mat-form-field class="example-full-width">
                 <input
                   matInput
@@ -131,7 +126,7 @@
               </mat-form-field>
             </ion-col>
             <ion-col
-              *ngIf="warrantyState?.serial_no?.active && route =='edit' && warrantyObject?.set !='Bulk'"
+              *ngIf="warrantyState?.serial_no?.active && uuid && warrantyObject?.set !='Bulk'"
             >
               <mat-form-field class="example-full-width">
                 <input
@@ -145,7 +140,7 @@
               </mat-form-field>
             </ion-col>
             <ion-col
-              *ngIf="warrantyState?.serial_no?.active && route =='edit' && warrantyObject?.set=='Bulk'"
+              *ngIf="warrantyState?.serial_no?.active && uuid && warrantyObject?.set=='Bulk'"
             >
               <mat-form-field class="example-full-width">
                 <input
@@ -209,7 +204,7 @@
                   (optionSelected)="itemOptionChanged($event.option.value)"
                 >
                   <mat-option
-                    *ngFor="let option of productList | async"
+                    *ngFor="let option of filteredProductList | async"
                     [value]="option"
                   >
                     {{ option.item_name }}
@@ -250,7 +245,7 @@
                   [displayWith]="getProblemOption"
                 >
                   <mat-option
-                    *ngFor="let option of problemList | async"
+                    *ngFor="let option of filteredProblemList | async"
                     [value]="option"
                   >
                     {{ option.problem_name }}
@@ -298,7 +293,7 @@
             </ion-col>
           </ion-row>
           <ion-row class="align">
-            <ion-col class="ion-text-left" *ngIf="route ==='edit'">
+            <ion-col class="ion-text-left" *ngIf="uuid">
               <ion-button
                 color="tertiary"
                 *ngIf="warrantyObject?.set === 'Bulk'"
@@ -315,7 +310,7 @@
                 Clear
               </ion-button>
             </ion-col>
-            <ion-col class="ion-text-left" *ngIf="route ==='add'">
+            <ion-col class="ion-text-left" *ngIf="!uuid">
               <ion-button
                 color="tertiary"
                 *ngIf="f.category.value === 'Bulk'"
@@ -366,8 +361,7 @@
                     type="button"
                     mat-mini-fab
                     color="warn"
-                    (click)="removeSubclaim(i)"
-                    aria-label=""
+                    (click)="removeSubClaim(i)"
                   >
                     <mat-icon>delete_forever</mat-icon>
                   </button>
@@ -417,7 +411,7 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #auto="matAutocomplete"
-                  [displayWith]="getOptionText"
+                  [displayWith]="getCustomerNameOption"
                   (optionSelected)="customerChanged($event.option.value)"
                 >
                   <mat-option
@@ -540,7 +534,7 @@
                 <input
                   matInput
                   [matDatepicker]="delivery_date"
-                  placeholder="Deliver Date"
+                  placeholder="Delivery Date"
                   formControlName="delivery_date"
                 />
                 <mat-datepicker-toggle
@@ -566,16 +560,15 @@
                   placeholder="Receiving Branch"
                   formControlName="receiving_branch"
                   [matAutocomplete]="receivingBranch"
-                  (focusout)="validateInput(f.receiving_branch, territoryList)"
+                  (focusout)="validateInput(f.receiving_branch, filteredTerritoryList)"
                 />
                 <mat-autocomplete
                   autoActiveFirstOption
                   #receivingBranch="matAutocomplete"
-                  [displayWith]="getBranchOption"
                   (optionSelected)="branchOptionChanged($event.option.value)"
                 >
                   <mat-option
-                    *ngFor="let option of territoryList | async"
+                    *ngFor="let option of filteredTerritoryList | async"
                     [value]="option"
                   >
                     {{ option }}
@@ -598,7 +591,7 @@
                   type="text"
                   placeholder="Delivery Branch"
                   formControlName="delivery_branch"
-                  (focusout)="validateInput(f.delivery_branch, territoryList)"
+                  (focusout)="validateInput(f.delivery_branch, filteredTerritoryList)"
                   [matAutocomplete]="deliveryBranch"
                 />
                 <mat-autocomplete
@@ -608,7 +601,7 @@
                   (optionSelected)="branchOptionChanged($event.option.value)"
                 >
                   <mat-option
-                    *ngFor="let option of territoryList | async"
+                    *ngFor="let option of filteredTerritoryList | async"
                     [value]="option"
                   >
                     {{ option }}
