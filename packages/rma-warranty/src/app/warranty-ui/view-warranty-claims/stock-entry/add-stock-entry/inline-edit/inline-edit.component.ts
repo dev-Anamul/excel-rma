@@ -13,7 +13,6 @@ import { Observable, of } from 'rxjs';
 import { AddServiceInvoiceService } from '../../../../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
 import {
   CLOSE,
-  DURATION,
   ITEM_COLUMN,
   STOCK_ENTRY_ITEM_TYPE,
   WARRANTY_TYPE,
@@ -73,8 +72,8 @@ export class InlineEditComponent {
 
   constructor(
     @Optional() @Host() public popover: SatPopover,
-    private addServiceInvoiceService: AddServiceInvoiceService,
-    private snackbar: MatSnackBar,
+    private readonly addServiceInvoiceService: AddServiceInvoiceService,
+    private readonly snackbar: MatSnackBar,
   ) {}
 
   ngOnInit() {
@@ -98,7 +97,7 @@ export class InlineEditComponent {
   getOptionText(option) {
     return option.item_name;
   }
-  1;
+
   getWarehouseOptionText(option) {
     if (option) return option.warehouse;
   }
@@ -141,13 +140,9 @@ export class InlineEditComponent {
               },
               error: err => {
                 if (err && err.error && err.error.message) {
-                  this.snackbar.open(err.error.message, CLOSE, {
-                    duration: DURATION,
-                  });
+                  this.presentSnackBar(err.error.message);
                 } else {
-                  this.snackbar.open('failed to fetch item try again', CLOSE, {
-                    duration: DURATION,
-                  });
+                  this.presentSnackBar('Failed to fetch item try again');
                 }
               },
             });
@@ -168,22 +163,15 @@ export class InlineEditComponent {
                               ? item.delivery_note.startsWith('WSDR')
                               : false
                           ) {
-                            this.snackbar.open(
-                              'Item Not Sold.It cannot be returned',
-                              'Close',
-                              {
-                                duration: DURATION,
-                              },
+                            this.presentSnackBar(
+                              'Item Not Sold. It cannot be returned',
                             );
+
                             return {};
                           }
                           if (!item.warranty.soldOn) {
-                            this.snackbar.open(
-                              'Item Not Sold.It cannot be returned',
-                              'Close',
-                              {
-                                duration: DURATION,
-                              },
+                            this.presentSnackBar(
+                              'Item Not Sold. It cannot be returned',
                             );
                             return {};
                           }
@@ -208,19 +196,11 @@ export class InlineEditComponent {
                               item,
                             };
                           }
-                          this.snackbar.open('Serial already sold', 'Close', {
-                            duration: DURATION,
-                          });
+                          this.presentSnackBar('Serial already sold');
                           return {};
 
                         default:
-                          this.snackbar.open(
-                            'Check Stock Entry Type',
-                            'Close',
-                            {
-                              duration: DURATION,
-                            },
-                          );
+                          this.presentSnackBar('Check Stock Entry Type');
                           return {};
                       }
                     }),
@@ -230,7 +210,6 @@ export class InlineEditComponent {
             .subscribe({
               next: res => {
                 const selectedItem = {} as any;
-                selectedItem.uuid = res.item.uuid;
                 selectedItem.serial_no = res.item.serial_no;
                 selectedItem.minimumPrice = res.item.minimumPrice;
                 selectedItem.item_code = res.item.item_code;
@@ -242,24 +221,17 @@ export class InlineEditComponent {
                 if (res.priceListArray.length > 0) {
                   selectedItem.rate = res.priceListArray[0].price_list_rate;
                 }
-
                 this.popover.close(selectedItem);
               },
               error: err => {
                 if (
                   this.type === WARRANTY_TYPE.THIRD_PARTY &&
-                  this.stock_type === 'Returned'
+                  this.stock_type === STOCK_ENTRY_ITEM_TYPE.RETURNED
                 ) {
                   if (err && err.error && err.error.message) {
-                    this.snackbar.open(err.error.message, CLOSE, {
-                      duration: DURATION,
-                    });
+                    this.presentSnackBar(err.error.message);
                   } else {
-                    this.snackbar.open(
-                      'failed to fetch serial try again',
-                      CLOSE,
-                      { duration: DURATION },
-                    );
+                    this.presentSnackBar('Failed to fetch serial. Try again');
                   }
                   this.popover.close({
                     serial_no: this.serial_no,
@@ -297,5 +269,9 @@ export class InlineEditComponent {
     if (this.popover) {
       this.popover.close();
     }
+  }
+
+  presentSnackBar(message: string) {
+    this.snackbar.open(message, CLOSE);
   }
 }
