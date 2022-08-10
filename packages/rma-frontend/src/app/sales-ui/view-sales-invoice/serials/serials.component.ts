@@ -607,8 +607,53 @@ export class SerialsComponent implements OnInit {
     this.salesService
       .assignInvoice(assignSerial.sales_invoice_name)
       .subscribe(data => {
+        this.salesService
+      .getSalesInvoice(this.route.snapshot.params.invoiceUuid).subscribe (has_Bundle=>{
+        if(Object.keys(has_Bundle["bundle_items_map"]).length !=0){
+            if (this.validSerials) {
+              if ( data.bundle_items.length>0){
+                var checkItem=[]
+                data.bundle_items.forEach(itemCode=>{
+                  checkItem.push(itemCode.item_code)
+                })
+                  if(!checkItem.includes(assignSerial.items[0].item_code)){
+                    assignSerial.items.forEach(value => {
+                      const obj: any = {
+                        item_code: value.item_code,
+                        qty: value.qty,
+                        item_name: value.item_name,
+                        serial_no: value.serial_no.join(', '),
+                      };
+                      data.bundle_items.push(obj);
+                    });
+                  } else {
+                    data.bundle_items.forEach(bundleItem => {
+                      assignSerial.items.find(assignvalue => { 
+                      if (assignvalue.item_code === bundleItem.item_code) {
+                        return (bundleItem.serial_no = bundleItem.serial_no + ', ' +  assignvalue.serial_no.join(', '));
+                      }
+                      })   
+                    })
+                  }
+              } else {
+                //first time assign
+                assignSerial.items.forEach(value => {
+                  const obj: any = {
+                    item_code: value.item_code,
+                    qty: value.qty,
+                    item_name: value.item_name,
+                    serial_no: value.serial_no.join(', '),
+                  };
+                  data.bundle_items.push(obj);
+                });
+              }
+            }
+               this.salesService
+              .updateInvoice(data, assignSerial.sales_invoice_name)
+              .subscribe(value => {});
+      } else {
         data.items.forEach(element => {
-          assignSerial.items.find(value => {
+          assignSerial.items.find(value => {       
             if (value.item_code === element.item_code) {
               if (value.has_serial_no === 0) {
                 if (!element.excel_serials) {
@@ -640,8 +685,10 @@ export class SerialsComponent implements OnInit {
         this.salesService
           .updateInvoice(data, assignSerial.sales_invoice_name)
           .subscribe(value => {});
+      }
       });
-  }
+    })
+}
 
   mergeDuplicateItems() {
     const map = {};
