@@ -94,7 +94,7 @@ export class MaterialTransferComponent implements OnInit {
   company: string;
   status: string;
   title: string;
-  stock_id : string;
+  stock_id: string;
   filteredWarehouseList1: Observable<any[]>;
   filteredWarehouseList2: Observable<any[]>;
   transferWarehouse: string;
@@ -203,7 +203,7 @@ export class MaterialTransferComponent implements OnInit {
           );
           this.stock_receipt_names = success.names || [];
           this.title = success.names ? success.names[0] : '';
-          this.stock_id = success.stock_id ? success.stock_id: ''
+          this.stock_id = success.stock_id ? success.stock_id : '';
           this.status = success.status;
           this.form.controls.remarks.setValue(success.remarks);
           if (success.stock_entry_type !== STOCK_ENTRY_TYPE.MATERIAL_TRANSFER) {

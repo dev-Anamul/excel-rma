@@ -571,7 +571,7 @@ export class SalesService {
     const params = new HttpParams({
       fromObject: {
         fields: '["*"]',
-        filters: JSON.stringify(filters),
+        filters: encodeURIComponent(JSON.stringify(filters)),
         limit_page_length: pageSize.toString(),
         limit_start: (pageIndex * pageSize).toString(),
       },

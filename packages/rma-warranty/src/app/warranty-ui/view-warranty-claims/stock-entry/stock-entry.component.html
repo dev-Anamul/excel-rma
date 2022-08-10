@@ -57,11 +57,11 @@
 
   <ion-card-content class="ion-no-padding">
     <div class="example-container mat-elevation-z8">
-      <mat-table [dataSource]="dataSource">
+      <table mat-table [dataSource]="dataSource">
         <ng-container matColumnDef="stock_voucher_number">
-          <mat-header-cell *matHeaderCellDef
-            >Stock Voucher Number</mat-header-cell
-          >
+          <mat-header-cell *matHeaderCellDef>
+            Stock Voucher Number
+          </mat-header-cell>
           <mat-cell *matCellDef="let row">
             <ng-container *ngIf="row.stock_voucher_number">
               {{ row.stock_id }}
@@ -73,9 +73,7 @@
         <ng-container matColumnDef="claim_no">
           <mat-header-cell *matHeaderCellDef>Claim No</mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ warrantyObject?.claim_no }}
-            </ng-container>
+            {{ warrantyObject?.claim_no }}
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
@@ -83,9 +81,7 @@
         <ng-container matColumnDef="type">
           <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.type }}
-            </ng-container>
+            {{ row.type }}
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
@@ -93,9 +89,7 @@
         <ng-container matColumnDef="date">
           <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.posting_date }}
-            </ng-container>
+            {{ row.posting_date }}
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
@@ -103,9 +97,7 @@
         <ng-container matColumnDef="description">
           <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.description }}
-            </ng-container>
+            {{ row.description }}
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
@@ -142,7 +134,7 @@
           class="footer"
           *matFooterRowDef="displayedColumns; sticky: true"
         ></mat-footer-row>
-      </mat-table>
+      </table>
     </div>
     <mat-card-actions>
       <mat-paginator

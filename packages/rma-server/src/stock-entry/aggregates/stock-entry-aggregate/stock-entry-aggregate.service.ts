@@ -73,143 +73,150 @@ export class StockEntryAggregateService {
     private readonly stockLedgerService: StockLedgerService,
   ) {}
 
-   createStockEntry(payload: StockEntryDto, req) {
-   return this.parseStockEntryPayload(payload).pipe(switchMap((response:any) =>{
-      payload = response
-      const settings = this.settingService.find();
-      if (payload.status === STOCK_ENTRY_STATUS.draft || !payload.uuid) {
+  createStockEntry(payload: StockEntryDto, req) {
+    return this.parseStockEntryPayload(payload).pipe(
+      switchMap((response: any) => {
+        payload = response;
+        const settings = this.settingService.find();
+        if (payload.status === STOCK_ENTRY_STATUS.draft || !payload.uuid) {
+          return this.stockEntryPolicies
+            .validateStockPermission(
+              payload.stock_entry_type,
+              STOCK_OPERATION.create,
+              req,
+            )
+            .pipe(
+              switchMap(() => this.saveDraft(payload, req)),
+              catchError(err => {
+                return err;
+              }),
+            );
+        }
         return this.stockEntryPolicies
           .validateStockPermission(
             payload.stock_entry_type,
-            STOCK_OPERATION.create,
+            STOCK_OPERATION.submit,
             req,
           )
-          .pipe(switchMap(() => 
-           this.saveDraft(payload, req)),
-            catchError(err => {
-              return err
-            }));
-      }
-      return this.stockEntryPolicies
-      .validateStockPermission(
-        payload.stock_entry_type,
-        STOCK_OPERATION.submit,
-        req,
-      )
-      .pipe(
-        switchMap(() =>
-          this.stockEntryPolicies.validateStockEntry(payload, req),
-        ),
-        switchMap(valid => {
-          return from(
-            this.stockEntryService.updateOne(
-              { uuid: payload.uuid },
-              {
-                $set: {
-                  stock_id: payload.stock_id,
-                },
-              },
+          .pipe(
+            switchMap(() =>
+              this.stockEntryPolicies.validateStockEntry(payload, req),
             ),
-          );
-        }),
-        switchMap(valid => {
-          return from(this.stockEntryService.findOne({ uuid: payload.uuid }));
-        }),
-        switchMap(stockEntry => {
-          stockEntry.stock_id = payload.stock_id;
-          if (!stockEntry) {
-            return throwError(new BadRequestException('Stock Entry not found'));
-          }
-          const mongoSerials: SerialHash = this.getStockEntryMongoSerials(
-            stockEntry,
-          );
-
-          if (
-            stockEntry.stock_entry_type === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
-          ) {
-            if (mongoSerials && mongoSerials.length) {
-              return this.createMongoSerials(
-                stockEntry,
-                mongoSerials,
-                req,
-                settings,
-              );
-            }
-          }
-
-          if (!mongoSerials) {
-            settings
-              .pipe(
-                switchMap(settings => {
-                  return this.stockEntrySyncService.createStockEntry({
-                    payload: stockEntry,
-                    token: req.token,
-                    type: CREATE_STOCK_ENTRY_JOB,
-                    parent: stockEntry.uuid,
-                    settings,
-                  });
-                }),
-              )
-              .subscribe();
-            return of(stockEntry);
-          }
-
-          return from(Object.keys(mongoSerials)).pipe(
-            mergeMap(key => {
+            switchMap(valid => {
               return from(
-                this.serialNoService.updateOne(
-                  { serial_no: { $in: mongoSerials[key].serial_no } },
+                this.stockEntryService.updateOne(
+                  { uuid: payload.uuid },
                   {
                     $set: {
-                      queue_state: {
-                        stock_entry: {
-                          parent: stockEntry.uuid,
-                          warehouse: mongoSerials[key].t_warehouse,
-                        },
-                      },
+                      stock_id: payload.stock_id,
                     },
                   },
                 ),
               );
             }),
-            toArray(),
-            switchMap(() => {
-              return settings.pipe(
-                switchMap(settings => {
-                  return this.stockEntrySyncService.createStockEntry({
-                    payload: stockEntry,
-                    token: req.token,
-                    type: CREATE_STOCK_ENTRY_JOB,
-                    parent: stockEntry.uuid,
+            switchMap(valid => {
+              return from(
+                this.stockEntryService.findOne({ uuid: payload.uuid }),
+              );
+            }),
+            switchMap(stockEntry => {
+              stockEntry.stock_id = payload.stock_id;
+              if (!stockEntry) {
+                return throwError(
+                  new BadRequestException('Stock Entry not found'),
+                );
+              }
+              const mongoSerials: SerialHash = this.getStockEntryMongoSerials(
+                stockEntry,
+              );
+
+              if (
+                stockEntry.stock_entry_type ===
+                STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+              ) {
+                if (mongoSerials && mongoSerials.length) {
+                  return this.createMongoSerials(
+                    stockEntry,
+                    mongoSerials,
+                    req,
                     settings,
-                  });
+                  );
+                }
+              }
+
+              if (!mongoSerials) {
+                settings
+                  .pipe(
+                    switchMap(settings => {
+                      return this.stockEntrySyncService.createStockEntry({
+                        payload: stockEntry,
+                        token: req.token,
+                        type: CREATE_STOCK_ENTRY_JOB,
+                        parent: stockEntry.uuid,
+                        settings,
+                      });
+                    }),
+                  )
+                  .subscribe();
+                return of(stockEntry);
+              }
+
+              return from(Object.keys(mongoSerials)).pipe(
+                mergeMap(key => {
+                  return from(
+                    this.serialNoService.updateOne(
+                      { serial_no: { $in: mongoSerials[key].serial_no } },
+                      {
+                        $set: {
+                          queue_state: {
+                            stock_entry: {
+                              parent: stockEntry.uuid,
+                              warehouse: mongoSerials[key].t_warehouse,
+                            },
+                          },
+                        },
+                      },
+                    ),
+                  );
+                }),
+                toArray(),
+                switchMap(() => {
+                  return settings.pipe(
+                    switchMap(settings => {
+                      return this.stockEntrySyncService.createStockEntry({
+                        payload: stockEntry,
+                        token: req.token,
+                        type: CREATE_STOCK_ENTRY_JOB,
+                        parent: stockEntry.uuid,
+                        settings,
+                      });
+                    }),
+                  );
+                }),
+                switchMap(success => {
+                  return of(stockEntry);
                 }),
               );
             }),
-            switchMap(success => {
-              return of(stockEntry);
+            switchMap(stockEntry => {
+              return from(
+                this.stockEntryService.updateOne(
+                  { uuid: stockEntry.uuid },
+                  {
+                    $set: {
+                      status:
+                        payload.stock_entry_type ===
+                        STOCK_ENTRY_TYPE.MATERIAL_TRANSFER
+                          ? STOCK_ENTRY_STATUS.in_transit
+                          : STOCK_ENTRY_STATUS.delivered,
+                    },
+                  },
+                ),
+              );
             }),
           );
-        }),
-        switchMap(stockEntry => {
-          return from(
-            this.stockEntryService.updateOne(
-              { uuid: stockEntry.uuid },
-              {
-                $set: {
-                  status:
-                    payload.stock_entry_type ===
-                    STOCK_ENTRY_TYPE.MATERIAL_TRANSFER
-                      ? STOCK_ENTRY_STATUS.in_transit
-                      : STOCK_ENTRY_STATUS.delivered,
-                },
-              },
-            ),
-          );
-        }),
-      );
-
-    }))
+      }),
+    );
   }
 
   createMongoSerials(stockEntry: StockEntry, mongoSerials: any, req, settings) {
@@ -259,36 +266,33 @@ export class StockEntryAggregateService {
     );
   }
 
-parseStockEntryPayload(payload: StockEntryDto) {
-  return this.settingService.find().pipe(
-    switchMap(serverSettings => {
-      const date = new DateTime(serverSettings.timeZone).year;
-      let $match: any;
-      if (payload.stock_entry_type === 'Material Issue') {
-        $match = {
-          stock_entry_type: 'Material Issue',
-        };
-      } else if (payload.stock_entry_type === 'Material Receipt') {
-        $match = {
-          stock_entry_type: 'Material Receipt',
-        };
-      }
-      else if(payload.stock_entry_type === 'R&D Products'){
-        $match = {
-          stock_entry_type: 'R&D Products',
-        };
-      }else if(payload.stock_entry_type === 'Material Transfer'){
-        $match = {
-          stock_entry_type: 'Material Transfer',
-        };
-      }
-      return this.stockEntryService
-        .asyncAggregate([{ $match }])
-        .pipe(
+  parseStockEntryPayload(payload: StockEntryDto) {
+    return this.settingService.find().pipe(
+      switchMap(serverSettings => {
+        const date = new DateTime(serverSettings.timeZone).year;
+        let $match: any;
+        if (payload.stock_entry_type === 'Material Issue') {
+          $match = {
+            stock_entry_type: 'Material Issue',
+          };
+        } else if (payload.stock_entry_type === 'Material Receipt') {
+          $match = {
+            stock_entry_type: 'Material Receipt',
+          };
+        } else if (payload.stock_entry_type === 'R&D Products') {
+          $match = {
+            stock_entry_type: 'R&D Products',
+          };
+        } else if (payload.stock_entry_type === 'Material Transfer') {
+          $match = {
+            stock_entry_type: 'Material Transfer',
+          };
+        }
+        return this.stockEntryService.asyncAggregate([{ $match }]).pipe(
           map((result: any) => {
             const maxArray = [];
-            for (let i = 0; i < result.length; i++) {
-              const myArray = result[i].stock_id.split('-');
+            for (const data of result) {
+              const myArray = data.stock_id.split('-');
               if (myArray.length === 3) {
                 maxArray.push(Number(myArray[2]));
               }
@@ -300,37 +304,37 @@ parseStockEntryPayload(payload: StockEntryDto) {
               stockid = `TROUT-${date}-${incrementer}`;
             } else if (payload.stock_entry_type === 'Material Receipt') {
               stockid = `PAQ-${date}-${incrementer}`;
-            }else if(payload.stock_entry_type === 'Material Issue'){
+            } else if (payload.stock_entry_type === 'Material Issue') {
               stockid = `PCM-${date}-${incrementer}`;
-            }else if(payload.stock_entry_type= 'R&D Products'){
+            } else if ((payload.stock_entry_type = 'R&D Products')) {
               stockid = `RND-${date}-${incrementer}`;
             }
-            payload.stock_id = stockid;            
+            payload.stock_id = stockid;
             switch (payload.stock_entry_type) {
               case STOCK_ENTRY_TYPE.MATERIAL_RECEIPT:
                 return payload;
-        
+
               case STOCK_ENTRY_TYPE.MATERIAL_ISSUE:
                 payload.items.filter(item => {
                   delete item.basic_rate;
                   return item;
                 });
                 return payload;
-        
+
               case STOCK_ENTRY_TYPE.MATERIAL_TRANSFER:
                 payload.items.filter(item => {
                   delete item.basic_rate;
                   return item;
                 });
                 return payload;
-        
+
               default:
                 return payload;
             }
           }),
         );
-    }),
-  );
+      }),
+    );
   }
 
   getStockEntryMongoSerials(stockEntry) {
@@ -486,6 +490,9 @@ parseStockEntryPayload(payload: StockEntryDto) {
         if (payload.stock_entry_type === 'Material Issue') {
           warehouse_type = 's_warehouse';
         }
+        if (payload.stock_entry_type === 'R&D Products') {
+          warehouse_type = 's_warehouse';
+        }
         if (payload.stock_entry_type === 'Material Receipt') {
           warehouse_type = 't_warehouse';
         }
@@ -578,7 +585,7 @@ parseStockEntryPayload(payload: StockEntryDto) {
 
   saveDraft(payload: StockEntryDto, req) {
     if (payload.uuid) {
-      payload.stock_id = payload.uuid
+      payload.stock_id = payload.uuid;
       return from(
         this.stockEntryService.updateOne(
           { uuid: payload.uuid },
@@ -593,9 +600,9 @@ parseStockEntryPayload(payload: StockEntryDto) {
         stockEntry.stock_id = stockEntry.uuid;
         return from(this.stockEntryService.create(stockEntry)).pipe(
           switchMap(data => of(stockEntry)),
-          catchError((err)=>{
-            return throwError(err)
-          })
+          catchError(err => {
+            return throwError(err);
+          }),
         );
       }),
     );
