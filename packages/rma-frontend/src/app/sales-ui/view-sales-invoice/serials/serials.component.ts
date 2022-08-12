@@ -636,8 +636,13 @@ export class SerialsComponent implements OnInit {
                     })
                   }
               } else {
+                var checkItem=[]
+                data.items.forEach(itemCode=>{
+                  checkItem.push(itemCode.item_code)
+                })
                 //first time assign
                 assignSerial.items.forEach(value => {
+                if (!checkItem.includes(value.item_code )) {
                   const obj: any = {
                     item_code: value.item_code,
                     qty: value.qty,
@@ -645,6 +650,36 @@ export class SerialsComponent implements OnInit {
                     serial_no: value.serial_no.join(', '),
                   };
                   data.bundle_items.push(obj);
+                } else {
+                  data.items.forEach(element => {
+                    if (value.item_code === element.item_code) {
+                      if (value.has_serial_no === 0) {
+                        if (!element.excel_serials) {
+                          return (element.excel_serials = value.serial_no.join(''));
+                        }
+                      } else {
+                        if (this.validSerials) {
+                          this.validSerials = true;
+                          if (element.excel_serials) {
+                            if (value.serial_no.length > 1) {
+                              return (element.excel_serials =
+                                element.excel_serials +
+                                ', ' +
+                                value.serial_no.join(', '));
+                            } else {
+                              return (element.excel_serials =
+                                element.excel_serials +
+                                ', ' +
+                                value.serial_no.join(', '));
+                            }
+                          } else {
+                            return (element.excel_serials = value.serial_no.join(', '));
+                          }
+                        }
+                      }
+                    }
+                  })
+                  }
                 });
               }
             }
