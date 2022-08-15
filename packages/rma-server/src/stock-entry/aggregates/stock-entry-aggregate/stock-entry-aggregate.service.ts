@@ -375,7 +375,7 @@ export class StockEntryAggregateService {
       .asyncAggregate([
         {
           $match: {
-            item_code: payload.item_code,
+            item_code: JSON.parse(decodeURIComponent(payload.item_code)),
             warehouse: payload.warehouse,
           },
         },

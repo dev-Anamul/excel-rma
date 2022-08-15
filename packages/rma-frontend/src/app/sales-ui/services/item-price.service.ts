@@ -56,7 +56,7 @@ export class ItemPriceService {
   getStockBalance(item_code: string, warehouse: string) {
     const url = GET_STOCK_BALANCE_ENDPOINT;
     const params = new HttpParams()
-      .set('item_code', item_code)
+      .set('item_code', encodeURIComponent(JSON.stringify(item_code)))
       .set('warehouse', warehouse);
 
     return this.getHeaders().pipe(
