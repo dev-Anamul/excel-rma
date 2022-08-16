@@ -25,8 +25,7 @@
                 warrantyClaimsDetails?.claim_status !== 'Cancelled'
               "
               [routerLink]="[
-                '/warranty/warranty-claim',
-                'edit',
+                '/warranty/edit-warranty-claim',
                 warrantyClaimsDetails.uuid
               ]"
               matTooltip="edit"
@@ -390,9 +389,9 @@
         </ion-col>
         <ion-col>
           <ion-item lines="none">
-            <ion-label position="floating">Third Pary Name</ion-label>
+            <ion-label position="floating">Third Party Name</ion-label>
             <ion-input
-              placeholder="Third Pary Name"
+              placeholder="Third Party Name"
               type="text"
               value="{{
                 warrantyClaimsDetails?.third_party_name
@@ -438,9 +437,9 @@
       <ion-row>
         <ion-col>
           <ion-item lines="none">
-            <ion-label position="floating"
-              >Customer Contact and Address</ion-label
-            >
+            <ion-label position="floating">
+              Customer Contact and Address
+            </ion-label>
             <ion-input
               placeholder="Customer Contact and Address"
               type="text"

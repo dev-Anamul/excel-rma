@@ -24,16 +24,15 @@ export class WarrantyClaimService {
     return await this.warrantyClaimRepository.find(query);
   }
 
-  async create(warrantyclaim: WarrantyClaim) {
-    if (!['Bulk', 'Part'].includes(warrantyclaim.set)) {
-      warrantyclaim.claim_no = await this.generateNamingSeries(
-        warrantyclaim.set,
+  async create(warrantyClaim: WarrantyClaim) {
+    if (!['Bulk', 'Part'].includes(warrantyClaim.set)) {
+      warrantyClaim.claim_no = await this.generateNamingSeries(
+        warrantyClaim.set,
       );
-      const data = await this.warrantyClaimRepository.insertOne(warrantyclaim);
-      return data;
+      return await this.warrantyClaimRepository.insertOne(warrantyClaim);
     }
-    warrantyclaim.claim_no = warrantyclaim.uuid;
-    return this.warrantyClaimRepository.insertOne(warrantyclaim);
+    warrantyClaim.claim_no = warrantyClaim.uuid;
+    return this.warrantyClaimRepository.insertOne(warrantyClaim);
   }
 
   async findOne(param, options?) {

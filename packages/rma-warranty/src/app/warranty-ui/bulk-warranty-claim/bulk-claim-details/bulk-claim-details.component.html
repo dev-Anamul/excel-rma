@@ -12,7 +12,7 @@
           color="tertiary"
           [disabled]="!dataSource.length"
           fill="outline"
-          [routerLink]="['/warranty/warranty-claim', 'edit', uuid]"
+          [routerLink]="['/warranty/edit-warranty-claim', uuid]"
         >
           Edit
         </ion-button>
@@ -558,7 +558,7 @@
                     <ion-item lines="none">
                       <ion-label position="floating">Third Pary Name</ion-label>
                       <ion-input
-                        placeholder="Third Pary Name"
+                        placeholder="Third Party Name"
                         type="text"
                         value="{{
                           expandedElement?.third_party_name

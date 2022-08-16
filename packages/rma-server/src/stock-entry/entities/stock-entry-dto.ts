@@ -52,6 +52,9 @@ export class StockEntryDto {
   @IsOptional()
   item_data: any;
 
+  @IsString()
+  warrantyClaimUuid: string;
+
   @IsNotEmpty()
   @IsString()
   doctype: string = STOCK_ENTRY;

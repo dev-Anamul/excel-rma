@@ -121,7 +121,7 @@ export class AddStockEntryPage implements OnInit {
       .data()
       .filter(
         item =>
-          item.warehouse &&
+          (item.warehouse || item.s_warehouse) &&
           item.qty &&
           item.serial_no &&
           item.item_name &&
@@ -138,7 +138,7 @@ export class AddStockEntryPage implements OnInit {
   async createDeliveryNotes() {
     if (this.validateItems()) {
       const loading = await this.loadingController.create({
-        message: 'making stock entries...!',
+        message: 'Making stock entries...!',
       });
       loading.present();
       from(this.validateItems())
