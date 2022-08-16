@@ -7,6 +7,7 @@ import { AgendaJobService } from '../../../sync/entities/agenda-job/agenda-job.s
 import { HttpService } from '@nestjs/common';
 import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { WarrantyClaimService } from '../../../warranty-claim/entity/warranty-claim/warranty-claim.service';
 
 describe('StockEntryPoliciesService', () => {
   let service: StockEntryPoliciesService;
@@ -16,11 +17,15 @@ describe('StockEntryPoliciesService', () => {
       providers: [
         StockEntryPoliciesService,
         {
-          provide: StockLedgerService,
+          provide: SerialNoService,
           useValue: {},
         },
         {
-          provide: SerialNoService,
+          provide: SerialNoPoliciesService,
+          useValue: {},
+        },
+        {
+          provide: AgendaJobService,
           useValue: {},
         },
         {
@@ -32,15 +37,15 @@ describe('StockEntryPoliciesService', () => {
           useValue: {},
         },
         {
-          provide: AgendaJobService,
+          provide: StockLedgerService,
+          useValue: {},
+        },
+        {
+          provide: WarrantyClaimService,
           useValue: {},
         },
         {
           provide: HttpService,
-          useValue: {},
-        },
-        {
-          provide: SerialNoPoliciesService,
           useValue: {},
         },
       ],

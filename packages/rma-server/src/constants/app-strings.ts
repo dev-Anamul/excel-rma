@@ -185,14 +185,14 @@ export const SYNC_DELIVERY_NOTE_JOB = 'SYNC_DELIVERY_NOTE_JOB';
 export enum WARRANTY_TYPE {
   WARRANTY = 'Warranty',
   NON_WARRANTY = 'Non Warranty',
-  NON_SERAIL = 'Non Serial Warranty',
+  NON_SERIAL = 'Non Serial Warranty',
   THIRD_PARTY = 'Third Party Warranty',
 }
 export enum WARRANTY_STATUS {
   VALID = 'Valid',
   EXPIRED = 'Expired',
 }
-export const CALIM_CANCEL_DOCUMENT = 'Claim Cannot be Cancelled';
+export const CLAIM_CANCEL_DOCUMENT = 'Claim Cannot be Cancelled';
 export const PURCHASE_RECEIPT_SERIALS_BATCH_SIZE = 20000;
 // changing PURCHASE_RECEIPT_INSERT_MANY_BATCH_COUNT would require change's in data import,
 // make sure to handle them before changing this.
