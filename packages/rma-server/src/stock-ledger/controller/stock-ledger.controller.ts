@@ -42,7 +42,7 @@ export class StockLedgerController {
     let filter;
     const sort = 'ASC';
     try {
-      filter = JSON.parse(filters);
+      filter = JSON.parse(decodeURIComponent(filters));
     } catch {
       filter;
     }

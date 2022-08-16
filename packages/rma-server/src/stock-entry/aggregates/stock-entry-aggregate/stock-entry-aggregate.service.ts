@@ -375,7 +375,7 @@ export class StockEntryAggregateService {
       .asyncAggregate([
         {
           $match: {
-            item_code: payload.item_code,
+            item_code: JSON.parse(decodeURIComponent(payload.item_code)),
             warehouse: payload.warehouse,
           },
         },
@@ -488,6 +488,9 @@ export class StockEntryAggregateService {
     return from(payload.items).pipe(
       concatMap((item: StockEntryItem) => {
         if (payload.stock_entry_type === 'Material Issue') {
+          warehouse_type = 's_warehouse';
+        }
+        if (payload.stock_entry_type === 'R&D Products') {
           warehouse_type = 's_warehouse';
         }
         if (payload.stock_entry_type === 'Material Receipt') {

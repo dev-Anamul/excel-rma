@@ -328,6 +328,10 @@ export class StockEntrySyncService {
             warehouse_type = 's_warehouse';
             item.qty = -item.qty;
           }
+          if (payload.stock_entry_type === 'R&D Products') {
+            warehouse_type = 's_warehouse';
+            item.qty = -item.qty;
+          }
           if (payload.stock_entry_type === 'Material Receipt') {
             warehouse_type = 't_warehouse';
           }
