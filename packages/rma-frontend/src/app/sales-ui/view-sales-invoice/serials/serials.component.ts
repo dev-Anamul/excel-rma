@@ -609,7 +609,7 @@ export class SerialsComponent implements OnInit {
       .subscribe(data => {
         this.salesService
           .getSalesInvoice(this.route.snapshot.params.invoiceUuid)
-          .subscribe(has_Bundle => {
+          .subscribe((has_Bundle: any) => {
             if (Object.keys(has_Bundle.bundle_items_map).length !== 0) {
               if (this.validSerials) {
                 if (data.bundle_items.length > 0) {
