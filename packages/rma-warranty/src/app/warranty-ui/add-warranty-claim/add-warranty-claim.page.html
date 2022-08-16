@@ -596,8 +596,6 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #deliveryBranch="matAutocomplete"
-                  [displayWith]="getBranchOption"
-                  (optionSelected)="branchOptionChanged($event.option.value)"
                 >
                   <mat-option
                     *ngFor="let option of filteredTerritoryList | async"
