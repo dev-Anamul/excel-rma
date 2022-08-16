@@ -17,6 +17,10 @@ export class StockEntryDto {
 
   @IsNotEmpty()
   @IsString()
+  type: string;
+
+  @IsNotEmpty()
+  @IsString()
   stock_entry_type: string;
 
   @IsNotEmpty()
@@ -53,6 +57,7 @@ export class StockEntryDto {
   item_data: any;
 
   @IsString()
+  @IsOptional()
   warrantyClaimUuid: string;
 
   @IsNotEmpty()

@@ -8,7 +8,7 @@ import {
   StockEntryItemDto,
 } from '../../entities/stock-entry-dto';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
-import { switchMap, mergeMap, toArray } from 'rxjs/operators';
+import { switchMap, mergeMap, toArray, map } from 'rxjs/operators';
 import { forkJoin, from, Observable, of, throwError } from 'rxjs';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import {
@@ -49,7 +49,6 @@ export class StockEntryPoliciesService {
               payload,
               payload.stock_entry_type,
               settings,
-              clientHttpRequest,
             );
           }),
           switchMap(() => {
@@ -91,7 +90,7 @@ export class StockEntryPoliciesService {
         return of(true);
       }),
       toArray(),
-      switchMap(success => of(true)),
+      switchMap(() => of(true)),
     );
   }
 
@@ -368,7 +367,6 @@ export class StockEntryPoliciesService {
     payload: StockEntryDto,
     stock_entry_type: string,
     settings,
-    clientHttpRequest,
   ) {
     return from(payload.items).pipe(
       mergeMap(item => {
@@ -431,7 +429,7 @@ export class StockEntryPoliciesService {
         );
       }),
       toArray(),
-      switchMap(isValid => {
+      switchMap(() => {
         return of(true);
       }),
     );
@@ -508,42 +506,26 @@ export class StockEntryPoliciesService {
     return of(true);
   }
 
-  validateWarrantyStockEntry(payload: StockEntryDto) {
-    if (payload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-      return this.validateReturns(payload);
-    } else {
-      return this.validateWarrantyStockSerials(payload.items);
-    }
-  }
-
-  // check if the product is already returned
-  validateReturns(stockEntry: StockEntryDto) {
-    return from(
-      this.warrantyClaimService.findOne({ uuid: stockEntry.warrantyClaimUuid }),
-    ).pipe(
-      switchMap((res: any) => {
-        if (res.progress_state) {
-          // progress state exists means some action has been taken in warranty
-          return from(res.progress_state).pipe(
-            switchMap((data: any) => {
-              if (
-                (data.type === PROGRESS_STATUS.REPLACE ||
-                  data.type === PROGRESS_STATUS.UPGRADE) &&
-                data.stock_entry_type === STOCK_ENTRY_STATUS.delivered
-              ) {
-                return throwError(
-                  new BadRequestException(
-                    `Cannot Return already Returned Product.`,
-                  ),
-                );
-              } else {
-                return of(true);
-              }
-            }),
+  // check if the stock entry is valid
+  validateWarrantyStockEntry(uuid: string) {
+    return from(this.warrantyClaimService.findOne({ uuid })).pipe(
+      map(res => res?.progress_state),
+      switchMap(states => from(states)),
+      switchMap(state => {
+        // no condition for spare parts type
+        // if stock entry type of returned or delivered exists then throw error
+        if (
+          state.type !== PROGRESS_STATUS.SPARE_PARTS &&
+          (state.stock_entry_type === STOCK_ENTRY_STATUS.returned ||
+            state.stock_entry_type === STOCK_ENTRY_STATUS.delivered)
+        ) {
+          return throwError(
+            new BadRequestException(
+              `Stock Entry already exists. Cannot create a duplicate entry.`,
+            ),
           );
-        } else {
-          return of(true);
         }
+        return of(true);
       }),
     );
   }

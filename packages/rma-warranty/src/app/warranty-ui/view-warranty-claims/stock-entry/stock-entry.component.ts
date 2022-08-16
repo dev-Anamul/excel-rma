@@ -3,7 +3,11 @@ import { WarrantyClaimsDetails } from '../../../common/interfaces/warranty.inter
 import { StockEntryService } from '../../view-warranty-claims/stock-entry/services/stock-entry/stock-entry.service';
 import { StockEntryListDataSource } from './stock-entry-datasource';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CLOSE } from '../../../constants/app-string';
+import {
+  CLOSE,
+  STOCK_ENTRY_ITEM_TYPE,
+  STOCK_ENTRY_STATUS,
+} from '../../../constants/app-string';
 import { LoadingController } from '@ionic/angular';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -25,7 +29,7 @@ export class StockEntryComponent implements OnInit {
   warrantyClaimUuid: string = '';
   dataSource: StockEntryListDataSource;
   permissionState = PERMISSION_STATE;
-  active: boolean;
+  showAddButton: boolean = true;
   displayedColumns = [
     'stock_voucher_number',
     'claim_no',
@@ -46,7 +50,7 @@ export class StockEntryComponent implements OnInit {
   ) {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(val => {
+      .subscribe(() => {
         this.dataSource.loadItems(undefined, undefined, undefined, {
           warrantyClaimUuid: this.route.snapshot.params.uuid,
         });
@@ -59,6 +63,7 @@ export class StockEntryComponent implements OnInit {
       .subscribe({
         next: res => {
           this.warrantyObject = res;
+          this.hideAddStockEntryButton();
         },
       });
     this.warrantyClaimUuid = this.warrantyObject?.uuid;
@@ -66,6 +71,24 @@ export class StockEntryComponent implements OnInit {
     this.dataSource.loadItems(undefined, undefined, undefined, {
       warrantyClaimUuid: this.warrantyClaimUuid,
     });
+  }
+
+  hideAddStockEntryButton() {
+    if (
+      // if there exists one return entry and one delivered entry in REPLACE or UPGRADE then hide add button
+      this.warrantyObject?.progress_state?.find(
+        state =>
+          state?.type !== STOCK_ENTRY_STATUS.REPAIR &&
+          state?.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.DELIVERED,
+      ) &&
+      this.warrantyObject?.progress_state?.find(
+        state =>
+          state?.type !== STOCK_ENTRY_STATUS.REPAIR &&
+          state?.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED,
+      )
+    ) {
+      this.showAddButton = false;
+    }
   }
 
   getUpdate(event) {
