@@ -15,7 +15,6 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { PERMISSION_STATE } from '../../../constants/permission-roles';
 import { AddServiceInvoiceService } from '../../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
 import { filter } from 'rxjs/operators';
-import { VERDICT } from '../../../../../../rma-server/src/constants/app-strings';
 
 @Component({
   selector: 'stock-entry',
@@ -76,20 +75,17 @@ export class StockEntryComponent implements OnInit {
 
   hideAddStockEntryButton() {
     if (
-      this.warrantyObject?.status_history[
-        this.warrantyObject?.status_history?.length - 1
-      ]?.verdict === VERDICT.DELIVER_TO_CUSTOMER ||
       // if there exists one return entry and one delivered entry in REPLACE or UPGRADE then hide add button
-      (this.warrantyObject?.progress_state?.find(
+      this.warrantyObject?.progress_state?.find(
         state =>
           state?.type !== STOCK_ENTRY_STATUS.REPAIR &&
           state?.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.DELIVERED,
       ) &&
-        this.warrantyObject?.progress_state?.find(
-          state =>
-            state?.type !== STOCK_ENTRY_STATUS.REPAIR &&
-            state?.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED,
-        ))
+      this.warrantyObject?.progress_state?.find(
+        state =>
+          state?.type !== STOCK_ENTRY_STATUS.REPAIR &&
+          state?.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED,
+      )
     ) {
       this.showAddButton = false;
     }
