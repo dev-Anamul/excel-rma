@@ -515,7 +515,7 @@ export class StockEntryPoliciesService {
         // no condition for spare parts type
         // if stock entry type of returned or delivered exists then throw error
         if (
-          state.type != PROGRESS_STATUS.SPARE_PARTS &&
+          state.type !== PROGRESS_STATUS.SPARE_PARTS &&
           (state.stock_entry_type === STOCK_ENTRY_STATUS.returned ||
             state.stock_entry_type === STOCK_ENTRY_STATUS.delivered)
         ) {

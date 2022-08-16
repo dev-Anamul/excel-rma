@@ -82,12 +82,12 @@ export class StockEntryComponent implements OnInit {
       // if there exists one return entry and one delivered entry in REPLACE or UPGRADE then hide add button
       (this.warrantyObject?.progress_state?.find(
         state =>
-          state?.type != STOCK_ENTRY_STATUS.REPAIR &&
+          state?.type !== STOCK_ENTRY_STATUS.REPAIR &&
           state?.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.DELIVERED,
       ) &&
         this.warrantyObject?.progress_state?.find(
           state =>
-            state?.type != STOCK_ENTRY_STATUS.REPAIR &&
+            state?.type !== STOCK_ENTRY_STATUS.REPAIR &&
             state?.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED,
         ))
     ) {
