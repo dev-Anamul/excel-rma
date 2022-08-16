@@ -34,13 +34,13 @@ export class StockEntryPoliciesService {
     private readonly serialNoPolicy: SerialNoPoliciesService,
     private readonly agendaJob: AgendaJobService,
     private readonly settings: SettingsService,
-    private serialNoHistoryPolicyService: SerialNoHistoryPoliciesService,
+    private readonly serialNoHistoryPolicyService: SerialNoHistoryPoliciesService,
     private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   validateStockEntry(payload: StockEntryDto, clientHttpRequest) {
     return this.validateStockEntryItems(payload).pipe(
-      switchMap(done => {
+      switchMap(() => {
         return this.settings.find().pipe(
           switchMap(settings => {
             return this.validateStockSerials(
@@ -507,9 +507,34 @@ export class StockEntryPoliciesService {
   }
 
   validateWarrantyStockEntry(payload: StockEntryDto) {
-    return this.validateWarrantyStockSerials(payload.items);
+    if (payload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+      return this.validateReturns(payload);
+    } else {
+      return this.validateWarrantyStockSerials(payload.items);
+    }
   }
 
+  // check if the product is already returned
+  validateReturns(stockEntry: StockEntryDto) {
+    return from(
+      this.serialNoService.findOne({
+        serial_no: stockEntry.items[0].serial_no[0],
+      }),
+    ).pipe(
+      switchMap(res => {
+        // if the product has delivery note that means it is already sold or delivered to a customer
+        if (res.delivery_note) {
+          return throwError(
+            new BadRequestException(`Cannot Return already Returned Product.`),
+          );
+        } else {
+          return of(true);
+        }
+      }),
+    );
+  }
+
+  // check if the product is in stock
   validateWarrantyStockSerials(items: StockEntryItemDto[]) {
     return from(items).pipe(
       mergeMap(item => {
@@ -556,7 +581,7 @@ export class StockEntryPoliciesService {
         );
       }),
       toArray(),
-      switchMap(isValid => {
+      switchMap(() => {
         return of(true);
       }),
     );

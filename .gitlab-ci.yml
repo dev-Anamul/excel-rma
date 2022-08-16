@@ -124,7 +124,6 @@ pack_rma_server_staging:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -140,7 +139,6 @@ pack_rma_frontend_staging:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -156,7 +154,6 @@ pack_rma_warranty_staging:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-warranty/**/*
   before_script:
@@ -172,7 +169,6 @@ pack_rma_pos_staging:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-pos/**/*
   before_script:
@@ -188,13 +184,12 @@ deploy_staging_frontend:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-frontend/**/*
   before_script:
     - apk add curl bash
   script:
-    - curl -Ss -X POST "https://stag-portainer.excelbd.com/api/webhooks/70e23fb7-ed86-41a0-8655-4f7b01af8d9c"
+    - curl -Ss -X POST $FRONTEND_UPDATE_KEY
 
 deploy_staging_pos:
   image: alpine:latest
@@ -202,13 +197,12 @@ deploy_staging_pos:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-pos/**/*
   before_script:
     - apk add curl bash
   script:
-    - curl -Ss -X POST "https://stag-portainer.excelbd.com/api/webhooks/3d064864-6fc0-49a1-8a47-8e3a2c327dea"
+    - curl -Ss -X POST $POS_UPDATE_KEY
 
 deploy_staging_server:
   image: alpine:latest
@@ -216,13 +210,12 @@ deploy_staging_server:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-server/**/*
   before_script:
     - apk add curl bash
   script:
-    - curl -Ss -X POST "https://stag-portainer.excelbd.com/api/webhooks/cd19ee0b-8232-4e0d-867e-973b842787fb"
+    - curl -Ss -X POST $BACKEND_UPDATE_KEY
 
 deploy_staging_warranty:
   image: alpine:latest
@@ -230,14 +223,13 @@ deploy_staging_warranty:
   only:
     refs:
       - main
-      - excel-rma-develop
     changes:
       - packages/rma-warranty/**/*
   before_script:
     - apk add curl bash
   script:
-    - curl -Ss -X POST "https://stag-portainer.excelbd.com/api/webhooks/ac268400-41f8-47ce-a922-6a06d3880b60"
-
+    - curl -Ss -X POST $WARRANTY_UPDATE_KEY
+    
 pack_rma_server_prod:
   image: docker
   stage: pack

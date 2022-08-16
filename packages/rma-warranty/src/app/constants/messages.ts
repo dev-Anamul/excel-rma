@@ -1,4 +1,4 @@
-export const SALES_INVOICE_SUBMITTED = 'Sales Invoice successfully submited';
+export const SALES_INVOICE_SUBMITTED = 'Sales Invoice successfully submitted';
 export const ERROR_FETCHING_SALES_INVOICE =
   'Error fetching Sales Invoice - Code ';
 export const SERIAL_ASSIGNED = 'Serials successfully assigned ';
@@ -19,5 +19,5 @@ export const STATUS_HISTORY_ADD_FAILURE = 'Failed to add Status history';
 export const STATUS_HISTORY_REMOVE_FAILURE = 'Failed to remove Status history';
 export const STOCK_ENTRY_CREATE_FAILURE = 'Failed to create Stock Entry';
 export const DUPLICATE_SERIAL = 'Serial Already exists';
-export const STOCK_ENTRY_CREATED = 'stock entry created succesfully';
+export const STOCK_ENTRY_CREATED = 'Stock entry created successfully';
 export const ERROR_FETCHING_DETAILS = 'Failed to fetch product details';

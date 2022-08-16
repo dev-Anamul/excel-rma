@@ -106,10 +106,10 @@ export class SerialNoHistoryService {
       bufferCount(MONGO_INSERT_MANY_BATCH_NUMBER),
       concatMap(data => {
         return from(this.insertMany(data, { ordered: false })).pipe(
-          switchMap(success => of(true)),
+          switchMap(() => of(true)),
         );
       }),
-      switchMap(success => {
+      switchMap(() => {
         return of(true);
       }),
     );
