@@ -75,7 +75,7 @@ export interface SerialNo {
   rate?: number;
   amount?: number;
   serial_no?: string[];
-  item_name?:string;
+  item_name?: string;
   has_serial_no?: number;
 }
 

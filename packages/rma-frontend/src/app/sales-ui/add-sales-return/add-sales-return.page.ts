@@ -603,8 +603,14 @@ export class AddSalesReturnPage implements OnInit {
     salesReturn.posting_date = this.getParsedDate(
       this.postingDateFormControl.value,
     );
-    var today = new Date();
-    salesReturn.posting_time = today.getHours()+1 + ":" + today.getMinutes() + ":" + today.getSeconds();;
+    const today = new Date();
+    salesReturn.posting_time =
+      today.getHours() +
+      1 +
+      ':' +
+      today.getMinutes() +
+      ':' +
+      today.getSeconds();
     salesReturn.set_warehouse = this.warehouseFormControl.value;
     salesReturn.delivery_note_names = this.deliveryNoteNames;
     salesReturn.credit_note_items = credit_note_items?.length
