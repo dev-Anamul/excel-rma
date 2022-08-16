@@ -40,6 +40,7 @@
         <ion-list>
           <ion-menu-toggle auto-hide="false">
             <ion-item
+              button
               routerDirection="'root'"
               *ngIf="!loggedIn"
               routerLink="/"
@@ -54,6 +55,7 @@
 
           <ion-menu-toggle auto-hide="false">
             <ion-item
+              button
               routerDirection="'root'"
               *ngIf="loggedIn"
               routerLink="/home"
@@ -64,8 +66,10 @@
               <ion-label>Home</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
           <ion-menu-toggle auto-hide="false">
             <ion-item
+              button
               *ngIf="loggedIn"
               routerLink="/warranty"
               lines="none"
@@ -75,8 +79,10 @@
               <ion-label>Warranty</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
           <ion-menu-toggle auto-hide="false">
             <ion-item
+              button
               *ngIf="loggedIn"
               routerLink="/service-invoice"
               lines="none"
@@ -86,8 +92,10 @@
               <ion-label>Service Invoice</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
           <ion-menu-toggle auto-hide="false">
             <ion-item
+              button
               *ngIf="loggedIn"
               routerLink="/balance-summary"
               lines="none"
@@ -97,8 +105,10 @@
               <ion-label>Stock Balance Summary</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
           <ion-menu-toggle auto-hide="false">
             <ion-item
+              button
               *ngIf="loggedIn"
               routerLink="/serial-search"
               lines="none"
@@ -108,8 +118,10 @@
               <ion-label>Serial Search</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
           <ion-menu-toggle auto-hide="false">
             <ion-item
+              button
               *ngIf="loggedIn"
               (click)="openSalesPortal()"
               lines="none"
@@ -119,7 +131,9 @@
               <ion-label>Sales Portal</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
           <ion-item
+            button
             routerDirection="'root'"
             routerLink="/"
             *ngIf="loggedIn"

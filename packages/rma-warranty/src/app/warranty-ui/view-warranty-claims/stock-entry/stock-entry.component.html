@@ -26,14 +26,9 @@
           >
             Finalize Stock Entry
           </ion-button>
+
           <ion-button
-            *ngIf="
-              !(
-                warrantyObject?.status_history[
-                  warrantyObject?.status_history.length - 1
-                ]?.verdict === 'Deliver to Customer'
-              )
-            "
+            *ngIf="showAddButton"
             color="tertiary"
             [routerLink]="['/warranty/stock-entry', 'new', warrantyClaimUuid]"
           >

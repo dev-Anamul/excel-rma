@@ -94,11 +94,13 @@ export class AddStockEntryPage implements OnInit {
       .subscribe({
         next: res => {
           this.warrantyObject = res;
-          // if there is a replace product then remove REPLACE option
-          if (this.warrantyObject.replace_product) {
+          // show only those entry types which are in progress
+          if (this.warrantyObject?.progress_state?.length) {
             this.type = Object.keys(STOCK_ENTRY_STATUS)
               .filter(
-                value => value !== STOCK_ENTRY_STATUS.REPLACE.toUpperCase(),
+                value =>
+                  value ===
+                  this.warrantyObject.progress_state[0].type.toUpperCase(),
               )
               .map(key => STOCK_ENTRY_STATUS[key]);
           } else {

@@ -492,7 +492,7 @@ export class AddWarrantyClaimPage implements OnInit {
     warrantyClaimDetails.third_party_address = this.f.third_party_address.value;
     warrantyClaimDetails.customer = this.f.customer_name.value.customer_name;
     warrantyClaimDetails.warranty_claim_date = this.f.received_on.value;
-    warrantyClaimDetails.customer_code = this.f.customer.value.name;
+    warrantyClaimDetails.customer_code = this.f.customer_name.value.name;
     warrantyClaimDetails.serial_no = this.f.serial_no.value;
     warrantyClaimDetails.invoice_no = this.f.invoice_no.value;
     warrantyClaimDetails.warranty_end_date = this.f.warranty_end_date.value;
