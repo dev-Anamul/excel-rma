@@ -77,7 +77,7 @@ export class StockEntryComponent implements OnInit {
   hideAddStockEntryButton() {
     if (
       this.warrantyObject?.status_history[
-        this.warrantyObject?.status_history.length - 1
+        this.warrantyObject?.status_history?.length - 1
       ]?.verdict === VERDICT.DELIVER_TO_CUSTOMER ||
       // if there exists one return entry and one delivered entry in REPLACE or UPGRADE then hide add button
       (this.warrantyObject?.progress_state?.find(
