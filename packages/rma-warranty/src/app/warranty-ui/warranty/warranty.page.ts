@@ -81,6 +81,10 @@ export class WarrantyPage implements OnInit {
     'Rejected',
     'All',
   ];
+  dateType: string[] = [
+    'Recieved Date',
+    'Delivery Date',
+  ];
   validateInput: any = ValidateInputSelected;
   warrantyForm: FormGroup;
 
@@ -172,6 +176,7 @@ export class WarrantyPage implements OnInit {
       replace_serial: new FormControl(''),
       received_by: new FormControl(''),
       delivered_by: new FormControl(''),
+      date_type: new FormControl(''),
       fromDate: new FormControl(''),
       toDate: new FormControl(''),
       singleDate: new FormControl(''),
@@ -195,13 +200,14 @@ export class WarrantyPage implements OnInit {
     if (this.f.received_by.value) query.received_by = this.f.received_by.value;
     if (this.f.delivered_by.value)
       query.delivered_by = this.f.delivered_by.value;
-
     if (this.f.fromDate.value && this.f.toDate.value) {
+      query.date_type = this.f.date_type.value;
       query.fromDate = new Date(this.f.fromDate.value).setHours(0, 0, 0, 0);
       query.toDate = new Date(this.f.toDate.value).setHours(23, 59, 59, 59);
     }
 
     if (this.f.singleDate.value) {
+      query.date_type = this.f.date_type.value;
       query.fromDate = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
       query.toDate = new Date(this.f.singleDate.value).setHours(23, 59, 59, 59);
     }
@@ -244,11 +250,13 @@ export class WarrantyPage implements OnInit {
       query.delivered_by = this.f.delivered_by.value;
 
     if (this.f.fromDate.value && this.f.toDate.value) {
+      query.date_type = this.f.date_type.value;
       query.fromDate = new Date(this.f.fromDate.value).setHours(0, 0, 0, 0);
       query.toDate = new Date(this.f.toDate.value).setHours(23, 59, 59, 59);
     }
 
     if (this.f.singleDate.value) {
+      query.date_type = this.f.date_type.value;
       query.fromDate = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
       query.toDate = new Date(this.f.singleDate.value).setHours(23, 59, 59, 59);
     }
@@ -315,6 +323,7 @@ export class WarrantyPage implements OnInit {
     this.f.toDate.setValue('');
     this.f.singleDate.setValue('');
     this.f.replace_serial.setValue('');
+    this.f.date_type.setValue('');
     this.paginator.pageSize = 30;
     this.paginator.firstPage();
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {

@@ -229,6 +229,20 @@
             </ion-col>
           </ion-row>
           <ion-row>
+            <ion-col>
+              <mat-form-field appearance="fill">
+                <mat-label>Date type</mat-label>
+                <mat-select
+                  formControlName="date_type" 
+                >
+                  <mat-option *ngFor="let date of dateType" 
+                    [value]="date"
+                    >
+                    {{date}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ion-col>
             <ion-col class="ion-text-center">
               <ion-text color="medium" class="date-filter-text">
                 Range Date
