@@ -55,10 +55,10 @@ export class WarrantyStockEntryAggregateService {
         return forkJoin({
           deliveryNote: of(singleDeliveryNote),
           validStockEntry: this.stockEntryPoliciesService.validateWarrantyStockEntry(
-            warrantyPayload.warrantyClaimUuid,
+            warrantyPayload,
           ),
           validSerials: this.stockEntryPoliciesService.validateWarrantyStockSerials(
-            warrantyPayload.items,
+            warrantyPayload,
           ),
           warrantyPayload: of(warrantyPayload),
           settings: this.settingService.find(),
