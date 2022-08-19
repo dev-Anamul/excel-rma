@@ -3,12 +3,9 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import {
-  StockEntryDto,
-  StockEntryItemDto,
-} from '../../entities/stock-entry-dto';
+import { StockEntryDto } from '../../entities/stock-entry-dto';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
-import { switchMap, mergeMap, toArray, map } from 'rxjs/operators';
+import { switchMap, mergeMap, toArray } from 'rxjs/operators';
 import { forkJoin, from, Observable, of, throwError } from 'rxjs';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import {
@@ -40,7 +37,7 @@ export class StockEntryPoliciesService {
     private readonly warrantyClaimService: WarrantyClaimService,
   ) {}
 
-  validateStockEntry(payload: StockEntryDto, clientHttpRequest) {
+  validateStockEntry(payload: StockEntryDto) {
     return this.validateStockEntryItems(payload).pipe(
       switchMap(() => {
         return this.settings.find().pipe(
@@ -57,7 +54,7 @@ export class StockEntryPoliciesService {
             ) {
               return of(true);
             }
-            return this.validateItemStock(payload, clientHttpRequest);
+            return this.validateItemStock(payload);
           }),
         );
       }),
@@ -142,9 +139,9 @@ export class StockEntryPoliciesService {
     return permissions.some(p => req.token.roles.indexOf(p) >= 0);
   }
 
-  validateItemStock(payload: StockEntryDto, req) {
+  validateItemStock(payload: StockEntryDto) {
     return this.settings.find().pipe(
-      switchMap(settings => {
+      switchMap(() => {
         if (payload?.items?.length === 0) {
           return of(true);
         }
@@ -185,7 +182,7 @@ export class StockEntryPoliciesService {
         );
       }),
       toArray(),
-      switchMap(success => of(true)),
+      switchMap(() => of(true)),
     );
   }
 
@@ -236,7 +233,7 @@ export class StockEntryPoliciesService {
           validateSerialState: this.validateSerialState(stockEntry),
           validateSerials: this.validateMaterialReceiptSerials(stockEntry),
           validateQueueState: this.validateStockEntryQueue(stockEntry),
-        }).pipe(switchMap(valid => of(stockEntry)));
+        }).pipe(switchMap(() => of(stockEntry)));
     }
   }
 
@@ -245,7 +242,7 @@ export class StockEntryPoliciesService {
       validateSerialState: this.validateSerialState(stockEntry),
       validateSerials: this.validateMaterialReceiptSerials(stockEntry),
     }).pipe(
-      switchMap(valid => {
+      switchMap(() => {
         return of(stockEntry);
       }),
     );
@@ -256,7 +253,7 @@ export class StockEntryPoliciesService {
       validateSerialState: this.validateSerialState(stockEntry),
       validateSerials: this.validateMaterialIssueSerials(stockEntry),
     }).pipe(
-      switchMap(valid => {
+      switchMap(() => {
         return of(stockEntry);
       }),
     );
@@ -417,7 +414,7 @@ export class StockEntryPoliciesService {
             ) {
               return count === item.serial_no.length
                 ? of(true)
-                : this.getDeliveryNoteInvalidSerials(item, count);
+                : this.getDeliveryNoteInvalidSerials(item);
             }
             if (stock_entry_type === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT) {
               return count === 0
@@ -435,7 +432,7 @@ export class StockEntryPoliciesService {
     );
   }
 
-  getDeliveryNoteInvalidSerials(item, count) {
+  getDeliveryNoteInvalidSerials(item) {
     return this.serialNoPolicy
       .validateSerials({
         item_code: item.item_code,
@@ -506,18 +503,19 @@ export class StockEntryPoliciesService {
     return of(true);
   }
 
-  // check if the stock entry is valid
-  validateWarrantyStockEntry(uuid: string) {
-    return from(this.warrantyClaimService.findOne({ uuid })).pipe(
-      map(res => res?.progress_state),
-      switchMap(states => from(states)),
-      switchMap(state => {
-        // no condition for spare parts type
-        // if stock entry type of returned or delivered exists then throw error
+  // check for duplication of stock entry
+  validateWarrantyStockEntry(payload: StockEntryDto) {
+    return from(
+      this.warrantyClaimService.findOne({ uuid: payload.warrantyClaimUuid }),
+    ).pipe(
+      switchMap(res => {
         if (
-          state.type !== PROGRESS_STATUS.SPARE_PARTS &&
-          (state.stock_entry_type === STOCK_ENTRY_STATUS.returned ||
-            state.stock_entry_type === STOCK_ENTRY_STATUS.delivered)
+          // if duplicate stock entry type found then throw error
+          res?.progress_state?.find(
+            state =>
+              state.stock_entry_type === payload.stock_entry_type &&
+              state.type !== PROGRESS_STATUS.SPARE_PARTS,
+          )
         ) {
           return throwError(
             new BadRequestException(
@@ -531,9 +529,14 @@ export class StockEntryPoliciesService {
   }
 
   // check if the product is in stock
-  validateWarrantyStockSerials(items: StockEntryItemDto[]) {
-    return from(items).pipe(
+  validateWarrantyStockSerials(payload: StockEntryDto) {
+    return from(payload.items).pipe(
       mergeMap(item => {
+        // if the product is of returned type then no need to check in warehouse
+        if (payload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+          return of(true);
+        }
+        // if product has no serial return true
         if (!item.has_serial_no) {
           return of(true);
         }
