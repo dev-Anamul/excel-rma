@@ -77,6 +77,13 @@ export class ItemController {
     return await this.aggregate.getBundleItems(query);
   }
 
+  @Get('v1/brand_list')
+  @UseGuards(TokenGuard)
+  async getBrand(){
+    var newArr= await this.aggregate.getBrandList();
+    return Object.values(newArr).slice(1,24)
+  }
+
   @Get('v1/list')
   @UseGuards(TokenGuard)
   async getItemList(
@@ -93,6 +100,8 @@ export class ItemController {
       new RetrieveItemListQuery(offset, limit, sort, search, clientHttpRequest),
     );
   }
+
+
 
   @Roles(SYSTEM_MANAGER)
   @Post('v1/set_minimum_item_price/:uuid')

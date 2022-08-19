@@ -100,9 +100,9 @@ export class StockEntryAggregateService {
           )
           .pipe(
             switchMap(() =>
-              this.stockEntryPolicies.validateStockEntry(payload, req),
+              this.stockEntryPolicies.validateStockEntry(payload),
             ),
-            switchMap(valid => {
+            switchMap(() => {
               return from(
                 this.stockEntryService.updateOne(
                   { uuid: payload.uuid },
@@ -114,7 +114,7 @@ export class StockEntryAggregateService {
                 ),
               );
             }),
-            switchMap(valid => {
+            switchMap(() => {
               return from(
                 this.stockEntryService.findOne({ uuid: payload.uuid }),
               );
@@ -193,7 +193,7 @@ export class StockEntryAggregateService {
                     }),
                   );
                 }),
-                switchMap(success => {
+                switchMap(() => {
                   return of(stockEntry);
                 }),
               );

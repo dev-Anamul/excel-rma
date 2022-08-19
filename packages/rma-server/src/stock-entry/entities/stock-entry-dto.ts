@@ -15,7 +15,7 @@ export class StockEntryDto {
   @IsString()
   uuid?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   type: string;
 
