@@ -26,6 +26,7 @@ import {
   LIST_ITEMS_ENDPOINT,
   RELAY_LIST_PRINT_FORMAT_ENDPOINT,
   PRINT_SALES_INVOICE_PDF_METHOD,
+  LIST_BRAND_ENDPOINT,
 } from '../../constants/url-strings';
 import { APIResponse, Item } from '../../common/interfaces/sales.interface';
 import { of } from 'rxjs';
@@ -104,7 +105,6 @@ export class WarrantyService {
       .set('sort', sortOrder)
       .set('filter_query', JSON.stringify(query))
       .set('territories', JSON.stringify(territory));
-
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.get<APIResponse>(url, {
@@ -163,6 +163,18 @@ export class WarrantyService {
     );
   }
 
+  getBrandList(){
+    const url = LIST_BRAND_ENDPOINT;
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<APIResponse>(url, {
+          headers,
+        })
+      }),
+      map(res => res.docs)
+    );
+
+  }
   getItemList(
     filter: any = {},
     sortOrder: any = { item_name: 'asc' },

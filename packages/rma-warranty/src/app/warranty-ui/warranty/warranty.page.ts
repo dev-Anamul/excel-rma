@@ -69,6 +69,7 @@ export class WarrantyPage implements OnInit {
   ];
   claimList;
   filteredCustomerList: Observable<any[]>;
+  filteredBrandList: Observable<any[]>;
   filteredProductList: Observable<any[]>;
   filteredTerritoryList: Observable<any[]>;
   sortQuery: any = {};
@@ -139,6 +140,12 @@ export class WarrantyPage implements OnInit {
           return this.warrantyService.getCustomerList(value);
         }),
       );
+
+      
+       this.warrantyService.getBrandList().subscribe((data)=>{debugger});
+       console.log(this.filteredBrandList)
+    
+
     this.filteredProductList = this.warrantyForm
       .get('product')
       .valueChanges.pipe(
@@ -165,6 +172,7 @@ export class WarrantyPage implements OnInit {
       claim_no: new FormControl(''),
       third_party_name: new FormControl(''),
       product: new FormControl(''),
+      brand: new FormControl(''),
       claim_status: new FormControl(''),
       claim_type: new FormControl(''),
       territory: new FormControl(''),
@@ -185,7 +193,8 @@ export class WarrantyPage implements OnInit {
     if (this.f.claim_no.value) query.claim_no = this.f.claim_no.value;
     if (this.f.third_party_name.value)
       query.third_party_name = this.f.third_party_name.value;
-    if (this.f.product.value) query.item_name = this.f.product.value.item_name;
+    if (this.f.product.value) query.brand = 'TP-LINK'
+    console.log("inside",query)
     if (this.claim_status) query.claim_status = this.claim_status;
     if (this.f.claim_type.value) query.claim_type = this.f.claim_type.value;
     if (this.f.territory.value) query.receiving_branch = this.f.territory.value;
@@ -233,7 +242,7 @@ export class WarrantyPage implements OnInit {
     if (this.f.third_party_name.value)
       query.third_party_name = this.f.third_party_name.value;
     if (this.claim_status) query.claim_status = this.claim_status;
-    if (this.f.product.value) query.item_name = this.f.product.value.item_name;
+    if (this.f.product.value) query.brand = 'TP-LINK';
     if (this.f.claim_type.value) query.claim_type = this.f.claim_type.value;
     if (this.f.territory.value) query.receiving_branch = this.f.territory.value;
     if (this.f.serial_no.value) query.serial_no = this.f.serial_no.value;
@@ -329,6 +338,9 @@ export class WarrantyPage implements OnInit {
 
   getCustomerOption(option) {
     return option.customer_name;
+  }
+  getBrandOption(option) {
+    return option;
   }
 
   getProductOption(option) {
