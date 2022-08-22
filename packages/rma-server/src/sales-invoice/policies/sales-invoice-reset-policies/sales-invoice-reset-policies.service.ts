@@ -130,8 +130,7 @@ export class SalesInvoiceResetPoliciesService {
           if (response?.length === 0) {
             return of(true);
           }
-          let message = `Found ${response.length} Events, please cancel Following events for serials
-        `;
+          let message = `Found ${response.length} Events, please cancel Following events for serials`;
           response.forEach(value =>
             value
               ? (message += `${value._id} : ${value.serials
