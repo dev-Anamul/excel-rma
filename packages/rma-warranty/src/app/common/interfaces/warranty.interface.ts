@@ -249,6 +249,7 @@ export class StockEntryDetails {
   items?: StockItem[];
   set_warehouse?: string;
   is_return?: number;
+  naming_series?: string;
 }
 
 export class StockItem {
