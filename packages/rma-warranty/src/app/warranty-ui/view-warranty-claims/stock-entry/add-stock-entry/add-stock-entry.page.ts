@@ -61,7 +61,6 @@ export class AddStockEntryPage implements OnInit {
     'delete',
   ];
   permissionState = PERMISSION_STATE;
-  stockEntryType: Array<string> = Object.values(STOCK_ENTRY_ITEM_TYPE);
 
   get f() {
     return this.stockEntryForm.controls;
@@ -100,7 +99,9 @@ export class AddStockEntryPage implements OnInit {
               .filter(
                 value =>
                   value ===
-                  this.warrantyObject.progress_state[0].type.toUpperCase(),
+                  this.warrantyObject.progress_state[0].type
+                    .toUpperCase()
+                    .replace(' ', '_'),
               )
               .map(key => STOCK_ENTRY_STATUS[key]);
           } else {
