@@ -12,6 +12,7 @@ export class WarrantyStockEntryDto {
   docstatus?: 1;
   uuid?: string;
   naming_series?: string;
+  action?: string;
 
   @IsOptional()
   @IsString()

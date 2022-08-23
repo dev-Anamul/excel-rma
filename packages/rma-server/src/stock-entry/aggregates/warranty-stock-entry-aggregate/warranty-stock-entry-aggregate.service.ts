@@ -240,10 +240,20 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.name = uuidv4();
             stockPayload.modified = date;
             stockPayload.modified_by = token.email;
-            if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-              stockPayload.actual_qty = item.qty;
-            } else {
-              stockPayload.actual_qty = -item.qty;
+
+            if(res.action === "CANCEL"){
+              if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+                stockPayload.actual_qty = -item.qty;
+              } else {
+                stockPayload.actual_qty = item.qty;
+              }  
+            }
+            else{
+              if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+                stockPayload.actual_qty = item.qty;
+              } else {
+                stockPayload.actual_qty = -item.qty;
+              }
             }
             stockPayload.warehouse = item.warehouse
               ? item.warehouse
@@ -638,6 +648,7 @@ export class WarrantyStockEntryAggregateService {
           return this.settingService.find();
         }),
         switchMap(settings => {
+          stockEntry.action = "CANCEL";
           return this.createStockLedger(stockEntry, req.token, settings);
         }),
       );
