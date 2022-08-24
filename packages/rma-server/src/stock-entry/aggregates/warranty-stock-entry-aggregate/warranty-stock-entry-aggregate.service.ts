@@ -255,9 +255,7 @@ export class WarrantyStockEntryAggregateService {
                 stockPayload.actual_qty = -item.qty;
               }
             }
-            stockPayload.warehouse = item.warehouse
-              ? item.warehouse
-              : item.s_warehouse;
+            stockPayload.warehouse = item.s_warehouse? item.s_warehouse: item.warehouse;
             stockPayload.item_code = item.item_code;
             stockPayload.valuation_rate = 0;
             stockPayload.batch_no = '';
