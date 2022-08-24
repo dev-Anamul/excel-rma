@@ -139,7 +139,7 @@ export class WarrantyService {
     return from(this.storage.getItem(AUTH_SERVER_URL));
   }
 
-  getCustomerList(
+ getCustomerList(
     filter = '',
     sortOrder = 'asc',
     pageNumber = 0,
@@ -169,9 +169,9 @@ export class WarrantyService {
       switchMap(headers => {
         return this.http.get<APIResponse>(url, {
           headers,
-        })
+        });
       }),
-      map(res => res.docs)
+      map(res => res),
     );
 
   }

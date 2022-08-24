@@ -141,15 +141,15 @@
                   (optionSelected)="setFilter()"
                 >
                   <mat-option
-                    *ngFor="let option of filteredBrandList | async"
+                    *ngFor="let option of filteredBrandList"
                     [value]="option"
                   >
                     {{option}}
                   </mat-option>
                 </mat-autocomplete>
-                <mat-error *ngIf="f.product.hasError('falseValse')">
+                <mat-error *ngIf="f.brand.hasError('falseValse')">
                   You should select a value from dropdown only.
-                  <strong>'{{f.product.value}}'</strong> is not allowed.
+                  <strong>'{{f.brand.value}}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>

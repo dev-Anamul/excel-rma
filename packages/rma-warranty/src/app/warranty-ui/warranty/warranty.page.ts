@@ -68,8 +68,10 @@ export class WarrantyPage implements OnInit {
     'remarks',
   ];
   claimList;
+  bulkFlag: boolean=false
   filteredCustomerList: Observable<any[]>;
-  filteredBrandList: Observable<any[]>;
+  filteredBrandList: any;
+  filteredBrand: any=[];
   filteredProductList: Observable<any[]>;
   filteredTerritoryList: Observable<any[]>;
   sortQuery: any = {};
@@ -144,11 +146,15 @@ export class WarrantyPage implements OnInit {
           return this.warrantyService.getCustomerList(value);
         }),
       );
-
-      
-       this.warrantyService.getBrandList().subscribe((data)=>{debugger});
-       console.log(this.filteredBrandList)
-    
+      this.warrantyService.getBrandList().subscribe(data=>{
+        this.filteredBrandList=data
+      })
+      this.warrantyForm.get('brand').valueChanges.subscribe(newValue=>{
+        this.warrantyService.getBrandList().subscribe((data) =>{
+          this.filteredBrand = data
+          this.filteredBrandList = this.filterBrand(newValue);
+        });
+      }) 
 
     this.filteredProductList = this.warrantyForm
       .get('product')
@@ -168,6 +174,13 @@ export class WarrantyPage implements OnInit {
             .getItemAsync('territory', value);
         }),
       );
+  }
+
+  filterBrand(name){
+    if(this.filteredBrand){
+      return this.filteredBrand.filter(value=>
+        value.toLowerCase().indexOf(name.toLowerCase()) !== -1);
+    }
   }
 
   createFormGroup() {
@@ -192,14 +205,15 @@ export class WarrantyPage implements OnInit {
   }
 
   getUpdate(event?) {
+    console.log(event)
     const query: any = {};
     if (this.f.customer_name.value)
       query.customer = this.f.customer_name.value.customer_name;
     if (this.f.claim_no.value) query.claim_no = this.f.claim_no.value;
     if (this.f.third_party_name.value)
       query.third_party_name = this.f.third_party_name.value;
-    if (this.f.product.value) query.brand = 'TP-LINK'
-    console.log("inside",query)
+    if (this.f.product.value) query.item_name = this.f.product.value.item_name;
+    if (this.f.brand.value) query.product_brand = this.f.brand.value;
     if (this.claim_status) query.claim_status = this.claim_status;
     if (this.f.claim_type.value) query.claim_type = this.f.claim_type.value;
     if (this.f.territory.value) query.receiving_branch = this.f.territory.value;
@@ -220,24 +234,35 @@ export class WarrantyPage implements OnInit {
       query.fromDate = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
       query.toDate = new Date(this.f.singleDate.value).setHours(23, 59, 59, 59);
     }
-
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
     this.sortQuery =
       Object.keys(this.sortQuery).length === 0
         ? { createdOn: 'desc' }
         : this.sortQuery;
-
-    this.dataSource.loadItems(
-      this.sortQuery,
-      this.paginator.pageIndex,
-      this.paginator.pageSize,
-      query,
-      {
-        territory: this.territoryList,
-        set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
-      },
-    );
+    if( this.bulkFlag==true){
+      this.dataSource.loadItems(
+        this.sortQuery,
+        this.paginator.pageIndex,
+        this.paginator.pageSize,
+        query,
+        {
+          territory: this.territoryList,
+          set: [CATEGORY.BULK],
+        },
+      );
+    } else {
+      this.dataSource.loadItems(
+        this.sortQuery,
+        this.paginator.pageIndex,
+        this.paginator.pageSize,
+        query,
+        {
+          territory: this.territoryList,
+          set: [ CATEGORY.SINGLE, CATEGORY.PART],
+        },
+      );
+    }
   }
 
   setFilter(event?) {
@@ -248,7 +273,8 @@ export class WarrantyPage implements OnInit {
     if (this.f.third_party_name.value)
       query.third_party_name = this.f.third_party_name.value;
     if (this.claim_status) query.claim_status = this.claim_status;
-    if (this.f.product.value) query.brand = 'TP-LINK';
+    if (this.f.product.value) query.item_name = this.f.product.value.item_name;
+    if (this.f.brand.value) query.product_brand = this.f.brand.value;
     if (this.f.claim_type.value) query.claim_type = this.f.claim_type.value;
     if (this.f.territory.value) query.receiving_branch = this.f.territory.value;
     if (this.f.serial_no.value) query.serial_no = this.f.serial_no.value;
@@ -288,6 +314,7 @@ export class WarrantyPage implements OnInit {
   }
 
   getBulkClaims() {
+    this.bulkFlag=true
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
       territory: this.territoryList,
       set: [CATEGORY.BULK],
@@ -322,6 +349,7 @@ export class WarrantyPage implements OnInit {
     this.f.claim_no.setValue('');
     this.f.third_party_name.setValue('');
     this.f.product.setValue('');
+    this.f.brand.setValue('');
     this.f.claim_status.setValue('');
     this.f.claim_type.setValue('');
     this.f.territory.setValue('');
@@ -339,6 +367,7 @@ export class WarrantyPage implements OnInit {
       territory: this.territoryList,
       set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
     });
+    this.bulkFlag=false
   }
 
   navigateBack() {
