@@ -486,23 +486,6 @@ export class StockEntryPoliciesService {
           switchMap(response => {
             let message = `Found ${response.length} Events, please cancel Following events for serials
       `;
-      const serials =[]
-      serials.push(serial_no)
-      this.serialNoService.updateMany(
-        {
-          serial_no: { $in: serials },
-        },
-        {
-          $unset: {
-            customer: undefined,
-            'warranty.salesWarrantyDate': undefined,
-            'warranty.soldOn': undefined,
-            delivery_note: undefined,
-            sales_invoice_name: undefined,
-            sales_return_name: undefined,
-          },
-        },
-      )
             response.forEach(value =>
               value
                 ? (message += `${value._id} : ${value.serials
@@ -510,9 +493,6 @@ export class StockEntryPoliciesService {
                     .join(', ')}`)
                 : null,
             );
-            // if (response && response.length) {
-            //   return throwError(message);
-            // }
             return of(true);
           }),
         );
