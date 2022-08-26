@@ -595,7 +595,7 @@ export class WarrantyStockEntryAggregateService {
           );
         }),
         switchMap(() => {
-          return this.revertStatusHistory(stockEntry.warrantyClaimUuid);
+          return this.revertStatusHistory(stockEntry.warrantyClaimUuid,stockEntry.customer, stockEntry.items[0]?.serial_no[0]);
         }),
         switchMap(() => {
           return from(
@@ -645,7 +645,11 @@ export class WarrantyStockEntryAggregateService {
       );
   }
 
-  revertStatusHistory(uuid: string) {
+  revertStatusHistory(uuid: string,customer:string, serial:any) {
+    this.serialNoHistoryService.deleteOne({
+      transaction_from: customer,
+      serial_no: serial
+    })
     return from(
       this.warrantyService.findOne({
         uuid,
