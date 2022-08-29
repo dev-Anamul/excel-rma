@@ -31,6 +31,9 @@ export class ServiceInvoice extends BaseEntity {
   invoice_amount: number;
 
   @Column()
+  outstanding_amount: number;
+
+  @Column()
   claim_no: string;
 
   @Column()

@@ -61,4 +61,5 @@ export class SerialHistory {
   parent_document: string;
   created_on: string;
   created_by: string;
+  naming_series: string;
 }

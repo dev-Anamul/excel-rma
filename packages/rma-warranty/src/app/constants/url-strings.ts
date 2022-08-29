@@ -14,6 +14,8 @@ export const LIST_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/list';
 export const UPDATE_OUTSTANDING_AMOUNT_ENDPOINT =
   'api/sales_invoice/v1/update_outstanding_amount/';
 export const SALES_INVOICE_GET_ONE_ENDPOINT = '/api/sales_invoice/v1/get/';
+export const SERVICE_INVOICE_GET_ONE_ENDPOINT = '/api/service_invoice/v1/servicePending';
+export const SERVICE_INVOICE_POST_ONE_ENDPOINT = '/api/service_invoice/v1/update_invoiceamount';
 export const CREATE_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/create';
 export const UPDATE_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/update';
 export const SUBMIT_SALES_INVOICE_ENDPOINT = 'api/sales_invoice/v1/submit';
@@ -166,3 +168,5 @@ export const UPDATE_DOCSTATUS_ENDPOINT =
   'api/service_invoice/v1/update_docstatus/';
 export const LOAD_FRAPPE_DOCUMENT_METHOD_ENDPOINT =
   '/api/command/user/api/method/frappe.desk.form.load.getdoc';
+
+export const INVOICE_LIST = '/api/serial_no/v1/invoicelist';

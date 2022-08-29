@@ -16,6 +16,7 @@
         >
           Sync Data
         </ion-button>
+
           <ion-button
             *ngIf="permissionState.service_invoice.create"
             color="tertiary"
@@ -69,7 +70,7 @@
 
         <ng-container matColumnDef="customer_third_party">
           <mat-header-cell *matHeaderCellDef
-            >Customer / Third Party</mat-header-cell
+            >Customer Party</mat-header-cell
           >
           <mat-cell *matCellDef="let row">
             <ng-container>
@@ -78,6 +79,8 @@
           </mat-cell>
           <mat-footer-cell *matFooterCellDef>Total</mat-footer-cell>
         </ng-container>
+
+
 
         <ng-container matColumnDef="invoice_amount">
           <mat-header-cell *matHeaderCellDef>Invoice Amount</mat-header-cell>

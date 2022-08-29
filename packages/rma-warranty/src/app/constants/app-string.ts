@@ -61,6 +61,7 @@ export const WARRANTY_CLAIMS_DOWNLOAD_HEADERS = [
   'verdict',
   'delivery_date',
   'billed_amount',
+  'outstanding_amount',
   'remarks',
 ];
 export const WARRANTY_CLAIMS_CSV_FILE = 'warranty-claim-list.csv';
@@ -105,7 +106,7 @@ export const ITEM_COLUMN = {
 export const STOCK_ENTRY_STATUS = {
   REPLACE: 'Replace',
   UPGRADE: 'Upgrade',
-  REPAIR: 'Spare Parts',
+  SPARE_PARTS: 'Spare Parts',
 };
 export const STOCK_ENTRY_ITEM_TYPE = {
   RETURNED: 'Returned',

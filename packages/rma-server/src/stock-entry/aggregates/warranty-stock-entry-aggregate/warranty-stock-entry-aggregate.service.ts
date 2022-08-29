@@ -13,6 +13,7 @@ import {
 } from '../../../constants/app-strings';
 import { v4 as uuidv4 } from 'uuid';
 import { DateTime } from 'luxon';
+
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { WarrantyStockEntryDto } from '../../entities/warranty-stock-entry-dto';
@@ -153,7 +154,7 @@ export class WarrantyStockEntryAggregateService {
       warranty: this.warrantyService.findOne(uuid),
       settingState: this.settingService.find(),
     }).pipe(
-      switchMap(claim => {
+      switchMap(claim  => {
         if (
           claim.warranty.status_history[
             claim.warranty.status_history.length - 1
@@ -163,6 +164,16 @@ export class WarrantyStockEntryAggregateService {
             new BadRequestException('Stock Entries Already Finalized'),
           );
         }
+        this.serialNoHistoryService.updateMany(
+          {
+            document_no: { $eq: claim.warranty.claim_no },
+          },
+          {
+            $set: {
+              eventType: VERDICT.DELIVER_TO_CUSTOMER
+            },
+          },
+        )
         const statusHistoryDetails = {} as any;
         statusHistoryDetails.uuid = claim.warranty.uuid;
         (statusHistoryDetails.time = new DateTime(
@@ -240,14 +251,22 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.name = uuidv4();
             stockPayload.modified = date;
             stockPayload.modified_by = token.email;
-            if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-              stockPayload.actual_qty = item.qty;
-            } else {
-              stockPayload.actual_qty = -item.qty;
+
+            if(res.action === "CANCEL"){
+              if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+                stockPayload.actual_qty = -item.qty;
+              } else {
+                stockPayload.actual_qty = item.qty;
+              }  
             }
-            stockPayload.warehouse = item.warehouse
-              ? item.warehouse
-              : item.s_warehouse;
+            else{
+              if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+                stockPayload.actual_qty = item.qty;
+              } else {
+                stockPayload.actual_qty = -item.qty;
+              }
+            }
+            stockPayload.warehouse = item.s_warehouse? item.s_warehouse: item.warehouse;
             stockPayload.item_code = item.item_code;
             stockPayload.valuation_rate = 0;
             stockPayload.batch_no = '';
@@ -294,14 +313,14 @@ export class WarrantyStockEntryAggregateService {
       case STOCK_ENTRY_STATUS.returned:
         serialData = {
           damaged_serial: deliveryNote.items[0].serial_no,
-          damage_warehouse: deliveryNote.items[0].warehouse,
+          damage_warehouse: deliveryNote.items[0].s_warehouse,
           damage_product: deliveryNote.items[0].item_name,
         };
         break;
       case STOCK_ENTRY_STATUS.delivered:
         serialData = {
           replace_serial: deliveryNote.items[0].serial_no[0],
-          replace_warehouse: deliveryNote.items[0].warehouse,
+          replace_warehouse: deliveryNote.items[0].s_warehouse,
           replace_product: deliveryNote.items[0].item_name,
         };
         break;
@@ -326,6 +345,7 @@ export class WarrantyStockEntryAggregateService {
       return of({});
     }
     const serialHistory: SerialNoHistoryInterface = {};
+    serialHistory.naming_series = deliveryNote.naming_series;
     serialHistory.serial_no = deliveryNote.items[0].serial_no[0];
     serialHistory.created_by = req.token.fullName;
     serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
@@ -637,6 +657,7 @@ export class WarrantyStockEntryAggregateService {
           return this.settingService.find();
         }),
         switchMap(settings => {
+          stockEntry.action = "CANCEL";
           return this.createStockLedger(stockEntry, req.token, settings);
         }),
       );
