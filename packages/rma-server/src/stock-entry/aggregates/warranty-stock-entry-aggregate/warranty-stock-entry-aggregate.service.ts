@@ -551,32 +551,25 @@ export class WarrantyStockEntryAggregateService {
       )
       .pipe(
         switchMap(() => {
-          if (
-            stockEntry.items.find(item => {
-              if (
-                item.serial_no.filter(
-                  serial => serial.toUpperCase() === NON_SERIAL_ITEM,
-                )
-              ) {
-                return undefined;
-              }
-              return item.serial_no;
-            })
-          ) {
+          if (stockEntry.items[0].serial_no[0] != NON_SERIAL_ITEM)
+          {
             if (stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
               return from(
-                this.serialService.updateOne(
-                  { serial_no: stockEntry.items[0]?.serial_no },
+                this.serialService.updateMany(
+                  {
+                    serial_no: { $in: stockEntry.items[0]?.serial_no  },
+                  },
                   {
                     $unset: {
-                      customer: '',
-                      'warranty.salesWarrantyDate': '',
-                      'warranty.soldOn': '',
-                      delivery_note: '',
-                      sales_invoice_name: '',
+                      customer: undefined,
+                      'warranty.salesWarrantyDate': undefined,
+                      'warranty.soldOn': undefined,
+                      delivery_note: undefined,
+                      sales_invoice_name: undefined,
+                      sales_return_name: undefined,
                     },
                   },
-                ),
+                )
               );
             }
             if (stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
@@ -613,7 +606,7 @@ export class WarrantyStockEntryAggregateService {
           );
         }),
         switchMap(() => {
-          return this.revertStatusHistory(stockEntry.warrantyClaimUuid);
+          return this.revertStatusHistory(stockEntry.warrantyClaimUuid,stockEntry.customer, stockEntry.items[0]?.serial_no[0]);
         }),
         switchMap(() => {
           return from(
@@ -663,7 +656,11 @@ export class WarrantyStockEntryAggregateService {
       );
   }
 
-  revertStatusHistory(uuid: string) {
+  revertStatusHistory(uuid: string,customer:string, serial:any) {
+    this.serialNoHistoryService.deleteOne({
+      transaction_from: customer,
+      serial_no: serial
+    })
     return from(
       this.warrantyService.findOne({
         uuid,
@@ -698,8 +695,10 @@ export class WarrantyStockEntryAggregateService {
       switchMap(warranty => {
         if (!warranty) {
           return from(
-            this.serialService.updateOne(
-              { serial_no: stockEntryObject.items[0]?.serial_no },
+            this.serialService.updateMany(
+              {
+                serial_no: { $in: stockEntryObject.items[0]?.serial_no  },
+              },
               {
                 $set: {
                   customer: stockEntryObject.items[0].customer,
@@ -714,19 +713,21 @@ export class WarrantyStockEntryAggregateService {
               },
             ),
           );
-        }
+          }
         return from(
-          this.serialService.updateOne(
-            { serial_no: stockEntryObject.items[0]?.serial_no },
+          this.serialService.deleteOne(
             {
-              $set: {
-                'warranty.salesWarrantyDate': warranty.received_on,
-                'warranty.soldOn': warranty.received_on,
-              },
-              $unset: {
-                delivery_note: '',
-              },
+              serial_no: { $in: stockEntryObject.items[0]?.serial_no  },
             },
+            // {
+            //   $set: {
+            //     'warranty.salesWarrantyDate': warranty.received_on,
+            //     'warranty.soldOn': warranty.received_on,
+            //   },
+            //   $unset: {
+            //     delivery_note: '',
+            //   },
+            // },
           ),
         );
       }),
