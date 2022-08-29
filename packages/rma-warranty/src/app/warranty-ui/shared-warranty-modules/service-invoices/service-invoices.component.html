@@ -16,14 +16,6 @@
         >
           Sync Data
         </ion-button>
-          <ion-button
-          color="danger"
-          (click)="getUpdatedInvoice()"
-          fill="outline"
-          [disabled]="disableRefresh"
-        >
-          Get Amount
-        </ion-button>
 
           <ion-button
             *ngIf="permissionState.service_invoice.create"
@@ -88,17 +80,6 @@
           <mat-footer-cell *matFooterCellDef>Total</mat-footer-cell>
         </ng-container>
 
-        <ng-container matColumnDef="outstanding_amount">
-          <mat-header-cell *matHeaderCellDef
-            >Paid Amount</mat-header-cell
-          >
-          <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{row.outstanding_amount}}
-            </ng-container>
-          </mat-cell>
-          <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-        </ng-container>
 
 
         <ng-container matColumnDef="invoice_amount">
