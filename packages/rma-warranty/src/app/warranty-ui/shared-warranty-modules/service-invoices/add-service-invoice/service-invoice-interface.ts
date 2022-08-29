@@ -5,6 +5,7 @@ export class ServiceInvoiceDetails {
   customer_contact?: string;
   total_qty?: number;
   total?: number;
+  outstanding_amount?:number;
   status?: string;
   contact_email?: string;
   due_date?: string;

@@ -170,6 +170,9 @@ export class UpdateWarrantyClaimDto {
   billed_amount: string;
 
   @IsOptional()
+  outstanding_amount: string;
+
+  @IsOptional()
   print: any;
 
   @IsOptional()

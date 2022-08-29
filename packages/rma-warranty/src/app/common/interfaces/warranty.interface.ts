@@ -111,6 +111,7 @@ export interface WarrantyClaimsDetails {
   parent?: string;
   claim_status?: string;
   customer_code?: string;
+  outstanding_amount?:number;
   claim_no?: string;
   service_vouchers?: string[];
   print?: any;

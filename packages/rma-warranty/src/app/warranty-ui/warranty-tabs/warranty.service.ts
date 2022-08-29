@@ -27,6 +27,9 @@ import {
   RELAY_LIST_PRINT_FORMAT_ENDPOINT,
   PRINT_SALES_INVOICE_PDF_METHOD,
   LIST_BRAND_ENDPOINT,
+  INVOICE_LIST,
+  SERVICE_INVOICE_GET_ONE_ENDPOINT,
+  SERVICE_INVOICE_POST_ONE_ENDPOINT,
 } from '../../constants/url-strings';
 import { APIResponse, Item } from '../../common/interfaces/sales.interface';
 import { of } from 'rxjs';
@@ -163,6 +166,40 @@ export class WarrantyService {
     );
   }
 
+  assignInvoice(invoiceName: any) {
+    const params = new HttpParams().set('name', invoiceName);
+    const url = INVOICE_LIST;
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => res.data),
+    );
+  }
+
+  findInvoice(invoiceUuid: any) {
+    const params = new HttpParams().set('uuid', invoiceUuid);
+    const url = SERVICE_INVOICE_GET_ONE_ENDPOINT;
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => res),
+    );
+  }
+
+  updateAmount(object: any, uuid) {
+    const params = new HttpParams().set('object', object)
+    .set("uuid",uuid);
+
+    const url = SERVICE_INVOICE_POST_ONE_ENDPOINT;
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.post<any>(url, { headers, params });
+      })
+    );
+  }
+  
   getBrandList(){
     const url = LIST_BRAND_ENDPOINT;
     return this.getHeaders().pipe(

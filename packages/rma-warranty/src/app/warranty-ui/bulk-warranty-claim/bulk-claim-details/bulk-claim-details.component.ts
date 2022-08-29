@@ -63,6 +63,7 @@ export class BulkClaimDetailsComponent implements OnInit {
     'verdict',
     'delivery_date',
     'billed_amount',
+    'outstanding_amount',
     'remarks',
   ];
   constructor(

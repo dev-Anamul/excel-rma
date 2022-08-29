@@ -13,6 +13,7 @@ import {
 } from '../../../constants/app-strings';
 import { v4 as uuidv4 } from 'uuid';
 import { DateTime } from 'luxon';
+
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { WarrantyStockEntryDto } from '../../entities/warranty-stock-entry-dto';
@@ -153,7 +154,7 @@ export class WarrantyStockEntryAggregateService {
       warranty: this.warrantyService.findOne(uuid),
       settingState: this.settingService.find(),
     }).pipe(
-      switchMap(claim => {
+      switchMap(claim  => {
         if (
           claim.warranty.status_history[
             claim.warranty.status_history.length - 1
@@ -163,6 +164,16 @@ export class WarrantyStockEntryAggregateService {
             new BadRequestException('Stock Entries Already Finalized'),
           );
         }
+        this.serialNoHistoryService.updateMany(
+          {
+            document_no: { $eq: claim.warranty.claim_no },
+          },
+          {
+            $set: {
+              eventType: VERDICT.DELIVER_TO_CUSTOMER
+            },
+          },
+        )
         const statusHistoryDetails = {} as any;
         statusHistoryDetails.uuid = claim.warranty.uuid;
         (statusHistoryDetails.time = new DateTime(

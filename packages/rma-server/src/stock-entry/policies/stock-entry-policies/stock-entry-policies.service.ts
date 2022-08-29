@@ -265,8 +265,7 @@ export class StockEntryPoliciesService {
       .validateLatestEventWithParent(invoice.uuid, serials)
       .pipe(
         switchMap(response => {
-          let message = `Found ${response.length} Events, please cancel Following events for serials
-        `;
+          let message = `Found ${response.length} Events, please cancel Following events for serials`;
           response.forEach(value =>
             value
               ? (message += `${value._id} : ${value.serials
@@ -323,8 +322,7 @@ export class StockEntryPoliciesService {
       .validateLatestEventWithParent(invoice.uuid, serials)
       .pipe(
         switchMap(response => {
-          let message = `Found ${response.length} Events, please cancel Following events for serials
-          `;
+          let message = `Found ${response.length} Events, please cancel Following events for serials`;
           response.forEach(value =>
             value
               ? (message += `${value._id} : ${value.serials
@@ -484,7 +482,7 @@ export class StockEntryPoliciesService {
         .validateLatestEventWithParent(parent_document, serial_no)
         .pipe(
           switchMap(response => {
-            let message = `Found ${response.length} Events, please cancel Following events for serials
+          let message = `Found ${response.length} Events, please cancel Following events for serials
       `;
       const serials =[]
       serials.push(serial_no)

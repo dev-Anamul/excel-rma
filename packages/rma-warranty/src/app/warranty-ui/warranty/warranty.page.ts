@@ -65,6 +65,7 @@ export class WarrantyPage implements OnInit {
     'verdict',
     'delivery_date',
     'billed_amount',
+    'outstanding_amount',
     'remarks',
   ];
   claimList;
