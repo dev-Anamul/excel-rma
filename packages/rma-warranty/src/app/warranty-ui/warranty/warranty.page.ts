@@ -241,18 +241,7 @@ export class WarrantyPage implements OnInit {
       Object.keys(this.sortQuery).length === 0
         ? { createdOn: 'desc' }
         : this.sortQuery;
-    if( this.bulkFlag==true){
-      this.dataSource.loadItems(
-        this.sortQuery,
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
-        query,
-        {
-          territory: this.territoryList,
-          set: [CATEGORY.BULK],
-        },
-      );
-    } else {
+ 
       this.dataSource.loadItems(
         this.sortQuery,
         this.paginator.pageIndex,
@@ -263,7 +252,7 @@ export class WarrantyPage implements OnInit {
           set: [ CATEGORY.SINGLE, CATEGORY.PART],
         },
       );
-    }
+    
   }
 
   setFilter(event?) {
