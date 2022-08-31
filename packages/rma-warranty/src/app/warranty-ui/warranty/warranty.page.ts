@@ -182,6 +182,7 @@ export class WarrantyPage implements OnInit {
       return this.filteredBrand.filter(value=>
         value.toLowerCase().indexOf(name.toLowerCase()) !== -1);
     }
+    // var date = "Recieved Date";
   }
 
   createFormGroup() {
@@ -198,7 +199,7 @@ export class WarrantyPage implements OnInit {
       replace_serial: new FormControl(''),
       received_by: new FormControl(''),
       delivered_by: new FormControl(''),
-      date_type: new FormControl(''),
+      date_type: new FormControl('Recieved Date'),
       fromDate: new FormControl(''),
       toDate: new FormControl(''),
       singleDate: new FormControl(''),
