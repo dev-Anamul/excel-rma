@@ -51,6 +51,7 @@ export class StockEntryComponent implements OnInit {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
+        this.hideAddStockEntryButton();
         this.dataSource.loadItems(undefined, undefined, undefined, {
           warrantyClaimUuid: this.route.snapshot.params.uuid,
         });
@@ -63,7 +64,6 @@ export class StockEntryComponent implements OnInit {
       .subscribe({
         next: res => {
           this.warrantyObject = res;
-          this.hideAddStockEntryButton();
         },
       });
     this.warrantyClaimUuid = this.warrantyObject?.uuid;
@@ -75,6 +75,8 @@ export class StockEntryComponent implements OnInit {
 
   hideAddStockEntryButton() {
     if (
+      // if there is replace serial means the product is replaced
+      this.warrantyObject.replace_serial &&
       // if there exists one return entry and one delivered entry in REPLACE or UPGRADE then hide add button
       this.warrantyObject?.progress_state?.find(
         state =>
@@ -88,6 +90,8 @@ export class StockEntryComponent implements OnInit {
       )
     ) {
       this.showAddButton = false;
+    } else {
+      this.showAddButton = true;
     }
   }
 
