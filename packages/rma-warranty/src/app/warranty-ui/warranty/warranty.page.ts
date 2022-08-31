@@ -242,6 +242,7 @@ export class WarrantyPage implements OnInit {
         ? { createdOn: 'desc' }
         : this.sortQuery;
     if( this.bulkFlag==true){
+      console.log(this.bulkFlag)
       this.dataSource.loadItems(
         this.sortQuery,
         this.paginator.pageIndex,
