@@ -742,7 +742,7 @@ export class AddWarrantyClaimPage implements OnInit {
               third_party_address: this.f.third_party_address.value,
               customer: this.f.customer_name.value.customer_name,
               warranty_claim_date: this.f.received_on.value,
-              customer_code: this.f.customer.value.name,
+              customer_code: this.f.customer?.value?.name,
               claim_type: this.f.claim_type.value,
               product_brand: this.f.product_brand.value,
               problem: this.f.problem.value.problem_name,
@@ -801,6 +801,10 @@ export class AddWarrantyClaimPage implements OnInit {
 
   presentSnackBar(message: string) {
     this.snackbar.open(message, CLOSE);
+  }
+
+  columnHeader(column: string) {
+    return column.charAt(0).toUpperCase() + column.slice(1).replace(/_/g, ' ');
   }
 }
 
