@@ -338,7 +338,7 @@
           <ion-row>
             <ion-col class="ion-text-left">
               <ion-card-title>
-                <ion-text color="tertiary">Bulk Product </ion-text>
+                <ion-text color="tertiary"> Bulk Product </ion-text>
               </ion-card-title>
             </ion-col>
           </ion-row>
@@ -351,7 +351,9 @@
               matColumnDef="{{column}}"
               *ngFor="let column of displayedColumns"
             >
-              <mat-header-cell *matHeaderCellDef>{{column}}</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef>
+                {{ columnHeader(column) }}
+              </mat-header-cell>
               <mat-cell *matCellDef="let row;let i=index">
                 <ng-container *ngIf="row[column]">
                   {{ row[column] }}
@@ -363,20 +365,20 @@
                     color="warn"
                     (click)="removeSubClaim(i)"
                   >
-                    <mat-icon>delete_forever</mat-icon>
+                    <mat-icon> delete_forever </mat-icon>
                   </button>
                 </ng-container>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
-            <mat-header-row
-              *matHeaderRowDef="displayedColumns; sticky: true"
-            ></mat-header-row>
+            <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
+            </mat-header-row>
             <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
             <mat-footer-row
               class="footer"
               *matFooterRowDef="displayedColumns; sticky: true"
-            ></mat-footer-row>
+            >
+            </mat-footer-row>
           </mat-table>
         </div>
         <mat-card-actions>
@@ -427,7 +429,7 @@
                 </mat-error>
                 <mat-error *ngIf="f.customer_name.hasError('falseValse')">
                   You should select a value from dropdown only.
-                  <strong>'{{f.customer_name.value}}'</strong> is not allowed.
+                  <strong>'{{ f.customer_name.value }}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>
