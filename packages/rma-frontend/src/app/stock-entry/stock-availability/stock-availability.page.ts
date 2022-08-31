@@ -49,8 +49,8 @@ export class StockAvailabilityPage implements OnInit {
   constructor(
     private readonly location: Location,
     private readonly salesService: SalesService,
-    private route: ActivatedRoute,
-    private csvService: CsvJsonService,
+    private readonly route: ActivatedRoute,
+    private readonly csvService: CsvJsonService,
   ) {}
 
   ngOnInit() {

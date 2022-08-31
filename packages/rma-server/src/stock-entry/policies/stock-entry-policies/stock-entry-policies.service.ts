@@ -508,6 +508,7 @@ export class StockEntryPoliciesService {
       switchMap(res => {
         if (
           // if duplicate stock entry type found then throw error
+          res.replace_serial &&
           res?.progress_state?.find(
             state =>
               state.stock_entry_type === payload.stock_entry_type &&
