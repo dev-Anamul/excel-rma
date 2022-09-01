@@ -155,7 +155,7 @@ export class WarrantyPage implements OnInit {
           this.filteredBrand = data
           this.filteredBrandList = this.filterBrand(newValue);
         });
-      }) 
+      })
 
     this.filteredProductList = this.warrantyForm
       .get('product')
@@ -206,7 +206,6 @@ export class WarrantyPage implements OnInit {
   }
 
   getUpdate(event?) {
-    console.log(event)
     const query: any = {};
     if (this.f.customer_name.value)
       query.customer = this.f.customer_name.value.customer_name;
@@ -241,7 +240,7 @@ export class WarrantyPage implements OnInit {
       Object.keys(this.sortQuery).length === 0
         ? { createdOn: 'desc' }
         : this.sortQuery;
- 
+
       this.dataSource.loadItems(
         this.sortQuery,
         this.paginator.pageIndex,
@@ -252,7 +251,7 @@ export class WarrantyPage implements OnInit {
           set: [ CATEGORY.SINGLE, CATEGORY.PART],
         },
       );
-    
+
   }
 
   setFilter(event?) {

@@ -199,7 +199,7 @@ export class WarrantyService {
       })
     );
   }
-  
+
   getBrandList(){
     const url = LIST_BRAND_ENDPOINT;
     return this.getHeaders().pipe(
