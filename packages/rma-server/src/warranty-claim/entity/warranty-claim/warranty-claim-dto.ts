@@ -171,7 +171,7 @@ export class WarrantyClaimDto {
 
   @IsOptional()
   outstanding_amount: string;
-  
+
   @IsOptional()
   print: any;
 

@@ -79,9 +79,9 @@ export class ItemController {
 
   @Get('v1/brand_list')
   @UseGuards(TokenGuard)
-  async getBrand(){
-    var newArr= await this.aggregate.getBrandList();
-    return Object.values(newArr).slice(1,24)
+  async getBrand() {
+    const newArr = await this.aggregate.getBrandList();
+    return Object.values(newArr).slice(1, 24);
   }
 
   @Get('v1/list')
@@ -100,8 +100,6 @@ export class ItemController {
       new RetrieveItemListQuery(offset, limit, sort, search, clientHttpRequest),
     );
   }
-
-
 
   @Roles(SYSTEM_MANAGER)
   @Post('v1/set_minimum_item_price/:uuid')

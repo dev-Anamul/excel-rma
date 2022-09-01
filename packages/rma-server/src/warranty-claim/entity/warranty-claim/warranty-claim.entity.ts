@@ -151,7 +151,7 @@ export class WarrantyClaim extends BaseEntity {
 
   @Column()
   outstanding_amount: number;
-  
+
   @Column()
   category: string;
 

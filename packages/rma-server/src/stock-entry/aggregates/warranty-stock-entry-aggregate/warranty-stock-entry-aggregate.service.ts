@@ -154,7 +154,7 @@ export class WarrantyStockEntryAggregateService {
       warranty: this.warrantyService.findOne(uuid),
       settingState: this.settingService.find(),
     }).pipe(
-      switchMap(claim  => {
+      switchMap(claim => {
         if (
           claim.warranty.status_history[
             claim.warranty.status_history.length - 1
@@ -170,10 +170,10 @@ export class WarrantyStockEntryAggregateService {
           },
           {
             $set: {
-              eventType: VERDICT.DELIVER_TO_CUSTOMER
+              eventType: VERDICT.DELIVER_TO_CUSTOMER,
             },
           },
-        )
+        );
         const statusHistoryDetails = {} as any;
         statusHistoryDetails.uuid = claim.warranty.uuid;
         (statusHistoryDetails.time = new DateTime(
@@ -252,21 +252,22 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.modified = date;
             stockPayload.modified_by = token.email;
 
-            if(res.action === "CANCEL"){
+            if (res.action === 'CANCEL') {
               if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
                 stockPayload.actual_qty = -item.qty;
               } else {
                 stockPayload.actual_qty = item.qty;
-              }  
-            }
-            else{
+              }
+            } else {
               if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
                 stockPayload.actual_qty = item.qty;
               } else {
                 stockPayload.actual_qty = -item.qty;
               }
             }
-            stockPayload.warehouse = item.s_warehouse? item.s_warehouse: item.warehouse;
+            stockPayload.warehouse = item.s_warehouse
+              ? item.s_warehouse
+              : item.warehouse;
             stockPayload.item_code = item.item_code;
             stockPayload.valuation_rate = 0;
             stockPayload.batch_no = '';
@@ -657,7 +658,7 @@ export class WarrantyStockEntryAggregateService {
           return this.settingService.find();
         }),
         switchMap(settings => {
-          stockEntry.action = "CANCEL";
+          stockEntry.action = 'CANCEL';
           return this.createStockLedger(stockEntry, req.token, settings);
         }),
       );

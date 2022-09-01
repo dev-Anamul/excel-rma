@@ -482,25 +482,25 @@ export class StockEntryPoliciesService {
         .validateLatestEventWithParent(parent_document, serial_no)
         .pipe(
           switchMap(response => {
-          let message = `Found ${response.length} Events, please cancel Following events for serials
+            let message = `Found ${response.length} Events, please cancel Following events for serials
       `;
-      const serials =[]
-      serials.push(serial_no)
-      this.serialNoService.updateMany(
-        {
-          serial_no: { $in: serials },
-        },
-        {
-          $unset: {
-            customer: undefined,
-            'warranty.salesWarrantyDate': undefined,
-            'warranty.soldOn': undefined,
-            delivery_note: undefined,
-            sales_invoice_name: undefined,
-            sales_return_name: undefined,
-          },
-        },
-      )
+            const serials = [];
+            serials.push(serial_no);
+            this.serialNoService.updateMany(
+              {
+                serial_no: { $in: serials },
+              },
+              {
+                $unset: {
+                  customer: undefined,
+                  'warranty.salesWarrantyDate': undefined,
+                  'warranty.soldOn': undefined,
+                  delivery_note: undefined,
+                  sales_invoice_name: undefined,
+                  sales_return_name: undefined,
+                },
+              },
+            );
             response.forEach(value =>
               value
                 ? (message += `${value._id} : ${value.serials

@@ -120,19 +120,19 @@ export class ServiceInvoiceAggregateService extends AggregateRoot {
       }),
     );
   }
-  async updateserviceInvoice (req,uuid){
+  async updateserviceInvoice(req, uuid) {
     this.serviceInvoiceService.updateOne(
-      {invoice_no :req.name},{
-        $set:{ outstanding_amount: req.outstanding_amount
-        }
-      }
-    )
+      { invoice_no: req.name },
+      {
+        $set: { outstanding_amount: req.outstanding_amount },
+      },
+    );
     this.warrantyAggregateService.updateOne(
-      {uuid :uuid},{
-        $set:{ outstanding_amount: req.outstanding_amount
-        }
-      }
-    )
+      { uuid },
+      {
+        $set: { outstanding_amount: req.outstanding_amount },
+      },
+    );
   }
 
   async retrieveServiceInvoice(uuid: string, req) {
@@ -163,10 +163,10 @@ export class ServiceInvoiceAggregateService extends AggregateRoot {
     const update = Object.assign(provider, updatePayload);
     this.apply(new ServiceInvoiceUpdatedEvent(update));
   }
-  async findServiceInvoice(uuid:string){
-   return await this.serviceInvoiceService.findOne({
+  async findServiceInvoice(uuid: string) {
+    return await this.serviceInvoiceService.findOne({
       warrantyClaimUuid: uuid,
-    })
+    });
   }
 
   updateDocStatus(invoice_no: string) {
