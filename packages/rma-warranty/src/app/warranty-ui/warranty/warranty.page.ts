@@ -69,10 +69,10 @@ export class WarrantyPage implements OnInit {
     'remarks',
   ];
   claimList;
-  bulkFlag: boolean=false
+  bulkFlag: boolean = false;
   filteredCustomerList: Observable<any[]>;
   filteredBrandList: any;
-  filteredBrand: any=[];
+  filteredBrand: any = [];
   filteredProductList: Observable<any[]>;
   filteredTerritoryList: Observable<any[]>;
   sortQuery: any = {};
@@ -85,10 +85,7 @@ export class WarrantyPage implements OnInit {
     'Rejected',
     'All',
   ];
-  dateType: string[] = [
-    'Recieved Date',
-    'Delivery Date',
-  ];
+  dateType: string[] = ['Recieved Date', 'Delivery Date'];
   validateInput: any = ValidateInputSelected;
   warrantyForm: FormGroup;
 
@@ -147,15 +144,15 @@ export class WarrantyPage implements OnInit {
           return this.warrantyService.getCustomerList(value);
         }),
       );
-      this.warrantyService.getBrandList().subscribe(data=>{
-        this.filteredBrandList=data
-      })
-      this.warrantyForm.get('brand').valueChanges.subscribe(newValue=>{
-        this.warrantyService.getBrandList().subscribe((data) =>{
-          this.filteredBrand = data
-          this.filteredBrandList = this.filterBrand(newValue);
-        });
-      })
+    this.warrantyService.getBrandList().subscribe(data => {
+      this.filteredBrandList = data;
+    });
+    this.warrantyForm.get('brand').valueChanges.subscribe(newValue => {
+      this.warrantyService.getBrandList().subscribe(data => {
+        this.filteredBrand = data;
+        this.filteredBrandList = this.filterBrand(newValue);
+      });
+    });
 
     this.filteredProductList = this.warrantyForm
       .get('product')
@@ -177,10 +174,11 @@ export class WarrantyPage implements OnInit {
       );
   }
 
-  filterBrand(name){
-    if(this.filteredBrand){
-      return this.filteredBrand.filter(value=>
-        value.toLowerCase().indexOf(name.toLowerCase()) !== -1);
+  filterBrand(name) {
+    if (this.filteredBrand) {
+      return this.filteredBrand.filter(
+        value => value.toLowerCase().indexOf(name.toLowerCase()) !== -1,
+      );
     }
   }
 
@@ -241,17 +239,16 @@ export class WarrantyPage implements OnInit {
         ? { createdOn: 'desc' }
         : this.sortQuery;
 
-      this.dataSource.loadItems(
-        this.sortQuery,
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
-        query,
-        {
-          territory: this.territoryList,
-          set: [ CATEGORY.SINGLE, CATEGORY.PART],
-        },
-      );
-
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      {
+        territory: this.territoryList,
+        set: [CATEGORY.SINGLE, CATEGORY.PART],
+      },
+    );
   }
 
   setFilter(event?) {
@@ -303,7 +300,7 @@ export class WarrantyPage implements OnInit {
   }
 
   getBulkClaims() {
-    this.bulkFlag=true
+    this.bulkFlag = true;
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
       territory: this.territoryList,
       set: [CATEGORY.BULK],
@@ -356,7 +353,7 @@ export class WarrantyPage implements OnInit {
       territory: this.territoryList,
       set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
     });
-    this.bulkFlag=false
+    this.bulkFlag = false;
   }
 
   navigateBack() {

@@ -142,7 +142,7 @@ export class WarrantyService {
     return from(this.storage.getItem(AUTH_SERVER_URL));
   }
 
- getCustomerList(
+  getCustomerList(
     filter = '',
     sortOrder = 'asc',
     pageNumber = 0,
@@ -189,18 +189,17 @@ export class WarrantyService {
   }
 
   updateAmount(object: any, uuid) {
-    const params = new HttpParams().set('object', object)
-    .set("uuid",uuid);
+    const params = new HttpParams().set('object', object).set('uuid', uuid);
 
     const url = SERVICE_INVOICE_POST_ONE_ENDPOINT;
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.post<any>(url, { headers, params });
-      })
+      }),
     );
   }
 
-  getBrandList(){
+  getBrandList() {
     const url = LIST_BRAND_ENDPOINT;
     return this.getHeaders().pipe(
       switchMap(headers => {
@@ -210,7 +209,6 @@ export class WarrantyService {
       }),
       map(res => res),
     );
-
   }
   getItemList(
     filter: any = {},

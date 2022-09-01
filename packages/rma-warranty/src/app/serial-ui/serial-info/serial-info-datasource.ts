@@ -31,10 +31,10 @@ export class SerialHistoryDataSource extends DataSource<SerialHistory> {
       .pipe(
         map((res: SerialHistory[]) => {
           res.forEach(r => {
-            if(r.naming_series === undefined){
+            if (r.naming_series === undefined) {
               r.naming_series = r.parent_document;
             }
-          })
+          });
           return res;
         }),
         catchError(() => of([])),
