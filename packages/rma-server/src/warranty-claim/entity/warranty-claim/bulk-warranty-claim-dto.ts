@@ -170,9 +170,6 @@ export class BulkWarrantyClaimDto {
   billed_amount: string;
 
   @IsOptional()
-  outstanding_amount: string;
-
-  @IsOptional()
   print: any;
 
   @IsOptional()
