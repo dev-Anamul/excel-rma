@@ -198,7 +198,7 @@ export class WarrantyPage implements OnInit {
       replace_serial: new FormControl(''),
       received_by: new FormControl(''),
       delivered_by: new FormControl(''),
-      date_type: new FormControl(''),
+      date_type: new FormControl('Recieved Date'),
       fromDate: new FormControl(''),
       toDate: new FormControl(''),
       singleDate: new FormControl(''),
