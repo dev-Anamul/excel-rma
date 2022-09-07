@@ -628,8 +628,26 @@ export class WarrantyStockEntryAggregateService {
           return of(true);
         }),
         switchMap(() => {
-
+          // DELETE SERIAL HISTORY OF WSD
           if (stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
+            this.warrantyService.findOne({
+              uuid:stockEntry.warrantyClaimUuid
+              
+            }).then(payload => {
+              payload.progress_state.forEach(state=>{
+                state.items.forEach(element => {
+                  if(element.stock_entry_type == STOCK_ENTRY_STATUS.delivered){
+
+                    this.serialNoHistoryService.deleteOne(
+                      {
+                        document_no:state.stock_voucher_number
+                      },
+                    )      
+                  }
+                  
+                });
+              })
+          });
             return from(
               this.warrantyService.updateOne(
                 { uuid: stockEntry.warrantyClaimUuid },
@@ -642,6 +660,25 @@ export class WarrantyStockEntryAggregateService {
                 },
               ),
             );
+          }
+          // DELETE SERIAL HISTORY OF WSDR
+          else if (stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+            this.warrantyService.findOne({
+              uuid:stockEntry.warrantyClaimUuid
+            }).then(payload => {
+              payload.progress_state.forEach(state=>{
+                state.items.forEach(element => {
+                  if(element.stock_entry_type == STOCK_ENTRY_STATUS.returned){
+                    this.serialNoHistoryService.deleteOne(
+                      {
+                        document_no:state.stock_voucher_number
+                      },
+                    )      
+                  }
+                  
+                });
+              })
+          })
           }
           return of([]);
         }),
@@ -738,10 +775,6 @@ export class WarrantyStockEntryAggregateService {
   }
 
   revertStatusHistory(uuid: string,customer:string, serial:any) {
-    this.serialNoHistoryService.deleteOne({
-      transaction_from: customer,
-      serial_no: serial
-    })
     return from(
       this.warrantyService.findOne({
         uuid,
@@ -836,14 +869,22 @@ export class WarrantyStockEntryAggregateService {
 
         }else {
         return from(
-          this.serialService.deleteOne(
+          this.serialService.updateOne(
             {
               serial_no: { $in: stockEntryObject.items[0]?.serial_no  },
+            },
+            {
+              $set: {
+                'warranty.salesWarrantyDate': warranty.received_on,
+                'warranty.soldOn': warranty.received_on,
+              },
+              $unset: {
+                delivery_note: '',
+              },
             },
           ),
         );
         }
-
       }),
     );
   }
