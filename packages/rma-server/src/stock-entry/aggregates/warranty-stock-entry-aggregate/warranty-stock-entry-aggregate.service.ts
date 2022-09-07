@@ -675,19 +675,12 @@ export class WarrantyStockEntryAggregateService {
         switchMap(() => {
           var flagValue
           stockEntry.items.find(item => {
-            console.log('stock item',item)
             flagValue  = Object.keys(item).includes('excel_serials')
-            console.log("have",flagValue)
         })
         if( !flagValue){
-          console.log("entered",flagValue)
-
           if (
             stockEntry.items.find(item => {
-
-
               if(typeof(item.serial_no)=='object'){
-
               if (
                 item.serial_no.filter(
                   serial => serial.toUpperCase() === NON_SERIAL_ITEM,
@@ -714,7 +707,6 @@ export class WarrantyStockEntryAggregateService {
             );
           }
         } else {
-          console.log("didnt",flagValue)
           if (
             stockEntry.items.find(item => {
               if (
@@ -784,8 +776,6 @@ export class WarrantyStockEntryAggregateService {
       switchMap(warranty => {
 
         if (!warranty) {
-        console.log('ali',stockEntryObject.items[0]?.serial_no)
-
         if(typeof(stockEntryObject.items[0]?.serial_no) =='string' )
         {
           var array_Update=[]
@@ -836,7 +826,6 @@ export class WarrantyStockEntryAggregateService {
         {
           var array_Update=[]
           array_Update.push(stockEntryObject.items[0]?.serial_no)
-          console.log('ali',stockEntryObject.items[0]?.serial_no)
           return from(
             this.serialService.deleteOne(
               {
