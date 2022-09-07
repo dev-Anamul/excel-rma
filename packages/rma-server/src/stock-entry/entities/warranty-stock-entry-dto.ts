@@ -136,4 +136,5 @@ export class WarrantyStockEntryItemDto {
   @IsOptional()
   @IsString()
   stock_entry_type: string;
+  excel_serials: any;
 }
