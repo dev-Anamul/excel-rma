@@ -124,11 +124,7 @@ pack_rma_server_staging:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -144,11 +140,7 @@ pack_rma_frontend_staging:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -164,11 +156,7 @@ pack_rma_warranty_staging:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
     changes:
       - packages/rma-warranty/**/*
   before_script:
@@ -184,11 +172,7 @@ pack_rma_pos_staging:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
     changes:
       - packages/rma-pos/**/*
   before_script:
@@ -204,11 +188,7 @@ deploy_staging_frontend:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
     changes:
       - packages/rma-frontend/**/*
   before_script:
@@ -222,11 +202,7 @@ deploy_staging_pos:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
       - packages/rma-pos/**/*
   before_script:
     - apk add curl bash
@@ -239,11 +215,7 @@ deploy_staging_server:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
     changes:
       - packages/rma-server/**/*
   before_script:
@@ -257,11 +229,7 @@ deploy_staging_warranty:
   only:
     refs:
       - main
-<<<<<<< HEAD
       - feature/stable-warranty
-=======
-      - feature/stable-warranty-update
->>>>>>> 408c0753b4fb55caf8d64d714f906b28b54a4407
     changes:
       - packages/rma-warranty/**/*
   before_script:
