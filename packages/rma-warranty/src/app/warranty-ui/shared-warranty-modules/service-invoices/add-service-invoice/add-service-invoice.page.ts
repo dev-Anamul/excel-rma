@@ -217,6 +217,7 @@ export class AddServiceInvoicePage implements OnInit {
     serviceInvoiceDetails.customer_address = this.serviceInvoiceForm.controls.customer_address.value.name;
     serviceInvoiceDetails.claim_no = this.warrantyDetails.claim_no;
     serviceInvoiceDetails.docstatus = 1;
+    serviceInvoiceDetails.outstanding_amount = 0;
     serviceInvoiceDetails.set_posting_time = 1;
     const itemList = this.dataSource.data().filter(item => {
       if (item.item_name !== '') {

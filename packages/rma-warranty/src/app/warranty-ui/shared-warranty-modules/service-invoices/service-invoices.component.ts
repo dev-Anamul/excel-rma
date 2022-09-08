@@ -8,6 +8,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { PERMISSION_STATE } from '../../../constants/permission-roles';
 import { filter } from 'rxjs/operators';
+import { WarrantyService } from '../../warranty-tabs/warranty.service';
 
 @Component({
   selector: 'service-invoices',
@@ -30,6 +31,7 @@ export class ServiceInvoicesComponent implements OnInit {
     'date',
     'customer_third_party',
     'invoice_amount',
+    'outstanding_amount',
     'claim_no',
     'remarks',
     'branch',
@@ -41,6 +43,7 @@ export class ServiceInvoicesComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly serviceInvoice: AddServiceInvoiceService,
     private readonly router: Router,
+    private readonly warrantyService: WarrantyService
   ) {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -93,6 +96,21 @@ export class ServiceInvoicesComponent implements OnInit {
       },
     });
   }
+
+
+   getUpdatedInvoice(){
+       this.warrantyService.findInvoice(this.invoiceUuid).subscribe((data)=>{
+         this.warrantyService.assignInvoice(data.invoice_no).subscribe((value)=>{
+           this.warrantyService.updateAmount(value,this.invoiceUuid).subscribe((newValue)=>{
+             this.dataSource.loadItems({
+               warrantyClaimUuid: this.route.snapshot.params.uuid,
+             });
+  
+           })
+         })
+       })
+     }
+    
 
   openERPServiceInvoice(row) {
     this.serviceInvoice
