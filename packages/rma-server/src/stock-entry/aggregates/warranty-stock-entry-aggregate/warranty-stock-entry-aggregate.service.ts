@@ -98,6 +98,9 @@ export class WarrantyStockEntryAggregateService {
           settings: this.settingService.find(),
         }).pipe(
           switchMap(({ warranty, settings }) => {
+            if(warranty.serial_no == undefined){
+              warranty['serial_no'] = ''
+            }
             deliveryNotesList = warranty.progress_state;
             settingState = settings;
             return from(deliveryNotesList).pipe(
@@ -558,8 +561,8 @@ export class WarrantyStockEntryAggregateService {
       )
       .pipe(
         switchMap(() => {
-          if (stockEntry.items[0].serial_no[0] != NON_SERIAL_ITEM)
-          { if(stockEntry.items[0].serial_no[0] == 'Non serial Item'){
+          if (array_Value != NON_SERIAL_ITEM){
+            if(array_Value == 'Non serial Item'){
             this.stockEntryService.deleteOne({
               uuid: stockEntry.uuid,
             })
