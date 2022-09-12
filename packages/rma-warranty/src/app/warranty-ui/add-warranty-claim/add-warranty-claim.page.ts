@@ -156,7 +156,10 @@ export class AddWarrantyClaimPage implements OnInit {
       debounceTime(500),
       startWith(''),
       switchMap(value => {
-        return this.addWarrantyService.getProblemList(value);
+        if(value == null){
+          value = ''
+        }
+        return this.addWarrantyService.getProblemList(value)
       }),
       map(res => res.docs),
     );

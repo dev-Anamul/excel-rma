@@ -361,7 +361,7 @@ export class WarrantyPage implements OnInit {
     this.f.toDate.setValue('');
     this.f.singleDate.setValue('');
     this.f.replace_serial.setValue('');
-    this.f.date_type.setValue('');
+    this.f.date_type.setValue('Recieved Date');
     this.paginator.pageSize = 30;
     this.paginator.firstPage();
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
