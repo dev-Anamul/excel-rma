@@ -245,6 +245,7 @@ export class WarrantyStockEntryAggregateService {
     token,
     settings: ServerSettings,
   ) {
+    console.log(res,"\n")
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -257,6 +258,9 @@ export class WarrantyStockEntryAggregateService {
 
             if(res.action === "CANCEL"){
               if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+                if(item.qty < 0){
+                  item.qty = -(item.qty)
+                }
                 stockPayload.actual_qty = -item.qty;
               } else {
                 stockPayload.actual_qty = item.qty;
