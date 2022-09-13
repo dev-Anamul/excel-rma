@@ -34,10 +34,10 @@ export class SerialHistoryDataSource extends DataSource<SerialHistory> {
             if (r.naming_series === undefined) {
               r.naming_series = r.parent_document;
             }
-            if(r.readablDocumentNo === undefined){
+            if (r.readablDocumentNo === undefined) {
               r.readablDocumentNo = r.document_no;
             }
-          })
+          });
           return res;
         }),
         catchError(() => of([])),
