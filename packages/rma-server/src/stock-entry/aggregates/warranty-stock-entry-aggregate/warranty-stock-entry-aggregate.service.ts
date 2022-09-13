@@ -49,6 +49,8 @@ export class WarrantyStockEntryAggregateService {
     const warrantyPayload: any = {};
     let deliveryNotesList: any[] = [];
     let settingState = {} as ServerSettings;
+    var fetchedStockIdWSD;
+    var fetchedStockIdWSDR;
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);
@@ -77,6 +79,12 @@ export class WarrantyStockEntryAggregateService {
             ).pipe(
               map((res: any) => {
                 res.subscribe((data: any) => {
+                  if(deliveryNote.stock_entry_type == STOCK_ENTRY_STATUS.delivered){
+                    fetchedStockIdWSD = data.ops[0].stock_id
+                  }
+                  else if(deliveryNote.stock_entry_type == STOCK_ENTRY_STATUS.returned){
+                    fetchedStockIdWSDR = data.ops[0].stock_id
+                  }
                   return data.ops[0];
                 });
               }),
@@ -119,7 +127,7 @@ export class WarrantyStockEntryAggregateService {
       switchMap(() => {
         return from(deliveryNotesList).pipe(
           concatMap(deliveryNote => {
-            return this.createSerialNoHistory(deliveryNote, settingState, req);
+            return this.createSerialNoHistory(deliveryNote,fetchedStockIdWSD,fetchedStockIdWSDR, settingState, req);
           }),
           toArray(),
         );
@@ -245,7 +253,6 @@ export class WarrantyStockEntryAggregateService {
     token,
     settings: ServerSettings,
   ) {
-    console.log(res,"\n")
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -347,7 +354,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createSerialNoHistory(deliveryNote, settings, req) {
+  createSerialNoHistory(deliveryNote,fetchedWSD,fetchedWSDR, settings, req) {
     if (deliveryNote.isSync) {
       return of({});
     }
@@ -357,6 +364,14 @@ export class WarrantyStockEntryAggregateService {
     serialHistory.created_by = req.token.fullName;
     serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
     serialHistory.document_no = deliveryNote.stock_voucher_number;
+    
+    if(deliveryNote.stock_entry_type == STOCK_ENTRY_STATUS.delivered){
+      serialHistory.readablDocumentNo = fetchedWSD;
+    }
+    else if(deliveryNote.stock_entry_type == STOCK_ENTRY_STATUS.returned){
+      serialHistory.readablDocumentNo = fetchedWSDR
+    }
+    
     serialHistory.document_type = WARRANTY_CLAIM_DOCTYPE;
     serialHistory.eventDate = new DateTime(settings.timeZone);
     serialHistory.parent_document = deliveryNote.warrantyClaimUuid;
