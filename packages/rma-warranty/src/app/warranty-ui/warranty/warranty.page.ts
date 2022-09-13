@@ -180,6 +180,7 @@ export class WarrantyPage implements OnInit {
         value => value.toLowerCase().indexOf(name.toLowerCase()) !== -1,
       );
     }
+    // var date = "Recieved Date";
   }
 
   createFormGroup() {
@@ -238,17 +239,29 @@ export class WarrantyPage implements OnInit {
       Object.keys(this.sortQuery).length === 0
         ? { createdOn: 'desc' }
         : this.sortQuery;
-
-    this.dataSource.loadItems(
-      this.sortQuery,
-      this.paginator.pageIndex,
-      this.paginator.pageSize,
-      query,
-      {
-        territory: this.territoryList,
-        set: [CATEGORY.SINGLE, CATEGORY.PART],
-      },
-    );
+    if (this.bulkFlag == true) {
+      this.dataSource.loadItems(
+        this.sortQuery,
+        this.paginator.pageIndex,
+        this.paginator.pageSize,
+        query,
+        {
+          territory: this.territoryList,
+          set: [CATEGORY.BULK],
+        },
+      );
+    } else {
+      this.dataSource.loadItems(
+        this.sortQuery,
+        this.paginator.pageIndex,
+        this.paginator.pageSize,
+        query,
+        {
+          territory: this.territoryList,
+          set: [CATEGORY.SINGLE, CATEGORY.PART],
+        },
+      );
+    }
   }
 
   setFilter(event?) {
@@ -346,7 +359,7 @@ export class WarrantyPage implements OnInit {
     this.f.toDate.setValue('');
     this.f.singleDate.setValue('');
     this.f.replace_serial.setValue('');
-    this.f.date_type.setValue('');
+    this.f.date_type.setValue('Recieved Date');
     this.paginator.pageSize = 30;
     this.paginator.firstPage();
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {

@@ -351,7 +351,9 @@
               matColumnDef="{{column}}"
               *ngFor="let column of displayedColumns"
             >
-              <mat-header-cell *matHeaderCellDef>{{column}}</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef>
+                {{ columnHeader(column) }}
+              </mat-header-cell>
               <mat-cell *matCellDef="let row;let i=index">
                 <ng-container *ngIf="row[column]">
                   {{ row[column] }}

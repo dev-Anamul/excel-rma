@@ -58,9 +58,11 @@ export class WarrantyClaimService {
       filter_query?.toDate &&
       filter_query.date_type === 'Delivery Date'
     ) {
+      const date = new Date(filter_query.fromDate);
+      const newDate = date.setDate(date.getDate() + 1);
       dateQuery = {
         delivery_date: {
-          $gte: new Date(filter_query.fromDate).toISOString().split('T')[0],
+          $gte: new Date(newDate).toISOString().split('T')[0],
           $lte: new Date(filter_query.toDate).toISOString().split('T')[0],
         },
       };

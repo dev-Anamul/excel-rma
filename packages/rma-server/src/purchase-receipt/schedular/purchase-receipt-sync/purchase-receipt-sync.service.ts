@@ -298,7 +298,7 @@ export class PurchaseReceiptSyncService {
         serialHistory.created_by = token.fullName;
         serialHistory.created_on = warrantyPurchasedOn;
         serialHistory.document_no = doc.name;
-        serialHistory.naming_series = payload[0].purchase_invoice_name;
+        serialHistory.readablDocumentNo = payload[0].purchase_invoice_name;
         serialHistory.document_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
         serialHistory.eventDate = new DateTime(settings.timeZone);
         serialHistory.eventType = EventType.SerialPurchased;

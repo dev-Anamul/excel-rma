@@ -445,7 +445,7 @@ export class StockEntrySyncService {
           serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
           serialHistory.document_no = doc_name;
           serialHistory.document_type = STOCK_ENTRY;
-          serialHistory.naming_series = payload.stock_id;
+          serialHistory.readablDocumentNo = payload.stock_id;
           serialHistory.eventDate = new DateTime(settings.timeZone);
           serialHistory.eventType = this.getEventType(type, payload);
           serialHistory.parent_document = parent;

@@ -110,7 +110,7 @@ export class ServiceInvoiceDto {
   docstatus: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   outstanding_amount: number;
 
   @IsString()

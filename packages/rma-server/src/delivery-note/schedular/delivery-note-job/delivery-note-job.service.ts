@@ -303,6 +303,7 @@ export class DeliveryNoteJobService {
               settings.timeZone,
             ).toJSDate();
             serialHistory.document_no = response.name;
+            serialHistory.readablDocumentNo = sales_invoice_name;
             serialHistory.document_type = DELIVERY_NOTE_DOCTYPE;
             serialHistory.eventDate = new DateTime(settings.timeZone);
             serialHistory.eventType = EventType.SerialDelivered;

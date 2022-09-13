@@ -79,7 +79,7 @@ export class StockEntryPoliciesService {
         if (Array.from(serialSet).length !== item.serial_no.length) {
           return throwError(
             new BadRequestException(
-              `Found following as duplicate serials for ${item.item_name}. 
+              `Found following as duplicate serials for ${item.item_name}.
               ${duplicateSerials.splice(0, 50).join(', ')}...`,
             ),
           );
@@ -170,7 +170,7 @@ export class StockEntryPoliciesService {
                 if (message < item.qty) {
                   return throwError(
                     new BadRequestException(`
-                  Only ${message} available in stock for item ${item.item_name}, 
+                  Only ${message} available in stock for item ${item.item_name},
                   at warehouse ${item.s_warehouse}.
                   `),
                   );
@@ -484,23 +484,6 @@ export class StockEntryPoliciesService {
           switchMap(response => {
             let message = `Found ${response.length} Events, please cancel Following events for serials
       `;
-            const serials = [];
-            serials.push(serial_no);
-            this.serialNoService.updateMany(
-              {
-                serial_no: { $in: serials },
-              },
-              {
-                $unset: {
-                  customer: undefined,
-                  'warranty.salesWarrantyDate': undefined,
-                  'warranty.soldOn': undefined,
-                  delivery_note: undefined,
-                  sales_invoice_name: undefined,
-                  sales_return_name: undefined,
-                },
-              },
-            );
             response.forEach(value =>
               value
                 ? (message += `${value._id} : ${value.serials
@@ -508,9 +491,6 @@ export class StockEntryPoliciesService {
                     .join(', ')}`)
                 : null,
             );
-            // if (response && response.length) {
-            //   return throwError(message);
-            // }
             return of(true);
           }),
         );

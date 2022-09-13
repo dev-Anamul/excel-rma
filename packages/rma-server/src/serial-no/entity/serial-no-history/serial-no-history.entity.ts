@@ -29,6 +29,9 @@ export class SerialNoHistory extends BaseEntity {
   naming_series: string;
 
   @Column()
+  readablDocumentNo: string;
+
+  @Column()
   transaction_from: string;
 
   @Column()
@@ -72,6 +75,7 @@ export enum EventType {
 
 export class SerialNoHistoryInterface {
   naming_series?: string;
+  readablDocumentNo?: string;
   eventDate?: Date;
   eventType?: EventType;
   serial_no?: string;
