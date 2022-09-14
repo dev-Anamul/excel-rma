@@ -127,7 +127,7 @@ export class WarrantyStockEntryItemDto {
 
   @IsOptional()
   @IsString()
-  serial_no: string;
+  serial_no: any;
 
   @IsOptional()
   @IsString()
