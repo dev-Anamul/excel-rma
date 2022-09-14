@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.3](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@2.0.0-alpha.2...rma-server@2.0.0-alpha.3) (2022-08-25)
+
+
+### Bug Fixes
+
+* Fixed lint issues ([77b27d5](https://gitlab.com/castlecraft/excel-rma/commit/77b27d5bffd1ea9fa57a95c8bc9309056b021533))
+* Fixed Replce Product issue in warranty ([9f37f35](https://gitlab.com/castlecraft/excel-rma/commit/9f37f3527a237a0893ba8cf5e8b321de39eb259b))
+* Fixed Serial no. history in Warranty ([0de24ac](https://gitlab.com/castlecraft/excel-rma/commit/0de24aca40af35bf606a0a6b0c6ecfd4b3129e93))
+* Fixed Serialized Stock Entry ([2f31bc7](https://gitlab.com/castlecraft/excel-rma/commit/2f31bc72eb5308a9f05cdb19e1fa053ea184f7e8))
+* Fixed stock entry return issue ([5d98380](https://gitlab.com/castlecraft/excel-rma/commit/5d98380e885e0ac4fbf6eaf011ec4ae5363c14dc))
+* Fixed Stock Ledger ([7b5cda3](https://gitlab.com/castlecraft/excel-rma/commit/7b5cda3cc0dbe14a9c593a55d4478faac9a13b6c))
+* Fixed warehouse issue in stock entry ([5233cc1](https://gitlab.com/castlecraft/excel-rma/commit/5233cc1cac3940ca9806ee900535309ab144cfad))
+* Fixed Warranty print issue ([fb5f831](https://gitlab.com/castlecraft/excel-rma/commit/fb5f831cfa2126009ff3d76ebde5b8fde54750d0))
+* Fixed Warranty Stock Entry issues ([54af64e](https://gitlab.com/castlecraft/excel-rma/commit/54af64e23a5db3d2f633ce8ad49fac54f8d1aff7))
+* Fixed Warranty Stock Entry Spare Parts issue ([4d17bed](https://gitlab.com/castlecraft/excel-rma/commit/4d17bed2292cb2860cf3fc9073c8a8e39a319461))
+* Fixed Warranty Stock logic ([fc3c074](https://gitlab.com/castlecraft/excel-rma/commit/fc3c07423228ce02d3569b609d88274cdef4e01f))
+* Sales invoice aggregate fix ([7fba479](https://gitlab.com/castlecraft/excel-rma/commit/7fba4799a2fbe619c91fccdf11959c960cf0e952))
+* **rma-pos, rma-server:** update mode of payment ([5d5b16b](https://gitlab.com/castlecraft/excel-rma/commit/5d5b16b8db62fb8bab721b37a7263c4387210756))
+* **rma-server:** bypass error for cron services ([9968236](https://gitlab.com/castlecraft/excel-rma/commit/99682369f5202f3519a67d8a70e39ac53ad5761a))
+* **rma-server:** fixed delivery_status and territory filters ([9860420](https://gitlab.com/castlecraft/excel-rma/commit/98604203ed3df67d7c7c15976c33ebb600aca1a8))
+* **rma-server:** pull delivery_status and territory filters fix ([59746d6](https://gitlab.com/castlecraft/excel-rma/commit/59746d6fee236529f220feabbf011efae3e5786d))
+* **rma-server:** remove failed job on error ([94d1c47](https://gitlab.com/castlecraft/excel-rma/commit/94d1c47ec6ad57b722a8b23fea298a63b0a6db59))
+* pull warranty claim analysis report ([9659405](https://gitlab.com/castlecraft/excel-rma/commit/9659405ad81b4e8c7cc8329f167069a0b7e199e1))
+
+
+### Features
+
+* Disconnected Stock Entru from ERP ([37aee69](https://gitlab.com/castlecraft/excel-rma/commit/37aee6996710c86a7ee049ef72e7576a0caa4b95))
+* **rma-pos:** added payment method on add sales invoice page ([9222c78](https://gitlab.com/castlecraft/excel-rma/commit/9222c7809435e3243b19ae7b55ca76f3f632106b))
+* **rma-pos, rma-server:** sync mode of payment ([09c595b](https://gitlab.com/castlecraft/excel-rma/commit/09c595bc4e2d34b75c9537c975ac52add45a7315))
+
+
+
+
+
 # [2.0.0-alpha.2](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@2.0.0-alpha.1...rma-server@2.0.0-alpha.2) (2022-07-17)
 
 ### Bug Fixes

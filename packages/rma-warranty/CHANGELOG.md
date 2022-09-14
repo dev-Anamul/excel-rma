@@ -3,6 +3,45 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.3](https://gitlab.com/castlecraft/excel-rma/compare/rma-warranty@2.0.0-alpha.2...rma-warranty@2.0.0-alpha.3) (2022-08-25)
+
+
+### Bug Fixes
+
+* added submit column in csv dump ([f02de7c](https://gitlab.com/castlecraft/excel-rma/commit/f02de7c2d3a21ee0de5ecb13fb0994a928b9dc84))
+* Fixed add warranty claim page ([652feb4](https://gitlab.com/castlecraft/excel-rma/commit/652feb4a4fbfd64e84edeb29c5d3612cc5b1f7e8))
+* Fixed lint issues ([77b27d5](https://gitlab.com/castlecraft/excel-rma/commit/77b27d5bffd1ea9fa57a95c8bc9309056b021533))
+* Fixed Replce Product issue in warranty ([9f37f35](https://gitlab.com/castlecraft/excel-rma/commit/9f37f3527a237a0893ba8cf5e8b321de39eb259b))
+* Fixed stock entry return issue ([5d98380](https://gitlab.com/castlecraft/excel-rma/commit/5d98380e885e0ac4fbf6eaf011ec4ae5363c14dc))
+* Fixed Stock Entry ui in Warranty ([4ad2989](https://gitlab.com/castlecraft/excel-rma/commit/4ad29893da47ff59dfc4f2f866e5dbcf134c9bd7))
+* Fixed warehouse issue in stock entry ([5233cc1](https://gitlab.com/castlecraft/excel-rma/commit/5233cc1cac3940ca9806ee900535309ab144cfad))
+* Fixed warranty lint issue ([848ad6e](https://gitlab.com/castlecraft/excel-rma/commit/848ad6ee2c77140cfe7f7d44f59dbb2a0bba62da))
+* Fixed warranty lstock entry page ([b63f230](https://gitlab.com/castlecraft/excel-rma/commit/b63f230816ba34f82083bb6ef052d37ba04bb747))
+* Fixed Warranty print issue ([fb5f831](https://gitlab.com/castlecraft/excel-rma/commit/fb5f831cfa2126009ff3d76ebde5b8fde54750d0))
+* Fixed Warranty Stock Entry issues ([54af64e](https://gitlab.com/castlecraft/excel-rma/commit/54af64e23a5db3d2f633ce8ad49fac54f8d1aff7))
+* Fixed Warranty Stock Entry Spare Parts issue ([4d17bed](https://gitlab.com/castlecraft/excel-rma/commit/4d17bed2292cb2860cf3fc9073c8a8e39a319461))
+* Fixed Warranty Stock logic ([fc3c074](https://gitlab.com/castlecraft/excel-rma/commit/fc3c07423228ce02d3569b609d88274cdef4e01f))
+* FOptimized Add Warranty Page ([8149788](https://gitlab.com/castlecraft/excel-rma/commit/8149788c61899cf9cbe69e9f10abd328848dc822))
+* **rma-warranty:** discard changes ([8cd3def](https://gitlab.com/castlecraft/excel-rma/commit/8cd3defc4f3478da92647570c50565a2fab124e4))
+* **rma-warranty:** fix bulk claim parent button ([6a736ee](https://gitlab.com/castlecraft/excel-rma/commit/6a736eea54ab0f30e85cb1eb1feedea119db256e))
+* **rma-warranty:** fixed add warranty serial field ([33da4f4](https://gitlab.com/castlecraft/excel-rma/commit/33da4f47e827ff2feb36bd89ff325c93d8a91ca6))
+* **rma-warranty:** fixed warranty claim filters ([6e2e346](https://gitlab.com/castlecraft/excel-rma/commit/6e2e34657b5038eaf72aefd7f375bfd6bb6d317a))
+* **rma-warranty:** fixed warranty dump ([39aaf21](https://gitlab.com/castlecraft/excel-rma/commit/39aaf21e91b63568d9a6a0d0b4e840a0c5fdb796))
+* **rma-warranty:** fixed warranty filters ([fadea2e](https://gitlab.com/castlecraft/excel-rma/commit/fadea2ed5faba93a8471850c2fc85f4b91700bbb))
+* **rma-warranty:** show bulk claim number ([9fa88ef](https://gitlab.com/castlecraft/excel-rma/commit/9fa88ef4064327a493eba2ab78727da33d538b0d))
+* search and clear button on add warranty claim ([a54744f](https://gitlab.com/castlecraft/excel-rma/commit/a54744f41c0dd6af8d516891d9a9fb0d4e32b66c))
+
+
+### Features
+
+* Added Snackbar function ([aefcb9b](https://gitlab.com/castlecraft/excel-rma/commit/aefcb9b93f05876cb28ec47471d3c282c16d943d))
+* **rma-frontend:** stock entry fields ([7a32999](https://gitlab.com/castlecraft/excel-rma/commit/7a32999d0de1b89b158c9eadff94bd1316b63dfa))
+* **rma-warranty:** added bulk claim parent button ([de9123b](https://gitlab.com/castlecraft/excel-rma/commit/de9123bbcbb69c3f752c7ba4ef66817e8efd27e0))
+
+
+
+
+
 # [2.0.0-alpha.2](https://gitlab.com/castlecraft/excel-rma/compare/rma-warranty@2.0.0-alpha.1...rma-warranty@2.0.0-alpha.2) (2022-07-17)
 
 **Note:** Version bump only for package rma-warranty

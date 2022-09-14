@@ -54,7 +54,6 @@ export class WarrantyStockEntryAggregateService {
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);
-        warrantyPayload.items[0].serial_no = warrantyPayload.items[0].serial_no.split();
         return forkJoin({
           deliveryNote: of(singleDeliveryNote),
           validStockEntry: this.stockEntryPoliciesService.validateWarrantyStockEntry(
@@ -72,6 +71,7 @@ export class WarrantyStockEntryAggregateService {
         return from(deliveryNotes).pipe(
           concatMap(deliveryNote => {
             deliveryNote.status = undefined;
+            deliveryNote.stock_voucher_number = uuidv4();
             return this.makeStockEntry(
               deliveryNote,
               req,
@@ -322,7 +322,6 @@ export class WarrantyStockEntryAggregateService {
       req,
       settings,
     );
-    stockEntry.stock_voucher_number = uuidv4();
     stockEntry.items[0].serial_no = deliveryNote.items[0].serial_no;
     return this.getAssignStockId(stockEntry).pipe(
       map((res: StockEntry) => {
@@ -332,7 +331,6 @@ export class WarrantyStockEntryAggregateService {
   }
 
   updateProgressState(deliveryNote) {
-    deliveryNote.stock_voucher_number = uuidv4();
     deliveryNote.isSync = false;
     let serialData = {} as any;
     switch (deliveryNote.stock_entry_type) {
@@ -444,12 +442,12 @@ export class WarrantyStockEntryAggregateService {
       deliveryNote.stock_entry_type === STOCK_ENTRY_STATUS.delivered
     ) {
       deliveryNote.delivery_note = deliveryNote.stock_voucher_number;
-      return this.updateSerialItem(deliveryNote, serial_no[0], settings);
+      return this.updateSerialItem(deliveryNote, serial_no, settings);
     }
     deliveryNote.delivery_note = deliveryNote.stock_voucher_number;
     return from(
       this.serialService.updateOne(
-        { serial_no: deliveryNote.items[0].serial_no[0] },
+        { serial_no: deliveryNote.items[0].serial_no },
         {
           $set: {
             delivery_note: deliveryNote.stock_voucher_number,
@@ -471,13 +469,13 @@ export class WarrantyStockEntryAggregateService {
     return from(deliveryNotesList).pipe(
       concatMap((deliveryNote: any) => {
         let query;
-        if (deliveryNote.singleDeliveryNote.items[0].serial_no[0]) {
+        if (deliveryNote.singleDeliveryNote.items[0].serial_no) {
           query = {
             uuid: deliveryNote.singleDeliveryNote.warrantyClaimUuid,
             completed_delivery_note: {
               $elemMatch: {
                 'items.0.serial_no':
-                  deliveryNote.singleDeliveryNote.items[0].serial_no[0],
+                  deliveryNote.singleDeliveryNote.items[0].serial_no,
                 'items.0.item_code':
                   deliveryNote.singleDeliveryNote.items[0].item_code,
               },
@@ -534,7 +532,7 @@ export class WarrantyStockEntryAggregateService {
       switchMap(state => {
         return from(
           this.serialService.updateOne(
-            { serial_no: payload.items[0].serial_no[0] },
+            { serial_no: payload.items[0].serial_no },
             {
               $set: {
                 customer: state.progress_state[0].customer,
@@ -565,6 +563,7 @@ export class WarrantyStockEntryAggregateService {
     stockEntry.createdAt = new DateTime(settings.timeZone).toJSDate();
     stockEntry.createdByEmail = clientHttpRequest.token.email;
     stockEntry.createdBy = clientHttpRequest.token.fullName;
+    stockEntry.stock_voucher_number = payload.stock_voucher_number;
     stockEntry.status = STOCK_ENTRY_STATUS.in_transit;
     stockEntry.isSynced = false;
     stockEntry.inQueue = true;
