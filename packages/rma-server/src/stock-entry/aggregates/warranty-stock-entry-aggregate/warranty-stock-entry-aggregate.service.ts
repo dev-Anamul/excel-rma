@@ -758,9 +758,7 @@ export class WarrantyStockEntryAggregateService {
               stockEntry.items.find(item => {
                 if (typeof item.serial_no == 'object') {
                   if (
-                    item.serial_no.filter(
-                      serial => serial.toUpperCase() === NON_SERIAL_ITEM,
-                    )
+                    item.serial_no[0].toUpperCase() === NON_SERIAL_ITEM
                   ) {
                     return undefined;
                   }
