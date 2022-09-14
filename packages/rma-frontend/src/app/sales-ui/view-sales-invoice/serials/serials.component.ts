@@ -216,7 +216,7 @@ export class SerialsComponent implements OnInit {
           });
           this.itemDataSource.loadItems(success);
         },
-        error: err => {},
+        error: () => {},
       });
   }
 
@@ -261,21 +261,17 @@ export class SerialsComponent implements OnInit {
               this.costCenterFormControl.setValue(success.cost_center);
             },
             error: () => {
-              this.snackBar.open(
+              this.presentSnackBar(
                 `Cost Center Not found refresh page or Check Sales Invoice`,
-                CLOSE,
-                { duration: 4500 },
               );
             },
           });
         },
         error: err => {
-          this.snackBar.open(
+          this.presentSnackBar(
             err.error.message
               ? err.error.message
               : `${ERROR_FETCHING_SALES_INVOICE}${err.error.error}`,
-            CLOSE,
-            { duration: 4500 },
           );
         },
       });
@@ -301,9 +297,7 @@ export class SerialsComponent implements OnInit {
       this.updateProductState(row, serials);
       return;
     }
-    this.snackBar.open('Please select a valid number of rows.', CLOSE, {
-      duration: 2500,
-    });
+    this.presentSnackBar('Please select a valid number of rows.');
   }
 
   async assignRangeSerial(row: Item, serials: string[]) {
@@ -336,10 +330,8 @@ export class SerialsComponent implements OnInit {
       return;
     }
     if (itemRow.remaining < this.rangePickerState.serials.length) {
-      this.snackBar.open(
+      this.presentSnackBar(
         `Only ${itemRow.remaining} serials could be assigned to ${itemRow.item_code}`,
-        CLOSE,
-        { duration: 4500 },
       );
       return;
     }
@@ -371,9 +363,7 @@ export class SerialsComponent implements OnInit {
       this.updateProductState(row.item_code, assignValue);
       return;
     }
-    this.snackBar.open('Please select a valid number of rows.', CLOSE, {
-      duration: 2500,
-    });
+    this.presentSnackBar('Please select a valid number of rows.');
   }
 
   validateSerial(
@@ -388,19 +378,17 @@ export class SerialsComponent implements OnInit {
     this.salesService.validateSerials(item).subscribe({
       next: (success: { notFoundSerials: string[] }) => {
         if (success.notFoundSerials && success.notFoundSerials.length) {
-          this.snackBar.open(
+          this.presentSnackBar(
             `Found ${success.notFoundSerials.length} Invalid Serials for
               item: ${item.item_code} at
               warehouse: ${item.warehouse},
               ${success.notFoundSerials.splice(0, 50).join(', ')}...`,
-            CLOSE,
-            { duration: 5500 },
           );
           return;
         }
         this.assignRangeSerial(row, this.rangePickerState.serials);
       },
-      error: err => {},
+      error: () => {},
     });
   }
 
@@ -487,15 +475,11 @@ export class SerialsComponent implements OnInit {
     let isValid = true;
     let index = 0;
     if (!this.warehouseFormControl.value) {
-      this.snackBar.open('Please select a warehouse.', CLOSE, {
-        duration: 3000,
-      });
+      this.presentSnackBar('Please select a warehouse.');
       return false;
     }
     if (!this.costCenterFormControl.value) {
-      this.snackBar.open('Please select a Cost Center.', CLOSE, {
-        duration: 3000,
-      });
+      this.presentSnackBar('Please select a Cost Center.');
       return false;
     }
     for (const item of data) {
@@ -574,13 +558,11 @@ export class SerialsComponent implements OnInit {
       }
     });
     this.salesService.assignSerials(assignSerial).subscribe({
-      next: success => {
+      next: () => {
         this.validSerials = true;
         this.submit = false;
         loading.dismiss();
-        this.snackBar.open(SERIAL_ASSIGNED, CLOSE, {
-          duration: 2500,
-        });
+        this.presentSnackBar(SERIAL_ASSIGNED);
         this.viewSalesInvoicePage.selectedSegment = 0;
       },
       error: err => {
@@ -589,18 +571,10 @@ export class SerialsComponent implements OnInit {
         this.submit = false;
         if (err.status === 406) {
           const errMessage = err.error.message.split('\\n');
-          this.snackBar.open(
-            errMessage[errMessage.length - 2].split(':')[1],
-            CLOSE,
-            {
-              duration: 2500,
-            },
-          );
+          this.presentSnackBar(errMessage[errMessage.length - 2].split(':')[1]);
           return;
         }
-        this.snackBar.open(err.error.message, CLOSE, {
-          duration: 2500,
-        });
+        this.presentSnackBar(err.error.message);
       },
     });
 
@@ -629,12 +603,12 @@ export class SerialsComponent implements OnInit {
                     });
                   } else {
                     data.bundle_items.forEach(bundleItem => {
-                      assignSerial.items.find(assignvalue => {
-                        if (assignvalue.item_code === bundleItem.item_code) {
+                      assignSerial.items.find(assignValue => {
+                        if (assignValue.item_code === bundleItem.item_code) {
                           return (bundleItem.serial_no =
                             bundleItem.serial_no +
                             ', ' +
-                            assignvalue.serial_no.join(', '));
+                            assignValue.serial_no.join(', '));
                         }
                       });
                     });
@@ -693,7 +667,7 @@ export class SerialsComponent implements OnInit {
               }
               this.salesService
                 .updateInvoice(data, assignSerial.sales_invoice_name)
-                .subscribe(value => {});
+                .subscribe(() => {});
             } else {
               data.items.forEach(element => {
                 assignSerial.items.find(value => {
@@ -731,7 +705,7 @@ export class SerialsComponent implements OnInit {
               });
               this.salesService
                 .updateInvoice(data, assignSerial.sales_invoice_name)
-                .subscribe(value => {});
+                .subscribe(() => {});
             }
           });
       });
@@ -769,11 +743,7 @@ export class SerialsComponent implements OnInit {
     data.some(element => {
       if (csvJsonObj[element.item_code]) {
         if (!element.has_serial_no) {
-          this.snackBar.open(
-            `${element.item_name} is a non-serial item.`,
-            CLOSE,
-            { duration: 3500 },
-          );
+          this.presentSnackBar(`${element.item_name} is a non-serial item.`);
           return true;
         }
         this.assignRangeSerial(
@@ -786,12 +756,10 @@ export class SerialsComponent implements OnInit {
   }
 
   getMessage(notFoundMessage, expected?, found?) {
-    return this.snackBar.open(
+    return this.presentSnackBar(
       expected && found
         ? `${notFoundMessage}, expected ${expected} found ${found}`
         : `${notFoundMessage}`,
-      CLOSE,
-      { duration: 4500 },
     );
   }
 
@@ -815,6 +783,10 @@ export class SerialsComponent implements OnInit {
 
   costCenterOptionChanged(costCenter) {
     this.state.costCenter = costCenter.name;
+  }
+
+  presentSnackBar(message: string) {
+    this.snackBar.open(message, CLOSE);
   }
 }
 

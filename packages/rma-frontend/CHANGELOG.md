@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.3](https://gitlab.com/castlecraft/excel-rma/compare/rma-frontend@2.0.0-alpha.2...rma-frontend@2.0.0-alpha.3) (2022-08-25)
+
+
+### Bug Fixes
+
+* Fixed Warranty Stock Entry issues ([54af64e](https://gitlab.com/castlecraft/excel-rma/commit/54af64e23a5db3d2f633ce8ad49fac54f8d1aff7))
+* **rma-frontend:** updated form control validator ([3bcfcfc](https://gitlab.com/castlecraft/excel-rma/commit/3bcfcfcf8ff5537523e033f314c2a9634358b07e))
+
+
+### Features
+
+* **rma-frontend:** stock entry fields ([7a32999](https://gitlab.com/castlecraft/excel-rma/commit/7a32999d0de1b89b158c9eadff94bd1316b63dfa))
+* **rma-frontend:** updated form group ([e66fa36](https://gitlab.com/castlecraft/excel-rma/commit/e66fa363d955c64cb7c20e86a00e49ba7a95975c))
+
+
+
+
+
 # [2.0.0-alpha.2](https://gitlab.com/castlecraft/excel-rma/compare/rma-frontend@2.0.0-alpha.1...rma-frontend@2.0.0-alpha.2) (2022-07-17)
 
 **Note:** Version bump only for package rma-frontend
