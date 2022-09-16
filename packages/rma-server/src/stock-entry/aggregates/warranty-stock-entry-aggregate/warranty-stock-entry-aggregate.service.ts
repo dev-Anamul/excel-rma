@@ -364,7 +364,13 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createSerialNoHistory(deliveryNote, deliveredStockId, returnedStockId, settings, req) {
+  createSerialNoHistory(
+    deliveryNote,
+    deliveredStockId,
+    returnedStockId,
+    settings,
+    req,
+  ) {
     if (deliveryNote.isSync) {
       return of({});
     }
