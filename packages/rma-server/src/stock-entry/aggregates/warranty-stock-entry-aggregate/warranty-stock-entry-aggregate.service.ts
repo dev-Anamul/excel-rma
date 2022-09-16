@@ -49,8 +49,8 @@ export class WarrantyStockEntryAggregateService {
     const warrantyPayload: any = {};
     let deliveryNotesList: any[] = [];
     let settingState = {} as ServerSettings;
-    let fetchedStockIdWSD;
-    let fetchedStockIdWSDR;
+    let deliveredStockId;
+    let returnedStockId;
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);
@@ -83,12 +83,12 @@ export class WarrantyStockEntryAggregateService {
                     deliveryNote.stock_entry_type ===
                     STOCK_ENTRY_STATUS.delivered
                   ) {
-                    fetchedStockIdWSD = data.ops[0].stock_id;
+                    deliveredStockId = data.ops[0].stock_id;
                   } else if (
                     deliveryNote.stock_entry_type ===
                     STOCK_ENTRY_STATUS.returned
                   ) {
-                    fetchedStockIdWSDR = data.ops[0].stock_id;
+                    returnedStockId = data.ops[0].stock_id;
                   }
                   return data.ops[0];
                 });
@@ -134,8 +134,8 @@ export class WarrantyStockEntryAggregateService {
           concatMap(deliveryNote => {
             return this.createSerialNoHistory(
               deliveryNote,
-              fetchedStockIdWSD,
-              fetchedStockIdWSDR,
+              deliveredStockId,
+              returnedStockId,
               settingState,
               req,
             );
@@ -364,7 +364,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createSerialNoHistory(deliveryNote, fetchedWSD, fetchedWSDR, settings, req) {
+  createSerialNoHistory(deliveryNote, deliveredStockId, returnedStockId, settings, req) {
     if (deliveryNote.isSync) {
       return of({});
     }
@@ -376,9 +376,9 @@ export class WarrantyStockEntryAggregateService {
     serialHistory.document_no = deliveryNote.stock_voucher_number;
 
     if (deliveryNote.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
-      serialHistory.readablDocumentNo = fetchedWSD;
+      serialHistory.readable_document_no = deliveredStockId;
     } else if (deliveryNote.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-      serialHistory.readablDocumentNo = fetchedWSDR;
+      serialHistory.readable_document_no = returnedStockId;
     }
 
     serialHistory.document_type = WARRANTY_CLAIM_DOCTYPE;

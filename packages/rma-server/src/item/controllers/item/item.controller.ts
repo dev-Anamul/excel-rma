@@ -80,8 +80,7 @@ export class ItemController {
   @Get('v1/brand_list')
   @UseGuards(TokenGuard)
   async getBrand() {
-    const newArr = await this.aggregate.getBrandList();
-    return Object.values(newArr).slice(1, 24);
+    return await this.aggregate.getBrandList();
   }
 
   @Get('v1/list')

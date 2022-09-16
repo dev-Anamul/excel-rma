@@ -957,7 +957,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
         serialHistory.created_by = token.fullName;
         serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
         serialHistory.document_no = warrantyClaim.claim_no;
-        // serialHistory.readablDocumentNo = warrantyClaim.claim_no;
+        // serialHistory.readable_document_no = warrantyClaim.claim_no;
         serialHistory.document_type = WARRANTY_CLAIM_DOCTYPE;
         serialHistory.eventDate = new DateTime(settings.timeZone);
         serialHistory.eventType = EventType.RECEIVED_FROM_CUSTOMER;

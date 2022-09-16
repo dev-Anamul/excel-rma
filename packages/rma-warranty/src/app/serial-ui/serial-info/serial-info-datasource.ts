@@ -34,8 +34,8 @@ export class SerialHistoryDataSource extends DataSource<SerialHistory> {
             if (r.naming_series === undefined) {
               r.naming_series = r.parent_document;
             }
-            if (r.readablDocumentNo === undefined) {
-              r.readablDocumentNo = r.document_no;
+            if (r.readable_document_no === undefined) {
+              r.readable_document_no = r.document_no;
             }
           });
           return res;
@@ -70,5 +70,5 @@ export class SerialHistory {
   created_on: string;
   created_by: string;
   naming_series: string;
-  readablDocumentNo: string;
+  readable_document_no: string;
 }
