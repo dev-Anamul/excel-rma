@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { StockEntryService } from '../../entities/stock-entry.service';
 import { from, throwError, of, forkJoin } from 'rxjs';
 import {
+  CANCEL_WARRANTY_STOCK_ENTRY,
   CURRENT_STATUS_VERDICT,
   DELIVERY_STATUS,
   NON_SERIAL_ITEM,
@@ -274,7 +275,7 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.modified = date;
             stockPayload.modified_by = token.email;
 
-            if (res.action === 'CANCEL') {
+            if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
               if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
                 if (item.qty < 0) {
                   item.qty = -item.qty;
@@ -802,7 +803,7 @@ export class WarrantyStockEntryAggregateService {
           return this.settingService.find();
         }),
         switchMap(settings => {
-          stockEntry.action = 'CANCEL';
+          stockEntry.action = CANCEL_WARRANTY_STOCK_ENTRY;
           return this.createStockLedger(stockEntry, req.token, settings);
         }),
         // DELETING PROGRESS STATE ON CANCELLING ENTRIES

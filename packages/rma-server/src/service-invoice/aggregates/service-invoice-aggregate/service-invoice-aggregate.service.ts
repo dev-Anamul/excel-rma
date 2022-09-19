@@ -127,13 +127,14 @@ export class ServiceInvoiceAggregateService extends AggregateRoot {
       {
         $set: { outstanding_amount: req.outstanding_amount },
       },
-    );
-    this.warrantyAggregateService.updateOne(
-      { uuid },
-      {
-        $set: { outstanding_amount: req.outstanding_amount },
-      },
-    );
+    ).then(response => {
+      this.warrantyAggregateService.updateOne(
+        { uuid },
+        {
+          $set: { outstanding_amount: req.outstanding_amount },
+        },
+      );
+    });
   }
 
   async retrieveServiceInvoice(uuid: string, req) {
