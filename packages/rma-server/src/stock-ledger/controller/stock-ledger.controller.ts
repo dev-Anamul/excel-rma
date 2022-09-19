@@ -34,6 +34,13 @@ export class StockLedgerController {
     });
   }
 
+  @Get('v1/get_stock_uom')
+  @UseGuards(TokenGuard)
+  async getUom() {
+    return this.stockLedgerAggregate.getStockUomList();
+    
+  }
+
   @Get('v1/list')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))

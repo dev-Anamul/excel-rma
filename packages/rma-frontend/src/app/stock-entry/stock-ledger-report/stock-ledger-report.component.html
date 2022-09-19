@@ -1,0 +1,290 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Stock Ledger Report</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-text color="primary">
+          Stock Ledger
+        </ion-text>
+      </ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content class="ion-no-padding">
+      <form [formGroup]="stockLedgerForm">
+        <ion-grid>
+          <ion-row>
+            
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <mat-form-field 
+                class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Item name"
+                  [matAutocomplete]="itemName"
+                  formControlName="item_name"
+                  (focusout)="validateInput(f.itemName, filteredStockAvailabilityList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #itemName="matAutocomplete"
+                  [displayWith]="getStockAvailabilityOption"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredStockAvailabilityList | async"
+                    [value]="option"
+                  >
+                    {{ option.item_name }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="f.item_name.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>
+                    '{{f.itemName.value}}'
+                  </strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+            <ion-col>
+              <mat-form-field 
+                class="mat-input-wrapper">
+                <input
+                  type="text"
+                  placeholder="Project"
+                  matInput
+                  formControlName="project"
+                  (focusout)="validateInput(f.project, filteredProjectList)"
+                  [matAutocomplete]="project"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #project="matAutocomplete"
+                >
+                  <mat-option
+                    *ngFor="let project of filteredProjectList | async"
+                    [value]="project.name"
+                  >
+                    {{ project.name }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="f.project.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>
+                    '{{ f.project.value }}'
+                  </strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+            <ion-col>
+              <mat-form-field 
+                class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Voucher No."
+                  formControlName="voucher"
+                  (keyup.enter)="setFilter()"
+                />
+              </mat-form-field>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <mat-form-field class="mat-input-wrapper">
+                <input
+                  matInput
+                  required
+                  placeholder="Company"
+                  readonly
+                  formControlName="company"
+                />
+                <mat-error *ngIf="f.company.hasError('required')">
+                  Company is <strong>required</strong>
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+            <ion-col>
+              <mat-form-field class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Warehouse"
+                  [matAutocomplete]="warehouse"
+                  formControlName="warehouse"
+                  (focusout)="validateInput(f.warehouse, filteredWarehouseList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #warehouse="matAutocomplete"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredWarehouseList | async"
+                    [value]="option"
+                  >
+                    {{ option }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="f.warehouse.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{f.warehouse.value}}'</strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+            <ion-col>
+              <mat-form-field 
+                class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Item Group"
+                  [matAutocomplete]="itemGroupAutocomplete"
+                  formControlName="excel_item_group"
+                  (focusout)="validateInput(f.excel_item_group, filteredItemGroupList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #itemGroupAutocomplete="matAutocomplete"
+                  [displayWith]="getItemGroupOption"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredItemGroupList | async"
+                    [value]="option"
+                  >
+                    {{ option.item_group_name }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="f.excel_item_group.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{f.excel_item_group.value}}'</strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+            <ion-col>
+              <mat-form-field 
+                class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Brand"
+                  [matAutocomplete]="itemBrandAutocomplete"
+                  formControlName="excel_item_brand"
+                  (focusout)="validateInput(f.excel_item_brand, filteredItemBrandList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #itemBrandAutocomplete="matAutocomplete"
+                  [displayWith]="getItemBrandOption"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredItemBrandList | async"
+                    [value]="option"
+                  >
+                    {{ option.brand }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="f.excel_item_brand.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{f.excel_item_brand.value}}'</strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <div class="search-models ">
+                <mat-form-field appearance="fill">
+                  <mat-label>
+                    Enter a date range
+                  </mat-label>
+                  <mat-date-range-input 
+                    [formGroup]="stockLedgerForm" 
+                    [rangePicker]="picker" >
+                    <input 
+                      matStartDate 
+                      formControlName="start_date" 
+                      placeholder="Start date">
+                    <input 
+                      matEndDate
+                      formControlName="end_date" 
+                      placeholder="End date" 
+                      (dateChange)="setFilter()">
+                  </mat-date-range-input>
+                  <mat-hint>
+                    MM/DD/YYYY – MM/DD/YYYY
+                  </mat-hint>
+                  <mat-datepicker-toggle 
+                    matSuffix
+                    [for]="picker">
+                  </mat-datepicker-toggle>
+                  <mat-date-range-picker 
+                    #picker>
+                  </mat-date-range-picker>                
+                  <mat-error *ngIf="f.start_date.hasError('matStartDateInvalid')">
+                    Invalid start date
+                  </mat-error>
+                  <mat-error *ngIf="f.end_date.hasError('matEndDateInvalid')">
+                    Invalid end date
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </ion-col>
+            <ion-col>
+              <mat-form-field  class="mat-input-wrapper">
+                <mat-label>UOM</mat-label>
+                <mat-select
+                  formControlName="stock_uom" 
+                >
+                  <mat-option *ngFor="let UOM of stockUomList" 
+                    [value]="UOM"
+                    >
+                    {{UOM}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ion-col>
+            <ion-col>
+              <mat-form-field 
+                class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Batch No."
+                  formControlName="batch_no"
+                  (keyup.enter)="setFilter()"
+                />
+              </mat-form-field>
+            </ion-col>
+          
+            <ion-button
+                (click)="clearFilters()"
+                fill="outline"
+                color="tertiary"
+              >
+                Clear
+              </ion-button>
+               <ion-button
+                color="tertiary"
+
+                (click)="downloadServiceInvoices()"
+                fill="outline"
+              >
+                Download CSV
+            </ion-button>
+          </ion-row>  
+        </ion-grid>
+      </form>
+
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+

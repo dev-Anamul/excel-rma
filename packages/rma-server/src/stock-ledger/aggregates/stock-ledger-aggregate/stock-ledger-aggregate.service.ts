@@ -14,6 +14,9 @@ export class StockLedgerAggregateService extends AggregateRoot {
     super();
   }
 
+  async getStockUomList() {
+    return this.stockLedgerService.distinct();
+  }
   getStockSummaryList(query: {
     limit: number;
     offset: number;
