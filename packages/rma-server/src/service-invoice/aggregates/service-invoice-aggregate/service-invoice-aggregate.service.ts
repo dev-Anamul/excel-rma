@@ -122,19 +122,21 @@ export class ServiceInvoiceAggregateService extends AggregateRoot {
   }
   // we did not need any response, it increase load timing
   async updateserviceInvoice(req, uuid) {
-    this.serviceInvoiceService.updateOne(
-      { invoice_no: req.name },
-      {
-        $set: { outstanding_amount: req.outstanding_amount },
-      },
-    ).then(response => {
-      this.warrantyAggregateService.updateOne(
-        { uuid },
+    this.serviceInvoiceService
+      .updateOne(
+        { invoice_no: req.name },
         {
           $set: { outstanding_amount: req.outstanding_amount },
         },
-      );
-    });
+      )
+      .then(response => {
+        this.warrantyAggregateService.updateOne(
+          { uuid },
+          {
+            $set: { outstanding_amount: req.outstanding_amount },
+          },
+        );
+      });
   }
 
   async retrieveServiceInvoice(uuid: string, req) {
