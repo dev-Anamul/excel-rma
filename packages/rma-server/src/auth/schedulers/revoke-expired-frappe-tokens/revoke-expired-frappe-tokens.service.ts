@@ -24,7 +24,7 @@ import { CronJob } from 'cron';
 import {
   APP_WWW_FORM_URLENCODED,
   CONTENT_TYPE,
-  // HUNDRED_NUMBERSTRING,
+  // HUNDRED_NUMBER_STRING,
 } from '../../../constants/app-strings';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import // REVOKE_FRAPPE_TOKEN_SUCCESS,
@@ -131,8 +131,8 @@ export class RevokeExpiredFrappeTokensService implements OnModuleInit {
   //       ['expiration_time', '<', nowInServerTimeZone],
   //       ['status', '!=', 'Revoked'],
   //     ]),
-  //     limit_page_length: HUNDRED_NUMBERSTRING,
-  //     limit_start: Number(HUNDRED_NUMBERSTRING) * iterationCount,
+  //     limit_page_length: HUNDRED_NUMBER_STRING,
+  //     limit_start: Number(HUNDRED_NUMBER_STRING) * iterationCount,
   //   };
 
   //   return this.http
@@ -142,7 +142,7 @@ export class RevokeExpiredFrappeTokensService implements OnModuleInit {
   //     })
   //     .pipe(
   //       concatMap(resTokens => {
-  //         if (resTokens.data.data.length === Number(HUNDRED_NUMBERSTRING)) {
+  //         if (resTokens.data.data.length === Number(HUNDRED_NUMBER_STRING)) {
   //           iterationCount++;
   //           return this.getFrappeTokens(
   //             settings,
