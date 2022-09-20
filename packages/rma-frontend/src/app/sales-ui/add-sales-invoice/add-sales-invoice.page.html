@@ -39,9 +39,7 @@
     <ion-card>
       <ion-card-header>
         <ion-card-title>
-          <ion-text color="tertiary">
-            Details
-          </ion-text>
+          <ion-text color="tertiary"> Details </ion-text>
         </ion-card-title>
       </ion-card-header>
       <ion-card-content>
@@ -95,13 +93,11 @@
                     [value]="option"
                   >
                     {{ option.customer_name }}
-                    <small class="text-muted">
-                      {{ option.name}}
-                    </small>
+                    <small class="text-muted"> {{ option.name}} </small>
                   </mat-option>
                 </mat-autocomplete>
                 <mat-error *ngIf="f.customer.hasError('falseValse')">
-                  You should select a value from dropdown only. 
+                  You should select a value from dropdown only.
                   <strong>'{{f.customer.value}}'</strong> is not allowed.
                 </mat-error>
                 <mat-error *ngIf="f.customer.hasError('required')">
@@ -118,15 +114,19 @@
                   placeholder="Posting Date"
                   readonly
                   formControlName="postingDate"
+                  [min]="minPostingDate"
                   (dateChange)="selectedPostingDate($event)"
                 />
                 <mat-datepicker-toggle
                   matSuffix
                   [for]="postingDate"
                 ></mat-datepicker-toggle>
-                <mat-datepicker #postingDate disabled="false"></mat-datepicker>
+                <mat-datepicker
+                  #postingDate
+                  [disabled]="!allowBackDatedInvoices"
+                ></mat-datepicker>
                 <mat-error *ngIf="f.postingDate.hasError('required')">
-                  Posting Date is <strong>required</strong>
+                  Posting Date is <strong> required </strong>
                 </mat-error>
               </mat-form-field>
             </ion-col>
@@ -159,7 +159,7 @@
                   Warehouse is <strong>required</strong>
                 </mat-error>
                 <mat-error *ngIf="f.warehouse.hasError('falseValse')">
-                  You should select a value from dropdown only. 
+                  You should select a value from dropdown only.
                   <strong>'{{f.warehouse.value}}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
@@ -173,7 +173,6 @@
                   placeholder="Due Date"
                   readonly
                   formControlName="dueDate"
-                  (dateChange)="selectedDueDate($event)"
                 />
                 <mat-datepicker-toggle
                   matSuffix
@@ -249,7 +248,7 @@
                   </mat-option>
                 </mat-autocomplete>
                 <mat-error *ngIf="f.territory.hasError('falseValse')">
-                  You should select a value from dropdown only. 
+                  You should select a value from dropdown only.
                   <strong>'{{f.territory.value}}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
@@ -265,9 +264,7 @@
       <ion-row class="align">
         <ion-col>
           <ion-card-title>
-            <ion-text color="tertiary">
-              Items
-            </ion-text>
+            <ion-text color="tertiary"> Items </ion-text>
           </ion-card-title>
         </ion-col>
         <ion-col class="ion-text-right" size="auto">
@@ -287,9 +284,9 @@
     </ion-card-header>
     <ion-card-content class="ion-no-padding">
       <ion-item lines="none">
-        <mat-table #table [dataSource]="dataSource" style="width: 100%;">
+        <mat-table #table [dataSource]="dataSource" style="width: 100%">
           <ng-container matColumnDef="item">
-            <mat-header-cell *matHeaderCellDef>Item</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> Item </mat-header-cell>
             <mat-cell
               *matCellDef="let row;let i = index"
               [satPopoverAnchor]="p"
@@ -298,7 +295,7 @@
               (click)="p.open()"
             >
               <ng-container *ngIf="row.item_name">
-                {{row.item_name}}
+                {{ row.item_name }}
               </ng-container>
               <span class="add-comment" *ngIf="!row.item_name">
                 Add an item
@@ -311,7 +308,7 @@
                 (closed)="updateItem(row,i,$event)"
               >
                 <inline-edit
-                  style="width: 400px !important;"
+                  style="width: 400px !important"
                   [value]="row.item_name"
                   column="item"
                   [minimumPrice]="row.minimumPrice"
@@ -321,14 +318,19 @@
             <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
           </ng-container>
           <ng-container matColumnDef="stock">
-            <mat-header-cell *matHeaderCellDef>Available Stock</mat-header-cell>
-            <mat-cell *matCellDef="let row" [ngStyle]="{'color': row.stock > 0 ? 'green' : 'red'}">
-              {{ row.stock  }}
+            <mat-header-cell *matHeaderCellDef>
+              Available Stock
+            </mat-header-cell>
+            <mat-cell
+              *matCellDef="let row"
+              [ngStyle]="{'color': row.stock > 0 ? 'green' : 'red'}"
+            >
+              {{ row.stock }}
             </mat-cell>
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>
           <ng-container matColumnDef="quantity">
-            <mat-header-cell *matHeaderCellDef>Quantity</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> Quantity </mat-header-cell>
             <mat-cell
               *matCellDef="let row"
               [satPopoverAnchor]="p"
@@ -336,9 +338,7 @@
               (keyup.enter)="p.open()"
               (click)="p.open()"
             >
-              <ng-container>
-                {{row.qty}}
-              </ng-container>
+              <ng-container> {{ row.qty }} </ng-container>
 
               <sat-popover
                 #p
@@ -365,9 +365,7 @@
               (keyup.enter)="p.open()"
               (click)="p.open()"
             >
-              <ng-container>
-                {{row.rate}}
-              </ng-container>
+              <ng-container> {{row.rate}} </ng-container>
               <sat-popover
                 #p
                 hasBackdrop
@@ -423,9 +421,7 @@
   <ion-card>
     <ion-card-header>
       <ion-card-title>
-        <ion-text color="tertiary">
-          Address
-        </ion-text>
+        <ion-text color="tertiary"> Address </ion-text>
       </ion-card-title>
     </ion-card-header>
     <ion-card-content

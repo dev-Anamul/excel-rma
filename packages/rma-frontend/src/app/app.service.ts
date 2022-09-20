@@ -28,6 +28,7 @@ import {
   ACCESS_TOKEN,
   BRAND,
   BACKDATE_PERMISSION,
+  BACKDATE_PERMISSION_FOR_DAYS,
 } from './constants/storage';
 import { StorageService } from './api/storage/storage.service';
 import {
@@ -86,7 +87,16 @@ export class AppService {
       )
       .then(() => this.storage.setItem(POS_PROFILE, response.posProfile))
       .then(() =>
-        this.storage.setItem(BACKDATE_PERMISSION, response.backdate_permission),
+        this.storage.setItem(
+          BACKDATE_PERMISSION,
+          response.backdated_permissions,
+        ),
+      )
+      .then(() =>
+        this.storage.setItem(
+          BACKDATE_PERMISSION_FOR_DAYS,
+          response.backdated_permissions_for_days,
+        ),
       )
       .then(saved => {});
   }
@@ -114,7 +124,8 @@ export class AppService {
         time_zone: string;
         transferWarehouse: string;
         brand: BrandSettings;
-        backdate_permission: boolean;
+        backdated_permissions: boolean;
+        backdated_permissions_for_days: number;
       }) => {
         if (success?.brand?.faviconURL) {
           this.settings.setFavicon(success.brand.faviconURL);
@@ -127,7 +138,11 @@ export class AppService {
           .then(() => {
             this.storage.setItem(
               BACKDATE_PERMISSION,
-              success.backdate_permission,
+              success.backdated_permissions,
+            );
+            this.storage.setItem(
+              BACKDATE_PERMISSION_FOR_DAYS,
+              success.backdated_permissions_for_days,
             );
           })
           .then(() =>
@@ -160,7 +175,7 @@ export class AppService {
         this.initiateLogin(response.authorizationURL, frappe_auth_config);
         return;
       },
-      error: error => {},
+      error: () => {},
     });
   }
 

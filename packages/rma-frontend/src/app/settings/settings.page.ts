@@ -51,6 +51,7 @@ export class SettingsPage implements OnInit {
     footerWidth: new FormControl(),
     faviconURL: new FormControl(),
     backdatedInvoices: new FormControl(),
+    backdatedInvoicesForDays: new FormControl(),
     posAppURL: new FormControl(),
   });
   validateInput: any = ValidateInputSelected;
@@ -175,6 +176,9 @@ export class SettingsPage implements OnInit {
         this.companySettingsForm
           .get('backdatedInvoices')
           .setValue(res.backdatedInvoices);
+        this.companySettingsForm
+          .get('backdatedInvoicesForDays')
+          .setValue(res.backdatedInvoicesForDays);
         if (res.brand?.faviconURL) {
           this.companySettingsForm
             .get('faviconURL')
@@ -227,15 +231,17 @@ export class SettingsPage implements OnInit {
         this.companySettingsForm.get('footerImageURL').value,
         this.companySettingsForm.get('footerWidth').value,
         this.companySettingsForm.get('backdatedInvoices').value,
+        this.companySettingsForm.get('backdatedInvoicesForDays').value,
         {
           faviconURL: this.companySettingsForm.get('faviconURL').value,
         },
       )
       .subscribe({
-        next: success => {
+        next: () => {
           this.service.setFavicon(this.f.faviconURL.value);
           this.permissionManager.setGlobalPermissions(
             this.f.backdatedInvoices.value,
+            this.f.backdatedInvoicesForDays?.value,
           );
           this.toastController
             .create({
@@ -245,7 +251,7 @@ export class SettingsPage implements OnInit {
             })
             .then(toast => toast.present());
         },
-        error: error => {
+        error: () => {
           this.toastController
             .create({
               message: UPDATE_ERROR,

@@ -26,6 +26,8 @@ import {
   ACCESS_TOKEN,
   AUTHORIZATION,
   BEARER_TOKEN_PREFIX,
+  BACKDATE_PERMISSION,
+  BACKDATE_PERMISSION_FOR_DAYS,
 } from '../../constants/storage';
 import {
   DRAFT,
@@ -48,6 +50,7 @@ import {
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MY_FORMATS } from '../../constants/date-format';
 import { ValidateInputSelected } from '../../common/pipes/validators';
+import { StorageService } from 'src/app/api/storage/storage.service';
 
 @Component({
   selector: 'app-add-sales-invoice',
@@ -72,8 +75,9 @@ export class AddSalesInvoicePage implements OnInit {
     warehouse: 0,
     territory: 0,
   };
-  postingDate: string;
-  dueDate: string;
+  allowBackDatedInvoices: boolean;
+  allowBackDatedInvoicesForDays: number;
+  minPostingDate: Date;
   address = {} as any;
   displayedColumns = ['item', 'stock', 'quantity', 'rate', 'total', 'delete'];
   filteredWarehouseList: Observable<any[]>;
@@ -89,16 +93,19 @@ export class AddSalesInvoicePage implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private salesService: SalesService,
-    private itemPriceService: ItemPriceService,
+    private readonly salesService: SalesService,
+    private readonly itemPriceService: ItemPriceService,
     private readonly snackbar: MatSnackBar,
-    private location: Location,
+    private readonly location: Location,
     private readonly router: Router,
     private readonly time: TimeService,
+    private readonly storageService: StorageService,
   ) {}
 
   ngOnInit() {
     this.createFormGroup();
+    this.checkBackDatedInvoices();
+
     this.dataSource = new ItemsDataSource();
     this.salesInvoice = {} as SalesInvoice;
     this.series = '';
@@ -184,7 +191,7 @@ export class AddSalesInvoicePage implements OnInit {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe({
-        next: event => {
+        next: () => {
           this.salesService
             .getStore()
             .getItems([DEFAULT_COMPANY])
@@ -201,12 +208,12 @@ export class AddSalesInvoicePage implements OnInit {
                       .get('company')
                       .setValue(res.defaultCompany);
                   },
-                  error: error => {},
+                  error: () => {},
                 });
               }
             });
         },
-        error: error => {},
+        error: () => {},
       });
   }
 
@@ -230,6 +237,21 @@ export class AddSalesInvoicePage implements OnInit {
       },
     );
     this.itemsControl = this.salesInvoiceForm.get('items') as FormArray;
+  }
+
+  checkBackDatedInvoices() {
+    this.storageService
+      .getItem(BACKDATE_PERMISSION)
+      .then(res => (this.allowBackDatedInvoices = res));
+    this.storageService.getItem(BACKDATE_PERMISSION_FOR_DAYS).then(res => {
+      if (res) {
+        this.allowBackDatedInvoicesForDays = res;
+        this.minPostingDate = new Date();
+        this.minPostingDate.setDate(
+          new Date().getDate() - this.allowBackDatedInvoicesForDays,
+        );
+      }
+    });
   }
 
   dueDateValidator(abstractControl: AbstractControl) {
@@ -600,12 +622,7 @@ export class AddSalesInvoicePage implements OnInit {
   }
 
   selectedPostingDate($event) {
-    this.postingDate = this.getParsedDate($event.value);
     this.customerChanged(this.f.customer.value, $event.value);
-  }
-
-  selectedDueDate($event) {
-    this.dueDate = this.getParsedDate($event.value);
   }
 
   getFrappeTime() {
