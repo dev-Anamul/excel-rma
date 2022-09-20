@@ -603,4 +603,5 @@ export const PERMISSION_STATE: PermissionStateInterface = {
 
 export const settingPermissions = {
   backdated_permissions: false,
+  backdated_permissions_for_days: 0,
 };

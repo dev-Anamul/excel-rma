@@ -135,6 +135,7 @@ export class SettingsService {
     footerImageURL: string,
     footerWidth: string,
     backdatedInvoices: boolean,
+    backdatedInvoicesForDays: number,
     brand: { [key: string]: any },
   ) {
     return this.getHeaders().pipe(
@@ -164,6 +165,7 @@ export class SettingsService {
             footerImageURL,
             footerWidth,
             backdatedInvoices,
+            backdatedInvoicesForDays,
             brand,
           },
           { headers },
