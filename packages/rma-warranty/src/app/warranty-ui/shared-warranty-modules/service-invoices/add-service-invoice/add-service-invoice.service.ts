@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { switchMap, map } from 'rxjs/operators';
 import {
   API_ITEM_GET_BY_CODE,
-  RELAY_GET_ITEMPRICE_ENDPOINT,
+  RELAY_GET_ITEM_PRICE_ENDPOINT,
   LIST_TERRITORIES_ENDPOINT,
   WARRANTY_CLAIM_GET_ONE_ENDPOINT,
   CREATE_SERVICE_INVOICE_ENDPOINT,
@@ -139,7 +139,7 @@ export class AddServiceInvoiceService {
   }
 
   getItemPrice(item_code: string) {
-    const url = RELAY_GET_ITEMPRICE_ENDPOINT;
+    const url = RELAY_GET_ITEM_PRICE_ENDPOINT;
     return from(this.storage.getItem(DEFAULT_SELLING_PRICE_LIST)).pipe(
       switchMap(priceList => {
         const params = new HttpParams({

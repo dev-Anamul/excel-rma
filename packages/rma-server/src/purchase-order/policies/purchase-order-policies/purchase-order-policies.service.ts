@@ -13,7 +13,7 @@ import { DOC_NAMES, DOC_RESET_INFO } from '../../../constants/app-strings';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import {
   AUTHORIZATION,
-  HUNDRED_NUMBERSTRING,
+  HUNDRED_NUMBER_STRING,
 } from '../../../constants/app-strings';
 import { GET_FRAPPE_LINKED_DOCS_ENDPOINT } from '../../../constants/routes';
 import { LANDED_COST_VOUCHER_ENDPOINT } from '../../../constants/routes';
@@ -263,7 +263,7 @@ export class PurchaseOrderPoliciesService {
     const params = {
       fields: JSON.stringify(['name', 'docstatus']),
       filters: JSON.stringify([['receipt_document', 'in', docNames]]),
-      limit_page_length: HUNDRED_NUMBERSTRING,
+      limit_page_length: HUNDRED_NUMBER_STRING,
     };
     return this.http
       .get(settings.authServerURL + LANDED_COST_VOUCHER_ENDPOINT, {

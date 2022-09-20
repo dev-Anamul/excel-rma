@@ -6,7 +6,7 @@ import {
   ACCESS_TOKEN,
   AUTHORIZATION,
   BEARER_TOKEN_PREFIX,
-  HUNDRED_NUMBERSTRING,
+  HUNDRED_NUMBER_STRING,
 } from '../../../constants/storage';
 import { map, switchMap } from 'rxjs/operators';
 import {
@@ -162,7 +162,7 @@ export class StockEntryService {
     const params = new HttpParams({
       fromObject: {
         filters: filter,
-        limit_page_length: (HUNDRED_NUMBERSTRING * 10).toString(),
+        limit_page_length: (HUNDRED_NUMBER_STRING * 10).toString(),
       },
     });
     return this.getHeaders().pipe(
