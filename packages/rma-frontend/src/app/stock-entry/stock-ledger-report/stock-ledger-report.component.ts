@@ -10,6 +10,7 @@ import { SalesService } from '../../sales-ui/services/sales.service';
 import { WAREHOUSES } from '../../constants/app-string';
 import { StockEntryService } from '../services/stock-entry/stock-entry.service';
 import { RELAY_LIST_PROJECT_ENDPOINT } from 'src/app/constants/url-strings';
+import { StockLedgerDataSource } from './stock-ledger-datasource';
 
 @Component({
   selector: 'app-stock-ledger-report',
@@ -31,8 +32,25 @@ export class StockLedgerReportComponent implements OnInit {
   filteredItemBrandList: Observable<any>;
   filteredProjectList: Observable<any[]>;
   stockUomList= []
-  
+  filters: any = [];
+  countFilter: any = {};
+  dataSource: StockLedgerDataSource;
   // dataSource: StockBalanceSummaryDataSource;
+
+  displayedColumns = [
+    'modified',
+    'company',
+    'item_code',
+    'voucher_no',
+    'batch_no',
+    'brand',
+    'warehouse',
+    'stock_uom',
+    'actual_qty',
+    'incoming_rate',
+    'valuation_rate',
+
+  ];
 
   get f() {
     return this.stockLedgerForm.controls;
@@ -47,6 +65,9 @@ export class StockLedgerReportComponent implements OnInit {
   ngOnInit() {
     this.createFormGroup();
     this.search = ''
+
+    this.dataSource = new StockLedgerDataSource(this.salesService);
+    this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
 
     this.stockEntryService.getStockUomList().subscribe(res=>{
       res.forEach(uom => {

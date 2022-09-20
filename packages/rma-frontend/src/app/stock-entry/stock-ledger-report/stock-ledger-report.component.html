@@ -284,6 +284,77 @@
         </ion-grid>
       </form>
 
+      <div class="example-container mat-elevation-z8">
+        <table
+          mat-table
+          class="full-width-table"
+          [dataSource]="dataSource"
+          matSort
+        >
+          <ng-container matColumnDef="modified">
+            <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.modified | date: 'd MMM, y' }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="item_code">
+            <mat-header-cell *matHeaderCellDef>Item code</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.item_code }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="warehouse">
+            <mat-header-cell *matHeaderCellDef>Warehouse</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.warehouse }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="brand">
+            <mat-header-cell *matHeaderCellDef>Item brand</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.brand }}</mat-cell>
+          </ng-container>
+          
+          <ng-container matColumnDef="batch_no">
+            <mat-header-cell *matHeaderCellDef>Batch No.</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.batch_no }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="voucher_no">
+            <mat-header-cell *matHeaderCellDef>Voucher No.</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.voucher_no }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="company">
+            <mat-header-cell *matHeaderCellDef>Company</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.company }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="stock_uom">
+            <mat-header-cell *matHeaderCellDef>Stock UOM</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.stock_uom }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="actual_qty">
+            <mat-header-cell *matHeaderCellDef>Actual quantity</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.actual_qty }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="incoming_rate">
+            <mat-header-cell *matHeaderCellDef>Incoming Rate</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.incoming_rate }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="valuation_rate">
+            <mat-header-cell *matHeaderCellDef>Valuation Rate</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.valuation_rate }}</mat-cell>
+          </ng-container>
+
+          
+
+          <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
+          </mat-header-row>
+
+          <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+        </table>
+      </div>
+
     </ion-card-content>
   </ion-card>
 </ion-content>

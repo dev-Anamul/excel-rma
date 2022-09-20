@@ -94,6 +94,7 @@ export const CUSTOMER_ENDPOINT = '/api/command/user/api/resource/Customer';
 export const STOCK_AVAILABILITY_COUNT_ENDPOINT =
   '/api/stock_ledger/v1/list_count';
 export const STOCK_AVAILABILITY_ENDPOINT = '/api/stock_ledger/v1/list';
+export const LIST_STOCK_LEDGER_ENDPOINT = '/api/stock_ledger/v1/ledger-report';
 export const GET_BALANCE_ON_ENDPOINT =
   '/api/command/user/api/method/erpnext.accounts.utils.get_balance_on';
 export const RELAY_API_RES_COMPANY = '/api/command/user/api/resource/Company';

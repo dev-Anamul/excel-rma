@@ -61,6 +61,14 @@ export class StockLedgerController {
       req,
     );
   }
+
+  @Get('v1/ledger-report')
+  @UseGuards(TokenGuard)
+  @UsePipes(new ValidationPipe({forbidNonWhitelisted: true}))
+  async getLedgerReport(){
+    return await this.stockLedgerAggregate.getLedgerReportList()
+  }
+
   @Get('v1/list_count')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))

@@ -286,4 +286,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
       return this.stockLedgerService.asyncAggregate(where);
     }
   }
+  getLedgerReportList(){
+    return this.stockLedgerService.find();
+  }
 }
