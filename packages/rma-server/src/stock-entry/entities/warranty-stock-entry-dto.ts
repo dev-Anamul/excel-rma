@@ -11,6 +11,8 @@ import { Type } from 'class-transformer';
 export class WarrantyStockEntryDto {
   docstatus?: 1;
   uuid?: string;
+  naming_series?: string;
+  action?: string;
 
   @IsOptional()
   @IsString()
@@ -125,7 +127,7 @@ export class WarrantyStockEntryItemDto {
 
   @IsOptional()
   @IsString()
-  serial_no: string;
+  serial_no: any;
 
   @IsOptional()
   @IsString()
@@ -134,4 +136,5 @@ export class WarrantyStockEntryItemDto {
   @IsOptional()
   @IsString()
   stock_entry_type: string;
+  excel_serials: any;
 }

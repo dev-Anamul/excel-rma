@@ -77,6 +77,12 @@ export class ItemController {
     return await this.aggregate.getBundleItems(query);
   }
 
+  @Get('v1/brand_list')
+  @UseGuards(TokenGuard)
+  async getBrand() {
+    return await this.aggregate.getBrandList();
+  }
+
   @Get('v1/list')
   @UseGuards(TokenGuard)
   async getItemList(

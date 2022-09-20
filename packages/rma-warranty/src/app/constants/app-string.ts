@@ -61,6 +61,7 @@ export const WARRANTY_CLAIMS_DOWNLOAD_HEADERS = [
   'verdict',
   'delivery_date',
   'billed_amount',
+  'outstanding_amount',
   'remarks',
 ];
 export const WARRANTY_CLAIMS_CSV_FILE = 'warranty-claim-list.csv';

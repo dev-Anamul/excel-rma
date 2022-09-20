@@ -62,6 +62,9 @@ export class ItemService {
       offset: skip,
     };
   }
+  async distinct() {
+    return await this.itemRepository.distinct('brand', {});
+  }
 
   async deleteOne(query, options?) {
     return await this.itemRepository.deleteOne(query, options);

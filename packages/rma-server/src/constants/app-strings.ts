@@ -101,6 +101,7 @@ export const SALES_INVOICE_STATUS = {
   completed: COMPLETED_STATUS,
   canceled: CANCELED_STATUS,
 };
+export const CANCEL_WARRANTY_STOCK_ENTRY = 'CANCEL';
 export const STOCK_ENTRY_STATUS = {
   in_transit: 'In Transit',
   delivered: 'Delivered',

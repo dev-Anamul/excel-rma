@@ -53,7 +53,24 @@ export class WarrantyClaimService {
     sortQuery =
       Object.keys(sortQuery).length === 0 ? { modifiedOn: 'desc' } : sortQuery;
 
-    if (filter_query?.fromDate && filter_query?.toDate) {
+    if (
+      filter_query?.fromDate &&
+      filter_query?.toDate &&
+      filter_query.date_type === 'Delivery Date'
+    ) {
+      const date = new Date(filter_query.fromDate);
+      const newDate = date.setDate(date.getDate() + 1);
+      dateQuery = {
+        delivery_date: {
+          $gte: new Date(newDate).toISOString().split('T')[0],
+          $lte: new Date(filter_query.toDate).toISOString().split('T')[0],
+        },
+      };
+    } else if (
+      filter_query?.fromDate &&
+      filter_query?.toDate &&
+      filter_query.date_type === 'Recieved Date'
+    ) {
       dateQuery = {
         createdOn: {
           $gte: new Date(filter_query.fromDate),
@@ -81,6 +98,7 @@ export class WarrantyClaimService {
       },
     ];
 
+    delete filter_query.date_type;
     const $and: any[] = [
       { $or },
       { set: { $in: territory.set } },

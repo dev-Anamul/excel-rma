@@ -205,6 +205,7 @@ export class AddStockEntryPage implements OnInit {
     selectedItem.sales_invoice_name = res?.sales_invoice_name;
     selectedItem.company = this.company;
     selectedItem.warrantyClaimUuid = this.warrantyObject.uuid;
+    selectedItem.naming_series = this.warrantyObject.claim_no;
     selectedItem.posting_date = this.stockEntryForm.controls.date.value;
     selectedItem.posting_time = this.stockEntryForm.controls.time.value;
     selectedItem.type = this.stockEntryForm.controls.type.value;

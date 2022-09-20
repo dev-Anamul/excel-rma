@@ -123,6 +123,36 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
+
+
+            <ion-col>
+              <mat-form-field class="full-width">
+                <input
+                  matInput
+                  placeholder="Brand"
+                  [matAutocomplete]="brand"
+                  formControlName="brand"
+                  (focusout)="validateInput(f.brand, filteredBrandList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #brand="matAutocomplete"
+                  [displayWith]="getBrandOption"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredBrandList"
+                    [value]="option"
+                  >
+                    {{option}}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="f.brand.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{f.brand.value}}'</strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
           </ion-row>
           <ion-row>
             <ion-col>
@@ -229,10 +259,27 @@
             </ion-col>
           </ion-row>
           <ion-row>
+            <ion-col>
+              <mat-form-field  class="full-width">
+                <mat-label>Date type</mat-label>
+                <mat-select
+                  formControlName="date_type" 
+                >
+                  <mat-option *ngFor="let date of dateType" 
+                    [value]="date"
+                    >
+                    {{date}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ion-col>
+
+
+
             <ion-col class="ion-text-center">
-              <ion-text color="medium" class="date-filter-text">
+              <!-- <ion-text color="medium" class="date-filter-text">
                 Range Date
-              </ion-text>
+              </ion-text> -->
               <mat-form-field class="full-width">
                 <input
                   matInput
@@ -248,6 +295,13 @@
                 ></mat-datepicker-toggle>
                 <mat-datepicker #fromDate disabled="false"></mat-datepicker>
               </mat-form-field>
+            </ion-col>
+
+
+            <ion-col class="ion-text-center">
+              <!-- <ion-text color="medium" class="date-filter-text">
+                Range Date
+              </ion-text> -->
               <mat-form-field class="full-width">
                 <input
                   matInput
@@ -264,10 +318,14 @@
                 <mat-datepicker #toDate disabled="false"></mat-datepicker>
               </mat-form-field>
             </ion-col>
+
+
+
+
             <ion-col class="ion-text-center">
-              <ion-text color="medium" class="date-filter-text">
+              <!-- <ion-text color="medium" class="date-filter-text">
                 Single Date
-              </ion-text>
+              </ion-text> -->
               <mat-form-field class="full-width">
                 <input
                   matInput
@@ -416,6 +474,13 @@
                 Billed Amount
               </mat-header-cell>
               <mat-cell *matCellDef="let row"> {{row.billed_amount}} </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+            <ng-container matColumnDef="outstanding_amount">
+              <mat-header-cell *matHeaderCellDef>
+                Outstanding Amount
+              </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.outstanding_amount}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
             <ng-container matColumnDef="receiving_branch">
