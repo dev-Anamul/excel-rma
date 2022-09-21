@@ -63,7 +63,9 @@ export class ItemService {
     };
   }
   async distinct() {
-    return await this.itemRepository.distinct('brand', {});
+    return await this.itemRepository.distinct('brand', {
+      brand: { $ne: null },
+    });
   }
 
   async deleteOne(query, options?) {
