@@ -63,6 +63,7 @@ import {
   SYNC_STOCK_PRINT_ENDPOINT,
   PRINT_SALES_INVOICE_PDF_METHOD,
   LIST_STOCK_LEDGER_ENDPOINT,
+  STOCK_LEDGER_REPORT_COUNT,
 } from '../../constants/url-strings';
 import { SalesInvoiceDetails } from '../view-sales-invoice/details/details.component';
 import { StorageService } from '../../api/storage/storage.service';
@@ -262,28 +263,41 @@ export class SalesService {
     );
   }
 
-  getStockLedger() {
-    // if (!sortOrder) sortOrder = { created_on: 'desc' };
-    // if (!query) query = {};
-
-    // try {
-    //   sortOrder = JSON.stringify(sortOrder);
-    // } catch (error) {
-    //   sortOrder = JSON.stringify({ created_on: 'desc' });
-    // }
-
+  getStockLedger(pageIndex = 0, pageSize = 30, filters) {
+    const params = new HttpParams({
+      fromObject: {
+        fields: '["*"]',
+        filters: encodeURIComponent(JSON.stringify(filters)),
+        limit_page_length: pageSize.toString(),
+        limit_start: (pageIndex * pageSize).toString(),
+      },
+    });
     const url = LIST_STOCK_LEDGER_ENDPOINT;
-    // const params = new HttpParams()
-    //   .set('limit', pageSize.toString())
-    //   .set('offset', (pageNumber * pageSize).toString())
-    //   .set('sort', sortOrder)
-    //   .set('filter_query', JSON.stringify(query));
-
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.get(url, {
-          headers,
-        });
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => {
+        return res;
+      }),
+    );
+  }
+  getLedgerCount(pageIndex = 0, pageSize = 30, filters){
+    const url = STOCK_LEDGER_REPORT_COUNT;
+    const params = new HttpParams({
+      fromObject: {
+        fields: '["*"]',
+        filters: JSON.stringify(filters),
+        limit_page_length: pageSize.toString(),
+        limit_start: (pageIndex * pageSize).toString(),
+      },
+    });
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => {
+        return res;
       }),
     );
   }
@@ -593,6 +607,7 @@ export class SalesService {
     );
   }
 
+  
   relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
     const url = STOCK_AVAILABILITY_ENDPOINT;
     const params = new HttpParams({

@@ -16,7 +16,7 @@ export class StockLedgerService {
     return await this.stockLedgerRepository.find(query);
   }
   async distinct() {
-    return await this.stockLedgerRepository.distinct('stock_uom', {});
+    return await this.stockLedgerRepository.distinct('stock_uom', {stock_uom:{$ne:null}});
   }
 
   async create(stockLedger: StockLedger) {

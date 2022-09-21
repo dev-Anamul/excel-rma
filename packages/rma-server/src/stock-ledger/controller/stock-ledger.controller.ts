@@ -65,8 +65,43 @@ export class StockLedgerController {
   @Get('v1/ledger-report')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({forbidNonWhitelisted: true}))
-  async getLedgerReport(){
-    return await this.stockLedgerAggregate.getLedgerReportList()
+  async getLedgerReport(@Query() query, @Req() req){
+    const { limit_start, limit_page_length, filters } = query;
+    let filter;
+    const sort = 'ASC';
+    try {
+      filter = JSON.parse(decodeURIComponent(filters));
+    } catch {
+      filter;
+    }
+    return await this.stockLedgerAggregate.getLedgerReportList(
+      Number(limit_start) || 0,
+      Number(limit_page_length) || 10,
+      sort,
+      filter,
+      req,
+    );
+  }
+
+  @Get('v1/ledger-report-count')
+  @UseGuards(TokenGuard)
+  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true}))
+  async getLedgerReportCount(@Query() query, @Req() req) {
+    const { limit_start, limit_page_length, filters } = query;
+    let filter;
+    const sort = 'ASC';
+    try {
+      filter = JSON.parse(filters);
+    } catch {
+      filter;
+    }
+    return await this.stockLedgerAggregate.getLedgerReportListCount(
+      Number(limit_start) || 0,
+      Number(limit_page_length) || 10,
+      sort,
+      filter,
+      req,
+    );
   }
 
   @Get('v1/list_count')

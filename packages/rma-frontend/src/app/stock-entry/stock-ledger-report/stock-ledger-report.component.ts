@@ -71,11 +71,8 @@ export class StockLedgerReportComponent implements OnInit {
 
     this.stockEntryService.getStockUomList().subscribe(res=>{
       res.forEach(uom => {
-        if(uom != null){
-          this.stockUomList.push(uom)
-        }
+        this.stockUomList.push(uom)
       });
-      this.stockUomList.push("null")
     })
 
     this.filteredStockAvailabilityList = this.stockLedgerForm
@@ -188,6 +185,14 @@ export class StockLedgerReportComponent implements OnInit {
     //   event?.pageIndex || 0,
     //   event?.pageSize || 30,
     // );
+  }
+  getUpdate(event) {
+    this.dataSource.loadItems(
+      event.pageIndex,
+      event.pageSize,
+      this.filters,
+      this.countFilter,
+    );
   }
 
   downloadServiceInvoices() {}

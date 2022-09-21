@@ -286,7 +286,17 @@ export class StockLedgerAggregateService extends AggregateRoot {
       return this.stockLedgerService.asyncAggregate(where);
     }
   }
-  getLedgerReportList(){
-    return this.stockLedgerService.find();
+  getLedgerReportList(offset, limit, sort, filter_query, req){
+    const where: any = [];
+    const $limit: any = limit;
+    const $skip: any = offset;
+    where.push({ $skip });
+    where.push({ $limit });
+    return this.stockLedgerService.asyncAggregate(where)
+  }
+  getLedgerReportListCount(offset, limit, sort, filter_query, req){
+    const where: any = [];
+    where.push({ $count: 'count' });
+    return this.stockLedgerService.asyncAggregate(where)
   }
 }

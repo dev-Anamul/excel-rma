@@ -44,10 +44,9 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
   loadItems(pageIndex = 0, pageSize = 30, filters = [], countFilter = []) {
     this.loadingSubject.next(true);
     this.salesService
-      .getStockLedger()
+      .getStockLedger(pageIndex, pageSize, filters)
       .pipe(
         map((items: ListingData[]) => {
-          console.log(items)
           this.data = items;
           return items;
         }),
@@ -56,17 +55,17 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
       )
       .subscribe(items => this.itemSubject.next(items));
 
-    // this.salesService.getDocCount(pageIndex, pageSize, filters).subscribe({
-    //   next: res => {
-    //     if (res) {
-    //       res.forEach(element => {
-    //         this.length = element.count;
-    //       });
-    //     } else {
-    //       this.length = 0;
-    //     }
-    //   },
-    // });
+    this.salesService.getLedgerCount(pageIndex, pageSize, filters).subscribe({
+      next: res => {
+        if (res) {
+          res.forEach(element => {
+            this.length = element.count;
+          });
+        } else {
+          this.length = 0;
+        }
+      },
+    });
   }
 
   getData() {
