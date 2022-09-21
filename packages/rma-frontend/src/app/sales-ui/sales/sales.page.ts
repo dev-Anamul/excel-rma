@@ -83,7 +83,7 @@ export class SalesPage implements OnInit {
 
   filteredCustomerList: Observable<any>;
   customerList: any;
-  filteredterritoryList: Observable<any>;
+  filteredTerritoryList: Observable<any>;
   statusColor = {
     Draft: 'blue',
     'To Deliver': '#4d2500',
@@ -100,7 +100,7 @@ export class SalesPage implements OnInit {
 
   constructor(
     private readonly salesService: SalesService,
-    private location: Location,
+    private readonly location: Location,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
   ) {}
@@ -136,10 +136,10 @@ export class SalesPage implements OnInit {
         }),
       )
       .subscribe({
-        next: res => {
+        next: () => {
           this.getTotal();
         },
-        error: err => {},
+        error: () => {},
       });
     this.dataSource.disableRefresh.subscribe({
       next: res => {
@@ -156,7 +156,7 @@ export class SalesPage implements OnInit {
         }),
       );
 
-    this.filteredterritoryList = this.salesForm.get('branch').valueChanges.pipe(
+    this.filteredTerritoryList = this.salesForm.get('branch').valueChanges.pipe(
       startWith(''),
       switchMap(value => {
         return this.salesService.getStore().getItemAsync('territory', value);

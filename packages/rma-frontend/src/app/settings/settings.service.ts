@@ -6,7 +6,7 @@ import {
   GET_SETTINGS_ENDPOINT,
   UPDATE_SETTINGS_ENDPOINT,
   GET_USER_PROFILE_ROLES,
-  RELAY_LIST_PRICELIST_ENDPOINT,
+  RELAY_LIST_PRICE_LIST_ENDPOINT,
   LIST_TERRITORIES_ENDPOINT,
   GET_TIME_ZONE,
   ERPNEXT_ACCOUNT_ENDPOINT,
@@ -67,7 +67,7 @@ export class SettingsService {
       return this.getHeaders().pipe(
         switchMap(headers => {
           return this.http
-            .get<{ data: unknown[] }>(RELAY_LIST_PRICELIST_ENDPOINT, {
+            .get<{ data: unknown[] }>(RELAY_LIST_PRICE_LIST_ENDPOINT, {
               headers,
               params,
             })
@@ -135,6 +135,7 @@ export class SettingsService {
     footerImageURL: string,
     footerWidth: string,
     backdatedInvoices: boolean,
+    backdatedInvoicesForDays: number,
     brand: { [key: string]: any },
   ) {
     return this.getHeaders().pipe(
@@ -164,6 +165,7 @@ export class SettingsService {
             footerImageURL,
             footerWidth,
             backdatedInvoices,
+            backdatedInvoicesForDays,
             brand,
           },
           { headers },

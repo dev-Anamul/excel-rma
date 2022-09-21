@@ -133,14 +133,14 @@
               Stock Entry Type
             </mat-header-cell>
             <mat-cell
-              *matCellDef="let row;let i = index"
+              *matCellDef="let row; let i = index"
               [satPopoverAnchor]="stock"
               tabindex="0"
               (keyup.enter)="stock.open()"
               (click)="stock.open()"
             >
               <ng-container *ngIf="row.stock_entry_type">
-                {{row.stock_entry_type}}
+                {{ row.stock_entry_type }}
               </ng-container>
               <span class="add-comment" *ngIf="!row.stock_entry_type">
                 Stock Entry Type
@@ -153,7 +153,7 @@
                 (closed)="updateItem(i,$event)"
               >
                 <inline-edit
-                  *ngIf="warrantyObject?.claim_type === 'Third Party Warranty' || this.f.type.value === 'Spare Parts' || i"
+                  *ngIf="warrantyObject?.claim_type === 'Third Party Warranty' || this.f.type.value === 'Spare Parts'"
                   style="width: 400px !important"
                   [value]="row.stock_entry_type"
                   column="stock_entry_type"
@@ -164,16 +164,16 @@
           </ng-container>
 
           <ng-container matColumnDef="item_name">
-            <mat-header-cell *matHeaderCellDef>Item</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> Item </mat-header-cell>
             <mat-cell
-              *matCellDef="let row;let i = index"
+              *matCellDef="let row; let i = index"
               [satPopoverAnchor]="p"
               tabindex="0"
               (keyup.enter)="p.open()"
               (click)="p.open()"
             >
               <ng-container *ngIf="row.item_name">
-                {{row.item_name}}
+                {{ row.item_name }}
               </ng-container>
               <span class="add-comment" *ngIf="!row.item_name">
                 Add an item
@@ -186,7 +186,7 @@
                 (closed)="updateItem(i,$event)"
               >
                 <inline-edit
-                  *ngIf="warrantyObject?.claim_type === 'Third Party Warranty' || this.f.type.value === 'Spare Parts' || i"
+                  *ngIf="enableItemEdit(row)"
                   style="width: 400px !important"
                   [value]="row.item_name"
                   column="item"
@@ -198,16 +198,16 @@
           </ng-container>
 
           <ng-container matColumnDef="serial_no">
-            <mat-header-cell *matHeaderCellDef>Serial No</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> Serial No </mat-header-cell>
             <mat-cell
-              *matCellDef="let row;let i = index"
+              *matCellDef="let row; let i = index"
               [satPopoverAnchor]="popover"
               tabindex="0"
               (keyup.enter)="popover.open()"
               (click)="popover.open()"
             >
               <ng-container *ngIf="row.serial_no">
-                {{row.serial_no}}
+                {{ row.serial_no }}
               </ng-container>
               <span class="add-comment" *ngIf="!row.serial_no">
                 Add Serial No
@@ -220,7 +220,7 @@
                 (closed)="updateSerial(i,$event)"
               >
                 <inline-edit
-                  *ngIf="warrantyObject?.claim_type === 'Third Party Warranty' || row.has_serial_no && i || this.f.type.value === 'Spare Parts'"
+                  *ngIf="enableSerialNoEdit(row)"
                   style="width: 400px !important"
                   [value]="row.serial_no"
                   column="serial_no"
@@ -239,14 +239,14 @@
               Source Warehouse
             </mat-header-cell>
             <mat-cell
-              *matCellDef="let row;let i = index"
+              *matCellDef="let row; let i = index"
               [satPopoverAnchor]="p"
               tabindex="0"
               (keyup.enter)="p.open()"
               (click)="p.open()"
             >
               <ng-container *ngIf="row.s_warehouse">
-                {{row.s_warehouse}}
+                {{ row.s_warehouse }}
               </ng-container>
               <span class="add-comment" *ngIf="!row.s_warehouse">
                 Add a Warehouse
@@ -269,7 +269,7 @@
           </ng-container>
 
           <ng-container matColumnDef="quantity">
-            <mat-header-cell *matHeaderCellDef>Quantity</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> Quantity </mat-header-cell>
             <mat-cell
               *matCellDef="let row; let i = index"
               [satPopoverAnchor]="p"
@@ -277,7 +277,7 @@
               (keyup.enter)="p.open()"
               (click)="p.open()"
             >
-              <ng-container> {{row.qty}} </ng-container>
+              <ng-container> {{ row.qty }} </ng-container>
               <span class="add-comment" *ngIf="!row.qty"> Quantity </span>
               <sat-popover
                 #p
@@ -287,7 +287,7 @@
                 (closed)="updateItem(i, $event)"
               >
                 <inline-edit
-                  *ngIf="warrantyObject?.claim_type === 'Third Party Warranty' || this.f.type.value === 'Spare Parts' || i"
+                  *ngIf="enableQuantityEdit()"
                   [value]="row.qty"
                   column="quantity"
                   [minimumPrice]="row.minimumPrice"

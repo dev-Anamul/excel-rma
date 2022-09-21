@@ -289,6 +289,43 @@ export class AddStockEntryPage implements OnInit {
     }
   }
 
+  enableItemEdit(row: any) {
+    if (this.f.type.value === STOCK_ENTRY_STATUS.REPLACE) {
+      return false;
+    } else if (this.f.type.value === STOCK_ENTRY_STATUS.UPGRADE) {
+      if (row.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.DELIVERED) {
+        return true;
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  enableSerialNoEdit(row: any) {
+    if (this.f.type.value === STOCK_ENTRY_STATUS.REPLACE) {
+      if (row.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.DELIVERED) {
+        return true;
+      }
+      return false;
+    } else if (this.f.type.value === STOCK_ENTRY_STATUS.UPGRADE) {
+      if (row.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.DELIVERED) {
+        return true;
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  enableQuantityEdit() {
+    if (this.f.type.value === STOCK_ENTRY_STATUS.SPARE_PARTS) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   trimRow() {
     for (let index = 0; index <= this.dataSource.data().length; index++) {
       this.dataSource.data().splice(0, 1);

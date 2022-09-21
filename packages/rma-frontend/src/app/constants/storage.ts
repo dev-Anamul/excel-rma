@@ -43,7 +43,7 @@ export const VALIDATE_SERIAL_BUFFER_COUNT = 50000;
 export const ALL_TERRITORIES = 'All Territories';
 export const WARRANTY_APP_URL = 'warranty_app_url';
 export const POS_PROFILE = 'pos_profile';
-export const HUNDRED_NUMBERSTRING = 100;
+export const HUNDRED_NUMBER_STRING = 100;
 export const PRINT_FORMAT_PREFIX = 'Excel ';
 export const DELIVERED_SERIALS_DISPLAYED_COLUMNS = {
   [DELIVERED_SERIALS_BY.purchase_invoice_name]: [
@@ -65,4 +65,5 @@ export const DELIVERED_SERIALS_DISPLAYED_COLUMNS = {
 };
 export const BASIC_RATE = 'basic_rate';
 export const BRAND = 'brand';
-export const BACKDATE_PERMISSION = 'backdate_permission';
+export const BACKDATE_PERMISSION = 'backdated_permissions';
+export const BACKDATE_PERMISSION_FOR_DAYS = 'backdated_permissions_for_days';

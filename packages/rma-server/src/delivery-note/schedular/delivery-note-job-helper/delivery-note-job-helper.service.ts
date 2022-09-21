@@ -2,7 +2,7 @@ import { Injectable, HttpService } from '@nestjs/common';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { TokenCache } from '../../../auth/entities/token-cache/token-cache.entity';
 import {
-  HUNDRED_NUMBERSTRING,
+  HUNDRED_NUMBER_STRING,
   PURCHASE_RECEIPT_SERIALS_BATCH_SIZE,
 } from '../../../constants/app-strings';
 import { map, switchMap } from 'rxjs/operators';
@@ -30,7 +30,7 @@ export class DeliveryNoteJobHelperService {
       fields: JSON.stringify(['delivery_document_no', 'name', 'warehouse']),
       filters: JSON.stringify([['serial_no', 'in', serials]]),
       limit_page_length:
-        HUNDRED_NUMBERSTRING + PURCHASE_RECEIPT_SERIALS_BATCH_SIZE * 2,
+        HUNDRED_NUMBER_STRING + PURCHASE_RECEIPT_SERIALS_BATCH_SIZE * 2,
     };
     return this.http
       .get(settings.authServerURL + FRAPPE_API_SERIAL_NO_ENDPOINT, {
@@ -88,7 +88,7 @@ export class DeliveryNoteJobHelperService {
         ['against_sales_invoice', '=', sales_invoice_name],
       ]),
       limit_page_length:
-        HUNDRED_NUMBERSTRING + PURCHASE_RECEIPT_SERIALS_BATCH_SIZE * 2,
+        HUNDRED_NUMBER_STRING + PURCHASE_RECEIPT_SERIALS_BATCH_SIZE * 2,
     };
     return this.http.get(
       settings.authServerURL +

@@ -14,7 +14,7 @@ import {
   BEARER_TOKEN_PREFIX,
   ACCESS_TOKEN,
   DEFAULT_SELLING_PRICE_LIST,
-  HUNDRED_NUMBERSTRING,
+  HUNDRED_NUMBER_STRING,
   AUTH_SERVER_URL,
 } from '../../constants/storage';
 import {
@@ -29,7 +29,7 @@ import {
   LIST_SERIAL_ENDPOINT,
   ASSIGN_SERIAL_ENDPOINT,
   UPDATE_SALES_INVOICE_ENDPOINT,
-  RELAY_GET_ITEMPRICE_ENDPOINT,
+  RELAY_GET_ITEM_PRICE_ENDPOINT,
   GET_SERIAL_ENDPOINT,
   API_INFO_ENDPOINT,
   API_ITEM_GET_BY_CODE,
@@ -83,8 +83,8 @@ export class SalesService {
   itemList: Array<Item>;
 
   constructor(
-    private http: HttpClient,
-    private storage: StorageService,
+    private readonly http: HttpClient,
+    private readonly storage: StorageService,
     private readonly snackBar: MatSnackBar,
   ) {
     this.salesInvoiceList = [];
@@ -671,10 +671,10 @@ export class SalesService {
         return this.getStore()
           .getItemAsync(TERRITORY)
           .pipe(
-            switchMap((terretory: string[]) => {
-              if (terretory && terretory.length > 0 && !skip_territory_filter) {
+            switchMap((territory: string[]) => {
+              if (territory && territory.length > 0 && !skip_territory_filter) {
                 let httpParams = new HttpParams();
-                terretory.forEach(territory => {
+                territory.forEach(territory => {
                   httpParams = httpParams.append('territories[]', territory);
                 });
 
@@ -702,7 +702,7 @@ export class SalesService {
     const params = new HttpParams({
       fromObject: {
         filters: `[["against_sales_invoice","=","${invoice_name}"],["is_return","=","0"]]`,
-        limit_page_length: (HUNDRED_NUMBERSTRING * 10).toString(),
+        limit_page_length: (HUNDRED_NUMBER_STRING * 10).toString(),
       },
     });
     return this.getHeaders().pipe(
@@ -734,7 +734,7 @@ export class SalesService {
         return of(true);
       }),
       toArray(),
-      switchMap(success => {
+      switchMap(() => {
         return forkJoin(request);
       }),
     );
@@ -779,7 +779,7 @@ export class SalesService {
   }
 
   getItemPrice(item_code: string) {
-    const url = RELAY_GET_ITEMPRICE_ENDPOINT;
+    const url = RELAY_GET_ITEM_PRICE_ENDPOINT;
     return from(this.storage.getItem(DEFAULT_SELLING_PRICE_LIST)).pipe(
       switchMap(priceList => {
         const params = new HttpParams({

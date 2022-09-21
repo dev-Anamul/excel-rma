@@ -47,7 +47,7 @@ export const ITEM_METADATA_FILTER_FIELDS = [
   'parenttype',
 ];
 export const NONE_PYTHON_STRING = 'None';
-export const HUNDRED_NUMBERSTRING = '100';
+export const HUNDRED_NUMBER_STRING = '100';
 export const DELIVERY_NOTE_LIST_FIELD = [
   'name',
   'title',

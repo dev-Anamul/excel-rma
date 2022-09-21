@@ -16,7 +16,10 @@ import {
   PERMISSION_STATE,
   settingPermissions,
 } from '../../constants/permission-roles';
-import { BACKDATE_PERMISSION } from '../../constants/storage';
+import {
+  BACKDATE_PERMISSION,
+  BACKDATE_PERMISSION_FOR_DAYS,
+} from '../../constants/storage';
 
 export const PermissionState = {
   create: 'create',
@@ -98,9 +101,17 @@ export class PermissionManager {
     });
   }
 
-  setGlobalPermissions(backdate_permission: boolean) {
-    this.storageService.setItem(BACKDATE_PERMISSION, backdate_permission),
-      (settingPermissions.backdated_permissions = backdate_permission);
+  setGlobalPermissions(
+    backdated_permissions: boolean,
+    backdated_permissions_for_days?: number,
+  ) {
+    this.storageService.setItem(BACKDATE_PERMISSION, backdated_permissions),
+      (settingPermissions.backdated_permissions = backdated_permissions);
+    this.storageService.setItem(
+      BACKDATE_PERMISSION_FOR_DAYS,
+      backdated_permissions_for_days,
+    ),
+      (settingPermissions.backdated_permissions_for_days = backdated_permissions_for_days);
   }
 }
 

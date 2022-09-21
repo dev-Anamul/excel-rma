@@ -26,7 +26,7 @@ import {
   AUTHORIZATION,
   BEARER_HEADER_VALUE_PREFIX,
 } from '../../../constants/app-strings';
-import { HUNDRED_NUMBERSTRING } from '../../../constants/app-strings';
+import { HUNDRED_NUMBER_STRING } from '../../../constants/app-strings';
 import { ErrorLogService } from '../../../error-log/error-log-service/error-log.service';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { TerritoryService } from '../../../customer/entity/territory/territory.service';
@@ -233,7 +233,7 @@ export class ConnectService {
         ['user', '=', frappeToken.user],
       ]),
       filters: JSON.stringify(['for_value']),
-      limit_page_length: HUNDRED_NUMBERSTRING,
+      limit_page_length: HUNDRED_NUMBER_STRING,
     };
     return this.http
       .get(settings.authServerURL + FRAPPE_API_GET_USER_PERMISSION_ENDPOINT, {
@@ -272,7 +272,7 @@ export class ConnectService {
     return this.http
       .get(
         authServerURL +
-          `${ERPNEXT_API_WAREHOUSE_ENDPOINT}?limit_page_length=${HUNDRED_NUMBERSTRING}&filters=[["is_group","=","0"]]`,
+          `${ERPNEXT_API_WAREHOUSE_ENDPOINT}?limit_page_length=${HUNDRED_NUMBER_STRING}&filters=[["is_group","=","0"]]`,
         { headers },
       )
       .pipe(
