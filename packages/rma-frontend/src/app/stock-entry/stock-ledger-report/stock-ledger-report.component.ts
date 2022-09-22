@@ -7,10 +7,11 @@ import { Observable, of } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';
 import { ValidateInputSelected } from 'src/app/common/pipes/validators';
 import { SalesService } from '../../sales-ui/services/sales.service';
-import { WAREHOUSES } from '../../constants/app-string';
+import { STOCK_LEDGER_CSV_FILE, STOCK_LEDGER_REPORT_HEADERS, WAREHOUSES } from '../../constants/app-string';
 // import { StockEntryService } from '../services/stock-entry/stock-entry.service';
 // import { RELAY_LIST_PROJECT_ENDPOINT } from 'src/app/constants/url-strings';
 import { StockLedgerDataSource } from './stock-ledger-datasource';
+import { CsvJsonService } from 'src/app/api/csv-json/csv-json.service';
 
 @Component({
   selector: 'app-stock-ledger-report',
@@ -58,6 +59,7 @@ export class StockLedgerReportComponent implements OnInit {
   constructor(
     private readonly location: Location,
     private readonly salesService: SalesService,
+    private readonly csvService: CsvJsonService,
     // private readonly stockEntryService: StockEntryService,
   ) {}
 
@@ -255,7 +257,48 @@ export class StockLedgerReportComponent implements OnInit {
     );
   }
 
-  downloadServiceInvoices() {}
+  downloadServiceInvoices() {
+    const result: any = this.serializeStockAvailabilityObject(
+      this.dataSource.data,
+    );
+    this.csvService.downloadStockAvailabilityCSV(
+      result,
+      STOCK_LEDGER_REPORT_HEADERS,
+      `${STOCK_LEDGER_CSV_FILE}`,
+    );
+  }
+  serializeStockAvailabilityObject(data: any) {
+    const serializedArray: any = [];
+    data.forEach(element => {
+      if (
+        element.item.item_name &&
+        element.item.item_code &&
+        element.item.item_group &&
+        element.item.brand &&
+        element.warehouse &&
+        element.modified &&
+        element.voucher_no &&
+        element.item.stock_uom 
+      ) {
+        const obj1: any = {
+          item_name: element.item.item_name,
+          item_code: element.item.item_code,
+          item_group: element.item.item_group,
+          brand: element.item.brand,
+          warehouse: element.warehouse,
+          actual_qty: element.actual_qty,
+          modified: element.modified,
+          voucher: element.voucher_no,
+          stock_uom: element.item.stock_uom,
+          incoming_rate: element.incoming_rate,
+          valuation_rate: element.valuation_rate,
+
+        };
+        serializedArray.push(obj1);
+      }
+    });
+    return serializedArray;
+  }
 
 
 }
