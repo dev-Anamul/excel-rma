@@ -263,13 +263,14 @@ export class SalesService {
     );
   }
 
-  getStockLedger(pageIndex = 0, pageSize = 30, filters) {
+  getStockLedger(pageIndex = 0, pageSize = 30, filters, dateSearch) {
     const params = new HttpParams({
       fromObject: {
         fields: '["*"]',
         filters: encodeURIComponent(JSON.stringify(filters)),
         limit_page_length: pageSize.toString(),
         limit_start: (pageIndex * pageSize).toString(),
+        date: dateSearch,
       },
     });
     const url = LIST_STOCK_LEDGER_ENDPOINT;
@@ -282,7 +283,7 @@ export class SalesService {
       }),
     );
   }
-  getLedgerCount(pageIndex = 0, pageSize = 30, filters){
+  getLedgerCount(pageIndex = 0, pageSize = 30, filters, dateSearch){
     const url = STOCK_LEDGER_REPORT_COUNT;
     const params = new HttpParams({
       fromObject: {
@@ -290,6 +291,7 @@ export class SalesService {
         filters: JSON.stringify(filters),
         limit_page_length: pageSize.toString(),
         limit_start: (pageIndex * pageSize).toString(),
+        date: dateSearch,
       },
     });
     return this.getHeaders().pipe(

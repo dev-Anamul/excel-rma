@@ -65,6 +65,33 @@
               </mat-form-field>
             </ion-col>
             <ion-col>
+              <mat-form-field class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Warehouse"
+                  [matAutocomplete]="warehouse"
+                  formControlName="warehouse"
+                  (focusout)="validateInput(f.warehouse, filteredWarehouseList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #warehouse="matAutocomplete"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredWarehouseList | async"
+                    [value]="option"
+                  >
+                    {{ option }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="f.warehouse.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{f.warehouse.value}}'</strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+            <!-- <ion-col>
               <mat-form-field 
                 class="mat-input-wrapper">
                 <input
@@ -93,7 +120,7 @@
                   </strong> is not allowed.
                 </mat-error>
               </mat-form-field>
-            </ion-col>
+            </ion-col> -->
             <ion-col>
               <mat-form-field 
                 class="mat-input-wrapper">
@@ -118,33 +145,6 @@
                 />
                 <mat-error *ngIf="f.company.hasError('required')">
                   Company is <strong>required</strong>
-                </mat-error>
-              </mat-form-field>
-            </ion-col>
-            <ion-col>
-              <mat-form-field class="mat-input-wrapper">
-                <input
-                  matInput
-                  placeholder="Warehouse"
-                  [matAutocomplete]="warehouse"
-                  formControlName="warehouse"
-                  (focusout)="validateInput(f.warehouse, filteredWarehouseList)"
-                />
-                <mat-autocomplete
-                  autoActiveFirstOption
-                  #warehouse="matAutocomplete"
-                  (optionSelected)="setFilter()"
-                >
-                  <mat-option
-                    *ngFor="let option of filteredWarehouseList | async"
-                    [value]="option"
-                  >
-                    {{ option }}
-                  </mat-option>
-                </mat-autocomplete>
-                <mat-error *ngIf="f.warehouse.hasError('falseValse')">
-                  You should select a value from dropdown only.
-                  <strong>'{{f.warehouse.value}}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>
@@ -246,7 +246,7 @@
                 </mat-form-field>
               </div>
             </ion-col>
-            <ion-col>
+            <!-- <ion-col>
               <mat-form-field  class="mat-input-wrapper">
                 <mat-label>UOM</mat-label>
                 <mat-select
@@ -259,8 +259,8 @@
                   </mat-option>
                 </mat-select>
               </mat-form-field>
-            </ion-col>
-            <ion-col>
+            </ion-col> -->
+            <!-- <ion-col>
               <mat-form-field 
                 class="mat-input-wrapper">
                 <input
@@ -270,7 +270,7 @@
                   (keyup.enter)="setFilter()"
                 />
               </mat-form-field>
-            </ion-col>
+            </ion-col> -->
           
             <ion-button
                 (click)="clearFilters()"
@@ -318,10 +318,10 @@
             <mat-cell *matCellDef="let row">{{ row.brand }}</mat-cell>
           </ng-container>
           
-          <ng-container matColumnDef="batch_no">
+          <!-- <ng-container matColumnDef="batch_no">
             <mat-header-cell *matHeaderCellDef>Batch No.</mat-header-cell>
             <mat-cell *matCellDef="let row">{{ row.batch_no }}</mat-cell>
-          </ng-container>
+          </ng-container> -->
 
           <ng-container matColumnDef="voucher_no">
             <mat-header-cell *matHeaderCellDef>Voucher No.</mat-header-cell>

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { Location } from '@angular/common';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -8,8 +8,8 @@ import { startWith, switchMap } from 'rxjs/operators';
 import { ValidateInputSelected } from 'src/app/common/pipes/validators';
 import { SalesService } from '../../sales-ui/services/sales.service';
 import { WAREHOUSES } from '../../constants/app-string';
-import { StockEntryService } from '../services/stock-entry/stock-entry.service';
-import { RELAY_LIST_PROJECT_ENDPOINT } from 'src/app/constants/url-strings';
+// import { StockEntryService } from '../services/stock-entry/stock-entry.service';
+// import { RELAY_LIST_PROJECT_ENDPOINT } from 'src/app/constants/url-strings';
 import { StockLedgerDataSource } from './stock-ledger-datasource';
 
 @Component({
@@ -20,10 +20,7 @@ import { StockLedgerDataSource } from './stock-ledger-datasource';
 export class StockLedgerReportComponent implements OnInit {
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
-  search:any
-  // range = new FormGroup({
-    
-  // });
+  dateSearch:any
   stockLedgerForm: FormGroup
   validateInput: any = ValidateInputSelected;
   filteredStockAvailabilityList: Observable<any>;
@@ -42,7 +39,7 @@ export class StockLedgerReportComponent implements OnInit {
     'company',
     'item_code',
     'voucher_no',
-    'batch_no',
+    // 'batch_no',
     'brand',
     'warehouse',
     'stock_uom',
@@ -59,21 +56,21 @@ export class StockLedgerReportComponent implements OnInit {
   constructor(
     private readonly location: Location,
     private readonly salesService: SalesService,
-    private readonly stockEntryService: StockEntryService,
+    // private readonly stockEntryService: StockEntryService,
   ) {}
 
   ngOnInit() {
     this.createFormGroup();
-    this.search = ''
+    this.dateSearch = ''
 
     this.dataSource = new StockLedgerDataSource(this.salesService);
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
+    this.dataSource.loadItems(0, 30, this.filters, this.countFilter, this.dateSearch,);
 
-    this.stockEntryService.getStockUomList().subscribe(res=>{
-      res.forEach(uom => {
-        this.stockUomList.push(uom)
-      });
-    })
+    // this.stockEntryService.getStockUomList().subscribe(res=>{
+    //   res.forEach(uom => {
+    //     this.stockUomList.push(uom)
+    //   });
+    // })
 
     this.filteredStockAvailabilityList = this.stockLedgerForm
       .get('item_name')
@@ -117,18 +114,18 @@ export class StockLedgerReportComponent implements OnInit {
       }),
     );
 
-    this.filteredProjectList = this.stockLedgerForm
-    .get('project')
-    .valueChanges.pipe(
-      startWith(''),
-      switchMap(value => {
-        const filter = `[["name", "like", "%${value}%"]]`;
-        return this.stockEntryService.getFilteredAccountingDimensions(
-          RELAY_LIST_PROJECT_ENDPOINT,
-          filter,
-        );
-      }),
-    );
+    // this.filteredProjectList = this.stockLedgerForm
+    // .get('project')
+    // .valueChanges.pipe(
+    //   startWith(''),
+    //   switchMap(value => {
+    //     const filter = `[["name", "like", "%${value}%"]]`;
+    //     return this.stockEntryService.getFilteredAccountingDimensions(
+    //       RELAY_LIST_PROJECT_ENDPOINT,
+    //       filter,
+    //     );
+    //   }),
+    // );
 
     
 
@@ -145,12 +142,12 @@ export class StockLedgerReportComponent implements OnInit {
       warehouse: new FormControl(),
       excel_item_group: new FormControl(),
       excel_item_brand: new FormControl(),
-      start_date: new FormControl([Validators.required]),
-      end_date: new FormControl([Validators.required]),
+      start_date: new FormControl(),
+      end_date: new FormControl(),
       voucher: new FormControl(),
-      project: new FormControl(),
-      stock_uom: new FormControl(),
-      batch_no: new FormControl(),
+      // project: new FormControl(),
+      // stock_uom: new FormControl(),
+      // batch_no: new FormControl(),
       
     });
   }
@@ -161,9 +158,11 @@ export class StockLedgerReportComponent implements OnInit {
     this.f.excel_item_brand.setValue('');
     this.f.excel_item_group.setValue('');
     this.f.voucher.setValue('');
-    this.f.project.setValue('');
-    this.f.stock_uom.setValue('');
-    this.f.batch_no.setValue('');
+    this.f.start_date.setValue(null);
+    this.f.end_date.setValue(null);
+    // this.f.project.setValue('');
+    // this.f.stock_uom.setValue('');
+    // this.f.batch_no.setValue('');
     this.f.company.setValue('Excel Technologies Ltd.');
     this.setFilter();
   }
@@ -174,17 +173,63 @@ export class StockLedgerReportComponent implements OnInit {
     }
   }
 
+  getItemGroupOption(option) {
+    if (option) {
+      if (option.item_group_name) {
+        return `${option.item_group_name}`;
+      }
+      return option.item_group_name;
+    }
+  }
+
+  getItemBrandOption(option) {
+    if (option) {
+      if (option.brand) {
+        return `${option.brand}`;
+      }
+      return option.brand;
+    }
+  }
+
   setFilter(event?) {
-    this.search = JSON.stringify({
+    this.filters = [];
+    this.countFilter = {};
+    this.dateSearch = JSON.stringify({
       start_date: this.stockLedgerForm.controls.start_date.value,
       end_date: this.stockLedgerForm.controls.end_date.value,
     });
-    // this.dataSource.loadItems(
-    //   this.search,
-    //   this.sort.direction,
-    //   event?.pageIndex || 0,
-    //   event?.pageSize || 30,
-    // );
+
+    if (this.f.item_name.value) {
+      this.filters.push([
+        'item_name',
+        'like',
+        `${this.f.item_name.value.item_code}`,
+      ]);
+      this.countFilter.item_code = [
+        'like',
+        `${this.f.item_name.value.item_code}`,
+      ];
+    }
+
+    if (this.f.excel_item_brand.value) {
+      this.filters.push([
+        'excel_item_brand',
+        'like',
+        `${this.f.excel_item_brand.value.brand}`,
+      ]);
+      this.countFilter.excel_item_brand = [
+        'like',
+        `${this.f.excel_item_brand.value.brand}`,
+      ];
+    }
+
+    if (this.f.warehouse.value) {
+      this.filters.push(['warehouse', 'like', `${this.f.warehouse.value}`]);
+      this.countFilter.warehouse = ['like', `${this.f.warehouse.value}`];
+    }
+
+    this.dataSource.loadItems(0, 30, this.filters, this.countFilter, this.dateSearch);
+
   }
   getUpdate(event) {
     this.dataSource.loadItems(
@@ -192,6 +237,7 @@ export class StockLedgerReportComponent implements OnInit {
       event.pageSize,
       this.filters,
       this.countFilter,
+      this.dateSearch,
     );
   }
 

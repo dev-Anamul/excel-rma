@@ -66,20 +66,21 @@ export class StockLedgerController {
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({forbidNonWhitelisted: true}))
   async getLedgerReport(@Query() query, @Req() req){
-    const { limit_start, limit_page_length, filters } = query;
+    const { limit_start, limit_page_length, filters, date } = query;
     let filter;
-    const sort = 'ASC';
+    let rangeDate;
     try {
       filter = JSON.parse(decodeURIComponent(filters));
+      rangeDate = JSON.parse(date)
     } catch {
       filter;
     }
     return await this.stockLedgerAggregate.getLedgerReportList(
       Number(limit_start) || 0,
       Number(limit_page_length) || 10,
-      sort,
       filter,
       req,
+      rangeDate,
     );
   }
 
@@ -87,20 +88,21 @@ export class StockLedgerController {
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true}))
   async getLedgerReportCount(@Query() query, @Req() req) {
-    const { limit_start, limit_page_length, filters } = query;
+    const { limit_start, limit_page_length, filters, date } = query;
     let filter;
-    const sort = 'ASC';
+    let rangeDate;
     try {
       filter = JSON.parse(filters);
+      rangeDate = JSON.parse(date)
     } catch {
       filter;
     }
     return await this.stockLedgerAggregate.getLedgerReportListCount(
       Number(limit_start) || 0,
       Number(limit_page_length) || 10,
-      sort,
       filter,
       req,
+      rangeDate,
     );
   }
 

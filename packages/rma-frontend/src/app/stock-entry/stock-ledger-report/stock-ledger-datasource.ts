@@ -41,10 +41,10 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(pageIndex = 0, pageSize = 30, filters = [], countFilter = []) {
+  loadItems(pageIndex = 0, pageSize = 30, filters = [], countFilter = [], dateSearch='') {
     this.loadingSubject.next(true);
     this.salesService
-      .getStockLedger(pageIndex, pageSize, filters)
+      .getStockLedger(pageIndex, pageSize, filters, dateSearch)
       .pipe(
         map((items: ListingData[]) => {
           this.data = items;
@@ -55,7 +55,7 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
       )
       .subscribe(items => this.itemSubject.next(items));
 
-    this.salesService.getLedgerCount(pageIndex, pageSize, filters).subscribe({
+    this.salesService.getLedgerCount(pageIndex, pageSize, filters, dateSearch).subscribe({
       next: res => {
         if (res) {
           res.forEach(element => {
