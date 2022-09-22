@@ -92,7 +92,7 @@ export class StockLedgerController {
     let filter;
     let rangeDate;
     try {
-      filter = JSON.parse(filters);
+      filter = JSON.parse(decodeURIComponent(filters));
       rangeDate = JSON.parse(date)
     } catch {
       filter;

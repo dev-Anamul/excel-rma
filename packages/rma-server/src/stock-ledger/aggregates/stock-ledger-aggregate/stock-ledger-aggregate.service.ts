@@ -295,6 +295,18 @@ export class StockLedgerAggregateService extends AggregateRoot {
       if (element[0] === 'warehouse') {
         filter_Obj['warehouse'] = element[2];
       }
+      if (element[0] === 'voucher_no') {
+        filter_Obj['voucher_no'] = element[2];
+      }
+      if (element[0] === 'item_code') {
+        filter_Obj['item_code'] = element[2];
+      }
+      if (element[0] === 'excel_item_brand') {
+        filter_Obj['item.brand'] = element[2];
+      }
+      if (element[0] === 'excel_item_group') {
+        filter_Obj['item.item_group'] = element[2];
+      }
     });
     let startDate;
     let endDate;
@@ -313,6 +325,16 @@ export class StockLedgerAggregateService extends AggregateRoot {
     // IF FILTER APPLY
     if (Object.entries(filter_Obj).length !== 0) {
       const where: any = [];
+
+      const $lookup: any = {
+        from: 'item',
+        localField: 'item_code',
+        foreignField: 'item_code',
+        as: 'item',
+      };
+      where.push({ $lookup });
+      const $unwind: any = '$item';
+      where.push({ $unwind });
       
       const $match: any = filter_Obj;
       where.push({ $match });
@@ -330,6 +352,16 @@ export class StockLedgerAggregateService extends AggregateRoot {
     // WITHOUT FILTER
     else{
       const where: any = [];
+      const $lookup: any = {
+        from: 'item',
+        localField: 'item_code',
+        foreignField: 'item_code',
+        as: 'item',
+      };
+      where.push({ $lookup });
+      const $unwind: any = '$item';
+      where.push({ $unwind });
+      
       const $limit: any = limit;
       const $skip: any = offset;
       const $sort: any = {
@@ -350,6 +382,18 @@ export class StockLedgerAggregateService extends AggregateRoot {
       if (element[0] === 'warehouse') {
         filter_Obj['warehouse'] = element[2];
       }
+      if (element[0] === 'voucher_no') {
+        filter_Obj['voucher_no'] = element[2];
+      }
+      if (element[0] === 'item_code') {
+        filter_Obj['item_code'] = element[2];
+      }
+      if (element[0] === 'excel_item_brand') {
+        filter_Obj['item.brand'] = element[2];
+      }
+      if (element[0] === 'excel_item_group') {
+        filter_Obj['item.item_group'] = element[2];
+      }
     });
     let startDate;
     let endDate;
@@ -364,10 +408,21 @@ export class StockLedgerAggregateService extends AggregateRoot {
         filter_Obj['modified'] = dateObj
       }
     }
+    console.log(filter_Obj)
     // IF FILTER APPLY
     if (Object.entries(filter_Obj).length !== 0) {
       const where: any = [];
-      
+
+      const $lookup: any = {
+        from: 'item',
+        localField: 'item_code',
+        foreignField: 'item_code',
+        as: 'item',
+      };
+      where.push({ $lookup });
+      const $unwind: any = '$item';
+      where.push({ $unwind });
+
       const $match: any = filter_Obj;
       where.push({ $match });
       const $sort: any = {

@@ -36,8 +36,10 @@ export class StockLedgerReportComponent implements OnInit {
 
   displayedColumns = [
     'modified',
-    'company',
+    // 'company',
+    'item_name',
     'item_code',
+    'item_group',
     'voucher_no',
     // 'batch_no',
     'brand',
@@ -201,14 +203,10 @@ export class StockLedgerReportComponent implements OnInit {
 
     if (this.f.item_name.value) {
       this.filters.push([
-        'item_name',
+        'item_code',
         'like',
         `${this.f.item_name.value.item_code}`,
       ]);
-      this.countFilter.item_code = [
-        'like',
-        `${this.f.item_name.value.item_code}`,
-      ];
     }
 
     if (this.f.excel_item_brand.value) {
@@ -221,6 +219,22 @@ export class StockLedgerReportComponent implements OnInit {
         'like',
         `${this.f.excel_item_brand.value.brand}`,
       ];
+    }
+
+    if (this.f.excel_item_group.value) {
+      this.filters.push([
+        'excel_item_group',
+        'like',
+        `${this.f.excel_item_group.value.name}`,
+      ]);
+      this.countFilter.excel_item_group = [
+        'like',
+        `${this.f.excel_item_group.value.name}`,
+      ];
+    }
+
+    if (this.f.voucher.value) {
+      this.filters.push(['voucher_no', 'like', `${this.f.voucher.value}`]);
     }
 
     if (this.f.warehouse.value) {
