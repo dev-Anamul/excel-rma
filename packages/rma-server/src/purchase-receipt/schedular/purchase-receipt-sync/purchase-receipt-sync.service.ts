@@ -481,8 +481,10 @@ export class PurchaseReceiptSyncService {
       }),
     );
   }
-  calculateValuationRate(preQty,totalQty,incomingRate,preValuation,incomingQty){
-    return ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
+  calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
+    var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
+    result = Math.round(result)
+    return result
   }
 
   updateInvoiceDeliveredState(docName, fullName, parent) {
