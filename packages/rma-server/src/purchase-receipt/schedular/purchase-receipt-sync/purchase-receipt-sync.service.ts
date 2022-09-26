@@ -346,7 +346,7 @@ export class PurchaseReceiptSyncService {
       concatMap(receipt => {
         return from(receipt.items).pipe(
           concatMap(item => {
-            // work for fetch available stock
+            //fetch available stock
             const filter_query = [
               [ 'item_code', 'like', `${item.item_code}` ],
               [ 'warehouse', 'like', `${item.warehouse}` ],
@@ -390,7 +390,7 @@ export class PurchaseReceiptSyncService {
               where.push({ $match });
               
               return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
-                // work for fetch pre valuation rate of item for recent perchase into particular warehouse
+                //fetch pre valuation rate of item for recent perchase into particular warehouse
                 const where = []
                 const ledger_filter_obj = {
                   item_code: `${item.item_code}`,
@@ -452,7 +452,6 @@ export class PurchaseReceiptSyncService {
         stockPayload.incoming_rate = payload.purchaseReceipt.rate;
 
         if(available_stock > 0){
-          //function for calculate valuation
           stockPayload.valuation_rate = this.calculateValuationRate(
             available_stock,
             stockPayload.actual_qty,
@@ -461,7 +460,6 @@ export class PurchaseReceiptSyncService {
             new_quantity
             );
         }
-        // stockPayload.valuation_rate = payload.purchaseReceipt.rate;
         stockPayload.batch_no = '';
         stockPayload.stock_uom = payload.purchaseReceipt.stock_uom;
         stockPayload.posting_date = date;
@@ -481,6 +479,7 @@ export class PurchaseReceiptSyncService {
       }),
     );
   }
+  //function for calculate valuation
   calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
     var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
     result = Math.round(result)

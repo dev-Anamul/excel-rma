@@ -408,7 +408,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
         filter_Obj['modified'] = dateObj
       }
     }
-    console.log(filter_Obj)
+
     // IF FILTER APPLY
     if (Object.entries(filter_Obj).length !== 0) {
       const where: any = [];
