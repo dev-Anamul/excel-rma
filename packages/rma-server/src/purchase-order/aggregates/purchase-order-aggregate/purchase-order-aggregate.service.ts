@@ -276,7 +276,7 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         stockPayload.actual_qty = -payload.purchaseReciept.qty;
         stockPayload.incoming_rate = payload.purchaseReciept.rate;
         
-        if(available_stock > 0){
+        if(pre_valuation_rate != stockPayload.incoming_rate){
           stockPayload.valuation_rate = this.calculateValuationRate(
             available_stock,
             stockPayload.actual_qty,
@@ -284,6 +284,9 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
             pre_valuation_rate,
             new_quantity
             );
+        }
+        else{
+          stockPayload.valuation_rate = stockPayload.incoming_rate;
         }
 
         stockPayload.batch_no = '';
