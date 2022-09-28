@@ -179,6 +179,7 @@ export class StockEntrySyncService {
       switchMap(settings => {
         job.settings = settings;
         payload.items.filter((item: any) => {
+          console.log("JOB = ",job.type)
           if (job.type === CREATE_STOCK_ENTRY_JOB) {
             payload.naming_series = STOCK_ENTRY_NAMING_SERIES[job.type];
             if (
@@ -340,17 +341,84 @@ export class StockEntrySyncService {
             item.qty = -item.qty;
           }
         }
-        return this.createStockLedgerPayload(
-          payload.naming_series,
-          item,
-          token,
-          settings,
-          warehouse_type,
-        ).pipe(
-          switchMap((response: StockLedger) => {
-            return from(this.stockLedgerService.create(response));
-          }),
-        );
+        const where = []
+        const ledger_filter_obj = {
+          item_code: `${item.item_code}`,
+          warehouse: `${item.t_warehouse}`,
+        }
+        const $match: any = ledger_filter_obj;
+        where.push({$match})
+        const $sort: any = {
+          'modified': -1,
+        };
+        where.push({ $sort });
+        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
+          const filter_query = [
+            [ 'item_code', 'like', `${item.item_code}` ],
+            [ 'warehouse', 'like', `${item.t_warehouse}` ],
+            [ 'actual_qty', '!=', 0 ]
+          ]
+        
+          const filter_Obj: any = {};
+          filter_query.forEach(element => {
+            if (element[0] === 'item_code') {
+              filter_Obj['item.item_code'] = element[2];
+            }
+            if (element[0] === 'warehouse') {
+              filter_Obj['_id.warehouse'] = element[2];
+            }
+            if (element[1] === '!=') {
+              filter_Obj.stockAvailability = { $gt: element[2] };
+            }
+          });
+            const obj: any = {
+              _id: {
+                warehouse: '$warehouse',
+                item_code: '$item_code',
+              },
+              stockAvailability: {
+                $sum: '$actual_qty',
+              },
+            };
+            const $group: any = obj;
+            const where: any = [];
+            where.push({ $group });
+            const $lookup: any = {
+              from: 'item',
+              localField: '_id.item_code',
+              foreignField: 'item_code',
+              as: 'item',
+            };
+            where.push({ $lookup });
+            const $unwind: any = '$item';
+            where.push({ $unwind });
+            const $match: any = filter_Obj;
+            where.push({ $match });
+
+            return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
+            return this.createStockLedgerPayload(
+              payload.stock_id,
+              //creating just set valuation rate as outgoing rate and valuation
+
+              //t_warehouse valuation as current val
+              //incoming qty from payload *
+              //total qty *
+              //item available qty in t_warehouse *
+              //item,warehuse,TROUT-voucher no for valuation rate in pre warehouse as incoming rate
+              //if rate not same do otherwise don't
+              item,
+              token,
+              settings,
+              warehouse_type,
+              latest_stock_ledger,
+              data
+            ).pipe(
+              switchMap((response: StockLedger) => {
+                return from(this.stockLedgerService.create(response));
+              }),
+            );
+           }))
+       }))
       }),
       toArray(),
     );
@@ -362,7 +430,13 @@ export class StockEntrySyncService {
     token,
     settings: ServerSettings,
     warehouse_type?,
+    latest_stock_ledger?,
+    data?
   ) {
+    var pre_valuation_rate = latest_stock_ledger[0].valuation_rate;
+    var pre_incoming_rate =latest_stock_ledger[0].incoming_rate
+    var available_stock = data[0].stockAvailability;
+    var new_quantity = available_stock+deliveryNoteItem.qty;
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -372,16 +446,27 @@ export class StockEntrySyncService {
         stockPayload.modified_by = token.email;
         stockPayload.item_code = deliveryNoteItem.item_code;
         stockPayload.actual_qty = deliveryNoteItem.qty;
-        stockPayload.valuation_rate = deliveryNoteItem.basic_rate
-          ? deliveryNoteItem.basic_rate
-          : 0;
+        stockPayload.incoming_rate = deliveryNoteItem.basic_rate;
+
+        if(pre_incoming_rate != stockPayload.incoming_rate){
+          stockPayload.valuation_rate = this.calculateValuationRate(
+            available_stock,
+            stockPayload.actual_qty,
+            stockPayload.incoming_rate,
+            pre_valuation_rate,
+            new_quantity
+            );
+        }
+        else{
+          stockPayload.valuation_rate = pre_valuation_rate;
+        }
+        
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
         stockPayload.voucher_no = stock_entry_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         if (warehouse_type === 't_warehouse') {
@@ -399,6 +484,12 @@ export class StockEntrySyncService {
         return of(stockPayload);
       }),
     );
+  }
+  //function for calculate valuation
+  calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
+    var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
+    result = Math.round(result)
+    return result
   }
 
   parseFrappePayload(payload: StockEntry) {

@@ -438,6 +438,7 @@ export class PurchaseReceiptSyncService {
     var pre_valuation_rate = response[0].valuation_rate;
     var available_stock = data[0].stockAvailability;
     var new_quantity = payload.purchaseReceipt.qty+available_stock;
+    var pre_incoming_rate = response[0].incoming_rate;
 
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
@@ -451,7 +452,7 @@ export class PurchaseReceiptSyncService {
         stockPayload.actual_qty = payload.purchaseReceipt.qty;
         stockPayload.incoming_rate = payload.purchaseReceipt.rate;
 
-        if(available_stock > 0){
+        if(pre_incoming_rate != stockPayload.incoming_rate){
           stockPayload.valuation_rate = this.calculateValuationRate(
             available_stock,
             stockPayload.actual_qty,
@@ -459,6 +460,9 @@ export class PurchaseReceiptSyncService {
             pre_valuation_rate,
             new_quantity
             );
+        }
+        else{
+          stockPayload.valuation_rate = pre_valuation_rate;
         }
         stockPayload.batch_no = '';
         stockPayload.stock_uom = payload.purchaseReceipt.stock_uom;
