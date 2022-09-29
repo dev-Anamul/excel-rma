@@ -124,7 +124,6 @@
               </mat-form-field>
             </ion-col>
 
-
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -260,26 +259,17 @@
           </ion-row>
           <ion-row>
             <ion-col>
-              <mat-form-field  class="full-width">
+              <mat-form-field class="full-width">
                 <mat-label>Date type</mat-label>
-                <mat-select
-                  formControlName="date_type" 
-                >
-                  <mat-option *ngFor="let date of dateType" 
-                    [value]="date"
-                    >
+                <mat-select formControlName="date_type">
+                  <mat-option *ngFor="let date of dateType" [value]="date">
                     {{date}}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
             </ion-col>
 
-
-
             <ion-col class="ion-text-center">
-              <!-- <ion-text color="medium" class="date-filter-text">
-                Range Date
-              </ion-text> -->
               <mat-form-field class="full-width">
                 <input
                   matInput
@@ -297,11 +287,7 @@
               </mat-form-field>
             </ion-col>
 
-
             <ion-col class="ion-text-center">
-              <!-- <ion-text color="medium" class="date-filter-text">
-                Range Date
-              </ion-text> -->
               <mat-form-field class="full-width">
                 <input
                   matInput
@@ -319,13 +305,7 @@
               </mat-form-field>
             </ion-col>
 
-
-
-
             <ion-col class="ion-text-center">
-              <!-- <ion-text color="medium" class="date-filter-text">
-                Single Date
-              </ion-text> -->
               <mat-form-field class="full-width">
                 <input
                   matInput
@@ -480,7 +460,9 @@
               <mat-header-cell *matHeaderCellDef>
                 Outstanding Amount
               </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.outstanding_amount}} </mat-cell>
+              <mat-cell *matCellDef="let row">
+                {{ row.outstanding_amount }}
+              </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
             <ng-container matColumnDef="receiving_branch">

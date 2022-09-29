@@ -82,8 +82,8 @@ import { Item } from '../../../item/entity/item/item.entity';
 import { SerialNoHistoryPoliciesService } from '../../../serial-no/policies/serial-no-history-policies/serial-no-history-policies.service';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
-import { SalesReturnCancelDto } from 'src/sales-invoice/entity/sales-invoice/sales-return-cancel-dto';
-import { ServerSettings } from 'src/system-settings/entities/server-settings/server-settings.entity';
+import { SalesReturnCancelDto } from '../../entity/sales-invoice/sales-return-cancel-dto';
+import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
 
 @Injectable()

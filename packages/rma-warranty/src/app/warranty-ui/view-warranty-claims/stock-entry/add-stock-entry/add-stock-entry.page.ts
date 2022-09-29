@@ -82,7 +82,7 @@ export class AddStockEntryPage implements OnInit {
     this.checkActive(this.dataSource.data().length);
 
     this.company = await this.addServiceInvoiceService
-      .getStore()
+      .getStorage()
       .getItem(DEFAULT_COMPANY);
     this.getWarrantyDetail();
   }

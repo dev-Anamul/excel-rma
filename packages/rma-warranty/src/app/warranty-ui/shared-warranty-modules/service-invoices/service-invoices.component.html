@@ -9,22 +9,12 @@
         </ion-col>
         <ion-col class="ion-text-right">
           <ion-button
-          color="tertiary"
-          (click)="syncDocStatus()"
-          fill="outline"
-          [disabled]="disableRefresh"
-        >
-          Sync Data
-        </ion-button>
-        <ion-button
-                  color="danger"
-              (click)="getUpdatedInvoice()"
-              fill="outline"
-              [disabled]="disableRefresh"
-            >
-                  Get Amount
-               </ion-button>
-        
+            color="tertiary"
+            (click)="syncDataWithERP()"
+            fill="outline"
+          >
+            Sync Data
+          </ion-button>
 
           <ion-button
             *ngIf="permissionState.service_invoice.create"
@@ -32,7 +22,7 @@
             [routerLink]="['/warranty/service-invoice', 'add', invoiceUuid]"
           >
             Add
-          </ion-button> 
+          </ion-button>
         </ion-col>
       </ion-row>
     </ion-grid>
@@ -78,9 +68,7 @@
         </ng-container>
 
         <ng-container matColumnDef="customer_third_party">
-          <mat-header-cell *matHeaderCellDef
-            >Customer Party</mat-header-cell
-          >
+          <mat-header-cell *matHeaderCellDef>Customer Party</mat-header-cell>
           <mat-cell *matCellDef="let row">
             <ng-container>
               {{ row.customer_third_party }}
@@ -90,17 +78,17 @@
         </ng-container>
 
         <ng-container matColumnDef="outstanding_amount">
-                 <mat-header-cell *matHeaderCellDef
-                   >Outstanding Amount</mat-header-cell
-                 >
-                 <mat-cell *matCellDef="let row">
-                   <ng-container>
-                     {{row.outstanding_amount}}
-                   </ng-container>
-                 </mat-cell>
-                 <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-               </ng-container>
-          
+          <mat-header-cell *matHeaderCellDef
+            >Outstanding Amount</mat-header-cell
+          >
+          <mat-cell *matCellDef="let row">
+            <ng-container>
+              {{ row.outstanding_amount }}
+            </ng-container>
+          </mat-cell>
+          <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+        </ng-container>
+
         <ng-container matColumnDef="invoice_amount">
           <mat-header-cell *matHeaderCellDef>Invoice Amount</mat-header-cell>
           <mat-cell *matCellDef="let row">
@@ -108,7 +96,9 @@
               {{ row.total }}
             </ng-container>
           </mat-cell>
-          <mat-footer-cell *matFooterCellDef>{{ total | curFormat |async}}</mat-footer-cell>
+          <mat-footer-cell *matFooterCellDef>{{
+            total | curFormat | async
+          }}</mat-footer-cell>
         </ng-container>
 
         <ng-container matColumnDef="claim_no">
@@ -160,14 +150,16 @@
               }"
             >
               {{
-                row.docstatus === 0 ? 'Draft' : 
-                row.docstatus === 1 ? 'Submitted' : 'Canceled'
+                row.docstatus === 0
+                  ? 'Draft'
+                  : row.docstatus === 1
+                  ? 'Submitted'
+                  : 'Canceled'
               }}
             </ion-text>
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
-        
 
         <mat-header-row
           *matHeaderRowDef="displayedColumns; sticky: true"

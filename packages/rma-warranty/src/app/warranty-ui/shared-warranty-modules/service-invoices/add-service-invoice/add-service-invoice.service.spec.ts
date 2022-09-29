@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { AddServiceInvoiceService } from './add-service-invoice.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { STORAGE_TOKEN } from '../../../../api/storage/storage.service';
+import { StorageService } from '../../../../api/storage/storage.service';
 import { MaterialModule } from '../../../../material/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -25,9 +25,9 @@ describe('AddServiceInvoiceService', () => {
       ],
       providers: [
         {
-          provide: STORAGE_TOKEN,
+          provide: StorageService,
           useValue: {
-            getItem: (...args) => Promise.resolve(),
+            getItem: (...args) => Promise.resolve({}),
           },
         },
       ],

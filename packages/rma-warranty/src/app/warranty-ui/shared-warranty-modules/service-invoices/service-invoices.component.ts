@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { AddServiceInvoiceService } from './add-service-invoice/add-service-invoice.service';
 import { ServiceInvoiceDataSource } from './service-invoice-datasource';
 import { WarrantyClaimsDetails } from '../../../common/interfaces/warranty.interface';
 import { AUTH_SERVER_URL } from '../../../constants/storage';
@@ -8,7 +7,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { PERMISSION_STATE } from '../../../constants/permission-roles';
 import { filter } from 'rxjs/operators';
-import { WarrantyService } from '../../warranty-tabs/warranty.service';
+import { ServiceInvoiceService } from './service-invoice.service';
 
 @Component({
   selector: 'service-invoices',
@@ -24,7 +23,6 @@ export class ServiceInvoicesComponent implements OnInit {
   dataSource: ServiceInvoiceDataSource;
   permissionState = PERMISSION_STATE;
   total: number = 0;
-  disableRefresh: boolean = false;
   displayedColumns = [
     'invoice_no',
     'status',
@@ -41,13 +39,12 @@ export class ServiceInvoicesComponent implements OnInit {
   ];
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly serviceInvoice: AddServiceInvoiceService,
+    private readonly serviceInvoice: ServiceInvoiceService,
     private readonly router: Router,
-    private readonly warrantyService: WarrantyService,
   ) {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(val => {
+      .subscribe(() => {
         this.dataSource.loadItems({
           warrantyClaimUuid: this.route.snapshot.params.uuid,
         });
@@ -59,20 +56,13 @@ export class ServiceInvoicesComponent implements OnInit {
     this.invoiceUuid = this.route.snapshot.params.uuid;
     this.dataSource = new ServiceInvoiceDataSource(this.serviceInvoice);
     this.dataSource.loadItems({ warrantyClaimUuid: this.invoiceUuid });
-    this.dataSource.disableRefresh.subscribe({
-      next: res => {
-        this.disableRefresh = res;
-      },
-    });
   }
 
-  syncDocStatus() {
-    this.dataSource.syncDocStatus().subscribe({
-      next: res => {},
-    });
+  syncDataWithERP() {
+    this.dataSource.loadItems({ warrantyClaimUuid: this.invoiceUuid });
   }
 
-  getUpdate(event) {
+  getUpdate(event: any) {
     const sortQuery = {};
     if (event) {
       for (const key of Object.keys(event)) {
@@ -97,23 +87,9 @@ export class ServiceInvoicesComponent implements OnInit {
     });
   }
 
-  getUpdatedInvoice() {
-    this.warrantyService.findInvoice(this.invoiceUuid).subscribe(data => {
-      this.warrantyService.assignInvoice(data.invoice_no).subscribe(value => {
-        this.warrantyService
-          .updateAmount(value, this.invoiceUuid)
-          .subscribe(newValue => {
-            this.dataSource.loadItems({
-              warrantyClaimUuid: this.route.snapshot.params.uuid,
-            });
-          });
-      });
-    });
-  }
-
-  openERPServiceInvoice(row) {
+  openERPServiceInvoice(row: any) {
     this.serviceInvoice
-      .getStore()
+      .getStorage()
       .getItem(AUTH_SERVER_URL)
       .then(auth_url => {
         window.open(

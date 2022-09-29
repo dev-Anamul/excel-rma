@@ -4,8 +4,8 @@ import { ServiceInvoicesComponent } from './service-invoices/service-invoices.co
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { AppCommonModule } from 'src/app/common/app-common.module';
-import { MaterialModule } from 'src/app/material/material.module';
+import { AppCommonModule } from '../../common/app-common.module';
+import { MaterialModule } from '../../material/material.module';
 import { RouterModule } from '@angular/router';
 import { PrintSettingDialog } from './print-setting-dialog/print-setting-dialog';
 

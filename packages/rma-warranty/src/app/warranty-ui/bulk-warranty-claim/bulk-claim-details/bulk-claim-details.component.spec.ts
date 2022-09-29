@@ -9,7 +9,7 @@ import { IonicModule } from '@ionic/angular';
 import { BulkClaimDetailsComponent } from './bulk-claim-details.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/compiler';
 import { WarrantyService } from '../../warranty-tabs/warranty.service';
-import { MaterialModule } from 'src/app/material/material.module';
+import { MaterialModule } from '../../../material/material.module';
 import { of } from 'rxjs';
 
 describe('BulkClaimDetailsComponent', () => {

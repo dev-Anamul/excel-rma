@@ -64,7 +64,7 @@ import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MY_FORMATS } from '../../constants/date-format';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import { SerialSearchFields } from '../../common/interfaces/search-fields.interface';
-import { PERMISSION_STATE } from 'src/app/constants/permission-roles';
+import { PERMISSION_STATE } from '../../constants/permission-roles';
 import {
   DeliveryNoteItemInterface,
   ItemDataSource,
