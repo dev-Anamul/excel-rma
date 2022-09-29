@@ -3,6 +3,8 @@ import { PurchaseReceipt } from './purchase-receipt.entity';
 import { Injectable } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import { PARSE_REGEX } from '../../constants/app-strings';
+import { of } from 'rxjs/internal/observable/of';
+import { switchMap } from 'rxjs/internal/operators/switchMap';
 
 @Injectable()
 export class PurchaseReceiptService {
@@ -21,6 +23,14 @@ export class PurchaseReceiptService {
 
   async findOne(query, param?) {
     return await this.purchaseReceiptRepository.findOne(query, param);
+  }
+
+  asyncAggregate(query) {
+    return of(this.purchaseReceiptRepository.aggregate(query)).pipe(
+      switchMap((aggregateData: any) => {
+        return aggregateData.toArray();
+      }),
+    );
   }
 
   async list(skip, take, sort, filter_query?) {

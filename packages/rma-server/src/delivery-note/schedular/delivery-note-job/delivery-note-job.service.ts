@@ -331,46 +331,76 @@ export class DeliveryNoteJobService {
             : item.serial_no),
         );
       }
-      items.push({
-        item_code: item.item_code,
-        item_name: item.item_name,
-        description: item.description,
-        deliveredBy: token.fullName,
-        deliveredByEmail: token.email,
-        qty: item.qty,
-        rate: item.rate,
-        amount: item.amount,
-        serial_no: item.serial_no,
-        expense_account: item.expense_account,
-        cost_center: item.cost_center,
-        delivery_note: response.name,
-      });
-    });
+      const filter_obj = {
+        item_code : `${item.item_code}`,
+        warehouse: `${payload.set_warehouse}`
+      }
+      const $match: any = filter_obj;
+      const where: any = [];
+      where.push({$match});
+      const $sort: any = {
+        'modified': -1,
+      };
+      where.push({ $sort });
+      this.stockLedgerService.asyncAggregate(where).subscribe(ledger=>{
 
-    this.salesInvoiceService
-      .updateOne(
-        { name: sales_invoice_name },
-        {
-          $push: {
-            delivery_note_items: { $each: items },
-            delivery_note_names: response.name,
-          },
-        },
-      )
-      .then(success => {})
-      .catch(error => {});
+        items.push({
+          item_code: item.item_code,
+          item_name: item.item_name,
+          description: item.description,
+          deliveredBy: token.fullName,
+          deliveredByEmail: token.email,
+          qty: item.qty,
+          rate: ledger[0].valuation_rate,
+          amount: ledger[0].valuation_rate,
+          serial_no: item.serial_no,
+          expense_account: item.expense_account,
+          cost_center: item.cost_center,
+          delivery_note: response.name,
+        });
+        this.salesInvoiceService
+         .updateOne(
+           { name: sales_invoice_name },
+           {
+             $push: {
+               delivery_note_items: { $each: items },
+               delivery_note_names: response.name,
+             },
+           },
+         )
+         .then(success => {})
+         .catch(error => {});
+      })
+  });
+
+    
 
     from(payload.items).forEach((item: DeliveryNoteItemDto) => {
-      this.createStockLedgerPayload(
-        { warehouse: payload.set_warehouse, deliveryNoteItem: item },
-        token,
-        settings,
-      )
-        .pipe(
-          switchMap((response: StockLedger) => {
-            return from(this.stockLedgerService.create(response));
-          }),
-        )
+      const filter_obj = {
+        item_code : `${item.item_code}`,
+        warehouse: `${payload.set_warehouse}`
+      }
+      const $match: any = filter_obj;
+      const where: any = [];
+      where.push({$match});
+      const $sort: any = {
+        'modified': -1,
+      };
+      where.push({ $sort });
+      return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((ledger)=>{
+
+         return this.createStockLedgerPayload(
+           { warehouse: payload.set_warehouse, deliveryNoteItem: item },
+           token,
+           settings,
+           ledger
+         )
+           .pipe(
+             switchMap((response: StockLedger) => {
+               return from(this.stockLedgerService.create(response));
+             }),
+            )
+          }))         
         .subscribe();
     });
 
@@ -381,6 +411,7 @@ export class DeliveryNoteJobService {
     payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
     token,
     settings: ServerSettings,
+    ledger
   ) {
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
@@ -392,7 +423,9 @@ export class DeliveryNoteJobService {
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
-        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+
+        //assign latest valuation rate of item in particular warehouse
+        stockPayload.valuation_rate = ledger[0].valuation_rate        
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
@@ -400,8 +433,8 @@ export class DeliveryNoteJobService {
         stockPayload.voucher_no =
           payload.deliveryNoteItem.against_sales_invoice;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
-        stockPayload.outgoing_rate = 0;
+        stockPayload.incoming_rate = payload.deliveryNoteItem.rate;
+        stockPayload.outgoing_rate = stockPayload.valuation_rate;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
           stockPayload.qty_after_transaction * stockPayload.valuation_rate;

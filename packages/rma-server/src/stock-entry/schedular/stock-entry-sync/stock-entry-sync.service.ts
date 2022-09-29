@@ -340,18 +340,146 @@ export class StockEntrySyncService {
             item.qty = -item.qty;
           }
         }
-        return this.createStockLedgerPayload(
-          payload.naming_series,
-          item,
-          token,
-          settings,
-          warehouse_type,
-        ).pipe(
-          switchMap((response: StockLedger) => {
-            return from(this.stockLedgerService.create(response));
-          }),
-        );
-      }),
+        // incoming item
+        if(warehouse_type == 't_warehouse'){
+
+        const where = []
+        const ledger_filter_obj = {
+          item_code: `${item.item_code}`,
+          warehouse: `${item.t_warehouse}`,
+        }
+        const $match: any = ledger_filter_obj;
+        where.push({$match})
+        const $sort: any = {
+          'modified': -1,
+        };
+        where.push({ $sort });
+        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
+          const filter_query = [
+            [ 'item_code', 'like', `${item.item_code}` ],
+            [ 'warehouse', 'like', `${item.t_warehouse}` ],
+            [ 'actual_qty', '!=', 0 ]
+          ]
+        
+          const filter_Obj: any = {};
+          filter_query.forEach(element => {
+            if (element[0] === 'item_code') {
+              filter_Obj['item.item_code'] = element[2];
+            }
+            if (element[0] === 'warehouse') {
+              filter_Obj['_id.warehouse'] = element[2];
+            }
+            if (element[1] === '!=') {
+              filter_Obj.stockAvailability = { $gt: element[2] };
+            }
+          });
+            const obj: any = {
+              _id: {
+                warehouse: '$warehouse',
+                item_code: '$item_code',
+              },
+              stockAvailability: {
+                $sum: '$actual_qty',
+              },
+            };
+            const $group: any = obj;
+            const where: any = [];
+            where.push({ $group });
+            const $lookup: any = {
+              from: 'item',
+              localField: '_id.item_code',
+              foreignField: 'item_code',
+              as: 'item',
+            };
+            where.push({ $lookup });
+            const $unwind: any = '$item';
+            where.push({ $unwind });
+            const $match: any = filter_Obj;
+            where.push({ $match });
+            return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
+      
+              if(payload.stock_entry_type === 'Material Transfer'){
+
+                const where = []
+                const ledger_filter_obj = {
+                  voucher_no: `${payload.stock_id}`,
+                }
+                const $match: any = ledger_filter_obj;
+                where.push({$match})
+                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((TROUT_ledger)=>{
+                  
+                  return this.createStockLedgerPayload(
+                    payload.stock_id,
+                    item,
+                    token,
+                    settings,
+                    warehouse_type,
+                    latest_stock_ledger,
+                    data,
+                    TROUT_ledger
+                  ).pipe(
+                    switchMap((response: StockLedger) => {
+
+                      return from(this.stockLedgerService.create(response));
+                    }),
+                  );      
+                }))
+              }
+              else{
+
+                return this.createStockLedgerPayload(
+                  payload.stock_id,
+                  item,
+                  token,
+                  settings,
+                  warehouse_type,
+                  latest_stock_ledger,
+                  data,
+                  null
+                ).pipe(
+                  switchMap((response: StockLedger) => {
+
+                    return from(this.stockLedgerService.create(response));
+                  }),
+                );
+              }
+           }))
+       }))
+      }
+      // outgoing item
+      else{
+        const filter_obj = {
+          item_code : `${item.item_code}`,
+          warehouse: `${item.s_warehouse}`
+        }
+        const $match: any = filter_obj;
+        const where: any = [];
+        where.push({$match});
+        const $sort: any = {
+          'modified': -1,
+        };
+        where.push({ $sort });
+        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((ledger)=>{
+
+          return this.createStockLedgerPayload(
+            payload.stock_id,
+            item,
+            token,
+            settings,
+            warehouse_type,
+            ledger,
+            null,
+            null
+          ).pipe(
+            switchMap((response: StockLedger) => {
+
+              return from(this.stockLedgerService.create(response));
+            }),
+          );
+         }))
+       }
+      }
+    ),
       toArray(),
     );
   }
@@ -362,8 +490,48 @@ export class StockEntrySyncService {
     token,
     settings: ServerSettings,
     warehouse_type?,
+    latest_stock_ledger?,
+    data?,
+    TROUT_ledger?
   ) {
-    return this.settingsService.getFiscalYear(settings).pipe(
+    var available_stock;
+    var pre_valuation_rate;
+    var pre_incoming_rate;
+    var new_quantity;
+    var current_valuation_rate;
+    var current_valuation_rate;
+    var rate_of_transfer_item;
+    
+    if(warehouse_type === 't_warehouse'){
+      if(TROUT_ledger != null){
+        rate_of_transfer_item = TROUT_ledger[0].valuation_rate;
+      }
+      
+      if(latest_stock_ledger && latest_stock_ledger.length > 0){
+        pre_valuation_rate = latest_stock_ledger[0].valuation_rate;
+        pre_incoming_rate =  latest_stock_ledger[0].incoming_rate;
+      }
+      else{
+        pre_valuation_rate = deliveryNoteItem.basic_rate;
+        pre_incoming_rate = deliveryNoteItem.basic_rate;
+      }
+      if (data && data.length > 0){
+      available_stock = data[0].stockAvailability
+      }
+      else{
+        available_stock = 0;
+      }
+      new_quantity = available_stock+deliveryNoteItem.qty;
+    }
+    if(warehouse_type === 's_warehouse'){
+      if(latest_stock_ledger){
+        current_valuation_rate = latest_stock_ledger[0].valuation_rate;
+      }
+      else{
+        current_valuation_rate = 0 
+      }
+    }
+      return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
         const stockPayload = new StockLedger();
@@ -372,16 +540,42 @@ export class StockEntrySyncService {
         stockPayload.modified_by = token.email;
         stockPayload.item_code = deliveryNoteItem.item_code;
         stockPayload.actual_qty = deliveryNoteItem.qty;
-        stockPayload.valuation_rate = deliveryNoteItem.basic_rate
-          ? deliveryNoteItem.basic_rate
-          : 0;
+
+        if(warehouse_type === 't_warehouse'){
+          stockPayload.incoming_rate = 
+            deliveryNoteItem.basic_rate? deliveryNoteItem.basic_rate:rate_of_transfer_item;
+          
+          if(pre_incoming_rate != stockPayload.incoming_rate){
+             
+            if(pre_valuation_rate == 0){
+               stockPayload.valuation_rate = 
+                  deliveryNoteItem.basic_rate? deliveryNoteItem.basic_rate:rate_of_transfer_item;
+             }
+             else{
+                stockPayload.valuation_rate = parseFloat(this.calculateValuationRate(
+                  available_stock,
+                  stockPayload.actual_qty,
+                  stockPayload.incoming_rate,
+                  pre_valuation_rate,
+                  new_quantity
+                  ))
+                  ;
+               }
+            }
+           else{
+             stockPayload.valuation_rate = pre_valuation_rate;
+           }
+         }
+        if(warehouse_type === 's_warehouse'){
+            stockPayload.incoming_rate = current_valuation_rate;
+            stockPayload.valuation_rate = current_valuation_rate;
+         }
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
         stockPayload.voucher_no = stock_entry_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         if (warehouse_type === 't_warehouse') {
@@ -399,6 +593,12 @@ export class StockEntrySyncService {
         return of(stockPayload);
       }),
     );
+  }
+  //function for calculate valuation
+  calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
+    var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
+    // result = Math.round(result)
+    return result.toFixed(2)
   }
 
   parseFrappePayload(payload: StockEntry) {
