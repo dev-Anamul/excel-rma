@@ -61,6 +61,7 @@ export class ItemAggregateService extends AggregateRoot {
   async getItemList(offset, limit, sort, filterQuery, clientHttpRequest) {
     return this.itemService.list(offset, limit, sort, filterQuery);
   }
+
   async getBrandList() {
     return this.itemService.distinct();
   }

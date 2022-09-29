@@ -5,7 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { ServiceInvoicesPageRoutingModule } from './service-invoices-routing.module';
-import { MaterialModule } from 'src/app/material/material.module';
+import { MaterialModule } from '../material/material.module';
 
 import { ServiceInvoicesPage } from './service-invoices.page';
 import { AppCommonModule } from '../common/app-common.module';

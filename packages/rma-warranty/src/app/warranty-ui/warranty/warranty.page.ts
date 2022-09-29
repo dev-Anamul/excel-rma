@@ -18,8 +18,11 @@ import { map, filter, startWith, switchMap } from 'rxjs/operators';
 import { PERMISSION_STATE } from '../../constants/permission-roles';
 import {
   CATEGORY,
+  CLAIM_STATUS,
+  DATE_TYPE,
   WARRANTY_CLAIMS_CSV_FILE,
   WARRANTY_CLAIMS_DOWNLOAD_HEADERS,
+  WARRANTY_TYPE,
 } from '../../constants/app-string';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { CsvJsonService } from '../../api/csv-json/csv-json.service';
@@ -77,15 +80,15 @@ export class WarrantyPage implements OnInit {
   filteredTerritoryList: Observable<any[]>;
   sortQuery: any = {};
   territoryList;
-  claim_status: string = 'All';
+  claim_status: string = CLAIM_STATUS.ALL;
   claimStatusList: string[] = [
-    'In Progress',
-    'To Deliver',
-    'Delivered',
-    'Rejected',
-    'All',
+    CLAIM_STATUS.IN_PROGRESS,
+    CLAIM_STATUS.TO_DELIVER,
+    CLAIM_STATUS.DELIVERED,
+    CLAIM_STATUS.REJECTED,
+    CLAIM_STATUS.ALL,
   ];
-  dateType: string[] = ['Recieved Date', 'Delivery Date'];
+  dateType: string[] = [DATE_TYPE.RECEIVED_DATE, DATE_TYPE.RECEIVED_DATE];
   validateInput: any = ValidateInputSelected;
   warrantyForm: FormGroup;
 
@@ -94,11 +97,11 @@ export class WarrantyPage implements OnInit {
   }
 
   constructor(
-    private location: Location,
+    private readonly location: Location,
     private readonly warrantyService: WarrantyService,
     private readonly router: Router,
-    private route: ActivatedRoute,
-    private csvService: CsvJsonService,
+    private readonly route: ActivatedRoute,
+    private readonly csvService: CsvJsonService,
   ) {}
 
   ngOnInit() {
@@ -107,10 +110,10 @@ export class WarrantyPage implements OnInit {
       this.paginator.firstPage();
     });
     this.claimList = [
-      'Warranty',
-      'Non Warranty',
-      'Non Serial Warranty',
-      'Third Party Warranty',
+      WARRANTY_TYPE.WARRANTY,
+      WARRANTY_TYPE.NON_WARRANTY,
+      WARRANTY_TYPE.NON_SERIAL,
+      WARRANTY_TYPE.THIRD_PARTY,
     ];
     this.dataSource = new WarrantyClaimsDataSource(this.warrantyService);
     this.router.events
@@ -132,8 +135,8 @@ export class WarrantyPage implements OnInit {
         }),
       )
       .subscribe({
-        next: res => {},
-        error: err => {},
+        next: () => {},
+        error: () => {},
       });
 
     this.filteredCustomerList = this.warrantyForm
@@ -159,9 +162,10 @@ export class WarrantyPage implements OnInit {
       .valueChanges.pipe(
         startWith(''),
         switchMap(value => {
-          return this.warrantyService.getItemList(value);
+          return this.warrantyService.getItemList({ item_name: value });
         }),
       );
+
     this.filteredTerritoryList = this.warrantyForm
       .get('territory')
       .valueChanges.pipe(
@@ -180,7 +184,6 @@ export class WarrantyPage implements OnInit {
         value => value.toLowerCase().indexOf(name.toLowerCase()) !== -1,
       );
     }
-    // var date = "Recieved Date";
   }
 
   createFormGroup() {
@@ -197,7 +200,7 @@ export class WarrantyPage implements OnInit {
       replace_serial: new FormControl(''),
       received_by: new FormControl(''),
       delivered_by: new FormControl(''),
-      date_type: new FormControl('Recieved Date'),
+      date_type: new FormControl(DATE_TYPE.RECEIVED_DATE),
       fromDate: new FormControl(''),
       toDate: new FormControl(''),
       singleDate: new FormControl(''),
@@ -359,7 +362,7 @@ export class WarrantyPage implements OnInit {
     this.f.toDate.setValue('');
     this.f.singleDate.setValue('');
     this.f.replace_serial.setValue('');
-    this.f.date_type.setValue('Recieved Date');
+    this.f.date_type.setValue(DATE_TYPE.RECEIVED_DATE);
     this.paginator.pageSize = 30;
     this.paginator.firstPage();
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
@@ -376,6 +379,7 @@ export class WarrantyPage implements OnInit {
   getCustomerOption(option) {
     return option.customer_name;
   }
+
   getBrandOption(option) {
     return option;
   }
@@ -409,6 +413,7 @@ export class WarrantyPage implements OnInit {
     );
   }
 }
+
 @Component({
   selector: 'assign-serials-dialog',
   templateUrl: 'assign-serials-dialog.html',

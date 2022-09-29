@@ -52,20 +52,6 @@ export class ServiceInvoiceController {
     );
   }
 
-  @Get('v1/servicePending')
-  @UseGuards(TokenGuard)
-  async getService(@Req() req) {
-    return this.serviceInvoiceAggregate.findServiceInvoice(req.query.uuid);
-  }
-
-  @Post('v1/update_invoiceamount')
-  updateInvoiceAmount(@Req() req) {
-    return this.serviceInvoiceAggregate.updateserviceInvoice(
-      req.body.params.updates[0].value,
-      req.body.params.updates[1].value,
-    );
-  }
-
   @Get('v1/list')
   @UseGuards(TokenGuard)
   getServiceInvoiceList(
@@ -101,10 +87,10 @@ export class ServiceInvoiceController {
     );
   }
 
-  @Post('v1/update_docstatus/:invoice_no')
+  @Post('v1/sync_with_ERP/:invoice_no')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   updateDocStatus(@Param('invoice_no') invoice_no: string) {
-    return this.serviceInvoiceAggregate.updateDocStatus(invoice_no);
+    return this.serviceInvoiceAggregate.syncWithERP(invoice_no);
   }
 }

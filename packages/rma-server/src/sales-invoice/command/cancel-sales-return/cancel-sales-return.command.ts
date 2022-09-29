@@ -1,5 +1,5 @@
 import { ICommand } from '@nestjs/cqrs';
-import { SalesReturnCancelDto } from 'src/sales-invoice/entity/sales-invoice/sales-return-cancel-dto';
+import { SalesReturnCancelDto } from '../../entity/sales-invoice/sales-return-cancel-dto';
 
 export class CancelSalesReturnCommand implements ICommand {
   constructor(

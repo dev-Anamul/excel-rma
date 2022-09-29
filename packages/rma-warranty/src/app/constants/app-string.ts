@@ -120,6 +120,7 @@ export enum CLAIM_STATUS {
   UNSOLVED = 'Unsolved',
   REJECTED = 'Rejected',
   CANCELLED = 'Cancelled',
+  ALL = 'All',
 }
 
 export enum CATEGORY {
@@ -133,10 +134,17 @@ export const SERVICE_INVOICE_DOWNLOAD_HEADERS = [
   'date',
   'total',
 ];
+
 export enum SORT_ORDER {
   ASCENDING = 'ASC',
   DESCENDING = 'DESC',
 }
+
+export enum DATE_TYPE {
+  RECEIVED_DATE = 'Received Date',
+  DELIVERED_DATE = 'Delivery Date',
+}
+
 export const SERVICE_INVOICE_CSV_FILE = 'service-invoice-list.csv';
 export const DELIVERY_TOKEN = 'Delivery Token';
 export const SERVICE_TOKEN = 'Service Token';

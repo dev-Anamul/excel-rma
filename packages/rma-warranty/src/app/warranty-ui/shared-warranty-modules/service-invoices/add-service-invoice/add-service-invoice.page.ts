@@ -91,7 +91,7 @@ export class AddServiceInvoicePage implements OnInit {
     );
 
     this.serviceInvoiceService
-      .getStore()
+      .getStorage()
       .getItem('territory')
       .then(territory => {
         this.territoryList = territory;
@@ -231,7 +231,7 @@ export class AddServiceInvoicePage implements OnInit {
     if (this.serviceInvoiceForm.controls.is_pos.value) {
       serviceInvoiceDetails.is_pos = 1;
       this.serviceInvoiceService
-        .getStore()
+        .getStorage()
         .getItem('pos_profile')
         .then(profile => {
           serviceInvoiceDetails.pos_profile = profile;

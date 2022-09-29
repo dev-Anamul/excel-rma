@@ -21,15 +21,11 @@ import {
   LIST_WARRANTY_INVOICE_ENDPOINT,
   WARRANTY_CLAIM_GET_ONE_ENDPOINT,
   RESET_WARRANTY_CLAIM_ENDPOINT,
-  REMOVE_WARRANTY_CLAIM_ENDPOINT,
   LIST_CUSTOMER_ENDPOINT,
   LIST_ITEMS_ENDPOINT,
   RELAY_LIST_PRINT_FORMAT_ENDPOINT,
   PRINT_SALES_INVOICE_PDF_METHOD,
   LIST_BRAND_ENDPOINT,
-  INVOICE_LIST,
-  SERVICE_INVOICE_GET_ONE_ENDPOINT,
-  SERVICE_INVOICE_POST_ONE_ENDPOINT,
 } from '../../constants/url-strings';
 import { APIResponse, Item } from '../../common/interfaces/sales.interface';
 import { of } from 'rxjs';
@@ -47,9 +43,9 @@ import {
   WarrantyClaimsDetails,
   WarrantyPrintDetails,
 } from '../../common/interfaces/warranty.interface';
-import { AddServiceInvoiceService } from '../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
 import { LOAD_FRAPPE_DOCUMENT_METHOD_ENDPOINT } from '../../constants/url-strings';
 import { ServiceInvoiceDetails } from '../shared-warranty-modules/service-invoices/add-service-invoice/service-invoice-interface';
+import { ServiceInvoiceService } from '../shared-warranty-modules/service-invoices/service-invoice.service';
 @Injectable({
   providedIn: 'root',
 })
@@ -57,9 +53,9 @@ export class WarrantyService {
   itemList: Array<Item>;
 
   constructor(
-    private http: HttpClient,
+    private readonly http: HttpClient,
     private readonly storage: StorageService,
-    private readonly serviceInvoiceService: AddServiceInvoiceService,
+    private readonly serviceInvoiceService: ServiceInvoiceService,
   ) {
     this.itemList = [];
   }
@@ -87,6 +83,7 @@ export class WarrantyService {
       }),
     );
   }
+
   getWarrantyClaimsList(
     sortOrder,
     pageNumber = 0,
@@ -166,39 +163,6 @@ export class WarrantyService {
     );
   }
 
-  assignInvoice(invoiceName: any) {
-    const params = new HttpParams().set('name', invoiceName);
-    const url = INVOICE_LIST;
-    return this.getHeaders().pipe(
-      switchMap(headers => {
-        return this.http.get<any>(url, { headers, params });
-      }),
-      map(res => res.data),
-    );
-  }
-
-  findInvoice(invoiceUuid: any) {
-    const params = new HttpParams().set('uuid', invoiceUuid);
-    const url = SERVICE_INVOICE_GET_ONE_ENDPOINT;
-    return this.getHeaders().pipe(
-      switchMap(headers => {
-        return this.http.get<any>(url, { headers, params });
-      }),
-      map(res => res),
-    );
-  }
-
-  updateAmount(object: any, uuid) {
-    const params = new HttpParams().set('object', object).set('uuid', uuid);
-
-    const url = SERVICE_INVOICE_POST_ONE_ENDPOINT;
-    return this.getHeaders().pipe(
-      switchMap(headers => {
-        return this.http.post<any>(url, { headers, params });
-      }),
-    );
-  }
-
   getBrandList() {
     const url = LIST_BRAND_ENDPOINT;
     return this.getHeaders().pipe(
@@ -210,6 +174,7 @@ export class WarrantyService {
       map(res => res),
     );
   }
+
   getItemList(
     filter: any = {},
     sortOrder: any = { item_name: 'asc' },
@@ -232,6 +197,7 @@ export class WarrantyService {
       .set('offset', (pageIndex * pageSize).toString())
       .set('search', encodeURIComponent(JSON.stringify(query)))
       .set('sort', sortOrder);
+
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http
@@ -243,7 +209,7 @@ export class WarrantyService {
             switchMap(response => {
               return of(response.docs);
             }),
-            catchError(err => {
+            catchError(() => {
               return of(this.itemList);
             }),
           );
@@ -276,11 +242,7 @@ export class WarrantyService {
     });
   }
 
-  getStorage() {
-    return this.storage;
-  }
-
-  printDocument(doc) {
+  printDocument(doc: any) {
     const blob = new Blob([JSON.stringify(doc)], {
       type: 'application/json',
     });
@@ -308,19 +270,11 @@ export class WarrantyService {
     );
   }
 
-  removeClaim(uuid: string) {
-    return this.getHeaders().pipe(
-      switchMap(headers => {
-        return this.http.post<any>(
-          `${REMOVE_WARRANTY_CLAIM_ENDPOINT}${uuid}`,
-          {},
-          { headers },
-        );
-      }),
-    );
+  getStorage() {
+    return this.storage;
   }
 
-  openPdf(format, uuid) {
+  openPdf(format: any, uuid: string) {
     this.getStorage()
       .getItem(AUTH_SERVER_URL)
       .then(auth_url => {
@@ -674,17 +628,17 @@ export class WarrantyService {
     );
   }
 
-  bulkInvoiceMap(serviceInvoice) {
+  bulkInvoiceMap(serviceInvoice: any) {
     return from(serviceInvoice).pipe(
       filter((v: ServiceInvoiceDetails[]) => v.length !== 0),
-      concatMap((singlebulkVoucher: ServiceInvoiceDetails[]) => {
-        return this.singleInvoiceMap(singlebulkVoucher);
+      concatMap((singleBulkVoucher: ServiceInvoiceDetails[]) => {
+        return this.singleInvoiceMap(singleBulkVoucher);
       }),
       toArray(),
     );
   }
 
-  singleInvoiceMap(serviceInvoice) {
+  singleInvoiceMap(serviceInvoice: any) {
     if (serviceInvoice.length) {
       return from(serviceInvoice).pipe(
         concatMap((singleVoucher: ServiceInvoiceDetails) => {

@@ -50,7 +50,7 @@ import {
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MY_FORMATS } from '../../constants/date-format';
 import { ValidateInputSelected } from '../../common/pipes/validators';
-import { StorageService } from 'src/app/api/storage/storage.service';
+import { StorageService } from '../../api/storage/storage.service';
 
 @Component({
   selector: 'app-add-sales-invoice',

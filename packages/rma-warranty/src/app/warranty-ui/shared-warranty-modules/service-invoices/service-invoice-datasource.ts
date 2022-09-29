@@ -8,7 +8,7 @@ import {
   toArray,
 } from 'rxjs/operators';
 import { BehaviorSubject, from, Observable, of } from 'rxjs';
-import { AddServiceInvoiceService } from './add-service-invoice/add-service-invoice.service';
+import { ServiceInvoiceService } from './service-invoice.service';
 import { ServiceInvoiceDetails } from './add-service-invoice/service-invoice-interface';
 
 export interface ListResponse {
@@ -25,10 +25,9 @@ export class ServiceInvoiceDataSource extends DataSource<ServiceInvoiceDetails> 
 
   itemSubject = new BehaviorSubject<ServiceInvoiceDetails[]>([]);
   loadingSubject = new BehaviorSubject<boolean>(false);
-  disableRefresh = new BehaviorSubject<boolean>(false);
   loading$ = this.loadingSubject.asObservable();
 
-  constructor(private serviceInvoice: AddServiceInvoiceService) {
+  constructor(private readonly serviceInvoiceService: ServiceInvoiceService) {
     super();
   }
 
@@ -50,7 +49,8 @@ export class ServiceInvoiceDataSource extends DataSource<ServiceInvoiceDetails> 
     } catch {
       filter = JSON.stringify({});
     }
-    this.serviceInvoice
+
+    this.serviceInvoiceService
       .getServiceInvoiceList(filter, sortOrder, pageIndex, pageSize)
       .pipe(
         map((serviceInvoice: ListResponse) => {
@@ -64,12 +64,15 @@ export class ServiceInvoiceDataSource extends DataSource<ServiceInvoiceDetails> 
         switchMap(items => {
           return from(items ? items : []).pipe(
             concatMap(item => {
-              return this.serviceInvoice.updateDocStatus(item.invoice_no).pipe(
-                switchMap((res: { docstatus: number }) => {
-                  item.docstatus = res.docstatus;
-                  return of(item);
-                }),
-              );
+              return this.serviceInvoiceService
+                .syncDataWithERP(item.invoice_no)
+                .pipe(
+                  switchMap((res: any) => {
+                    item.outstanding_amount = res.outstanding_amount;
+                    item.docstatus = res.docstatus;
+                    return of(item);
+                  }),
+                );
             }),
             toArray(),
           );
@@ -79,27 +82,6 @@ export class ServiceInvoiceDataSource extends DataSource<ServiceInvoiceDetails> 
         this.itemSubject.next(items);
         this.calculateTotal(items ? items : []);
       });
-  }
-
-  syncDocStatus() {
-    this.disableRefresh.next(true);
-    return from(this.itemSubject.value).pipe(
-      concatMap(item => {
-        return this.serviceInvoice.updateDocStatus(item.invoice_no).pipe(
-          switchMap((res: { docstatus: number }) => {
-            item.docstatus = res.docstatus;
-            return of(item);
-          }),
-        );
-      }),
-      toArray(),
-      switchMap(items => {
-        this.disableRefresh.next(false);
-        this.itemSubject.next(items);
-        this.calculateTotal(items ? items : []);
-        return of({});
-      }),
-    );
   }
 
   calculateTotal(serviceInvoice: ServiceInvoiceDetails[]) {

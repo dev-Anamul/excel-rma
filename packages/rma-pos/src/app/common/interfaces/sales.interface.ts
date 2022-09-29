@@ -1,6 +1,4 @@
-// import { Customer } from './customer.interface';
-
-import { DeliveryNoteItemInterface } from 'src/app/sales-ui/view-sales-invoice/serials/serials-datasource';
+import { DeliveryNoteItemInterface } from '../../sales-ui/view-sales-invoice/serials/serials-datasource';
 
 export class SalesInvoice {
   uuid: string;

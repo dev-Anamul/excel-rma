@@ -61,7 +61,7 @@ describe('AddStockEntryPage', () => {
             getItemFromRMAServer: (...args) => of({}),
             getSerialItemFromRMAServer: (...args) => of({}),
             getSerial: (...args) => of({}),
-            getStore: () => ({
+            getStorage: () => ({
               getItem: (...args) => Promise.resolve('Item'),
               getItems: (...args) => Promise.resolve({}),
             }),
