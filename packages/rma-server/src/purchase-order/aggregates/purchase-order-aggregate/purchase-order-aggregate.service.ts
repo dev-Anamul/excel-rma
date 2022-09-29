@@ -145,18 +145,90 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
   ) {
     return from(purchaseOrder.items).pipe(
       concatMap((item: PurchaseOrderItemDto) => {
-        return this.createStockLedgerPayload(
-          {
-            pr_no: purchaseOrder.purchase_invoice_name,
-            purchaseReciept: item,
-          },
-          token,
-          settings,
-        ).pipe(
-          switchMap((stockLedgerPayload: StockLedger) => {
-            return from(this.stockLedgerService.create(stockLedgerPayload));
-          }),
-        );
+        // fetch purchase invoice
+          const filter_obj = {
+            purchase_invoice_name : `${purchaseOrder.purchase_invoice_name}`
+          }
+          const $match: any = filter_obj;
+          const where: any = [];
+          where.push({$match})
+          return this.purchaseReceiptService.asyncAggregate(where).pipe(switchMap((invoice)=>{
+
+            // fetch available stock
+            const filter_query = [
+              [ 'item_code', 'like', `${item.item_code}` ],
+              [ 'warehouse', 'like', `${invoice[0].warehouse}` ],
+              [ 'actual_qty', '!=', 0 ]
+            ]
+          
+            const filter_Obj: any = {};
+            filter_query.forEach(element => {
+              if (element[0] === 'item_code') {
+                filter_Obj['item.item_code'] = element[2];
+              }
+              if (element[0] === 'warehouse') {
+                filter_Obj['_id.warehouse'] = element[2];
+              }
+              if (element[1] === '!=') {
+                filter_Obj.stockAvailability = { $gt: element[2] };
+              }
+            });
+              const obj: any = {
+                _id: {
+                  warehouse: '$warehouse',
+                  item_code: '$item_code',
+                },
+                stockAvailability: {
+                  $sum: '$actual_qty',
+                },
+              };
+              const $group: any = obj;
+              const where: any = [];
+              where.push({ $group });
+              const $lookup: any = {
+                from: 'item',
+                localField: '_id.item_code',
+                foreignField: 'item_code',
+                as: 'item',
+              };
+              where.push({ $lookup });
+              const $unwind: any = '$item';
+              where.push({ $unwind });
+              const $match: any = filter_Obj;
+              where.push({ $match });
+
+              return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
+                //fetch pre valuation rate of item for recent perchase into particular warehouse
+                const where = []
+                const ledger_filter_obj = {
+                  item_code: `${item.item_code}`,
+                  warehouse: `${invoice[0].warehouse}`,
+                  voucher_type: `${PURCHASE_RECEIPT_DOCTYPE_NAME}`
+                }
+                const $match: any = ledger_filter_obj;
+                where.push({$match})
+                const $sort: any = {
+                  'modified': -1,
+                };
+                where.push({ $sort });
+                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((response)=>{
+                  return this.createStockLedgerPayload(
+                    {
+                      pr_no: purchaseOrder.purchase_invoice_name,
+                      purchaseReciept: item,
+                    },
+                    token,
+                    settings,
+                    data,
+                    response
+                      ).pipe(
+                    switchMap((response: StockLedger) => {
+                      return from(this.stockLedgerService.create(response));
+                  }),
+                );
+             }))
+          }))
+        }))
       }),
       toArray(),
     );
@@ -179,7 +251,12 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
     payload: { pr_no: string; purchaseReciept: PurchaseOrderItemDto },
     token,
     settings: ServerSettings,
+    data,
+    response
   ) {
+    var pre_valuation_rate = response[0].valuation_rate;
+    var available_stock = data[0].stockAvailability;
+    var new_quantity = available_stock-payload.purchaseReciept.qty;
     return forkJoin({
       purchaseDelvieredQty: this.getDeliveredQuantity(
         payload.pr_no,
@@ -197,7 +274,21 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         stockPayload.warehouse = payload.purchaseReciept.warehouse;
         stockPayload.item_code = payload.purchaseReciept.item_code;
         stockPayload.actual_qty = -payload.purchaseReciept.qty;
-        stockPayload.valuation_rate = payload.purchaseReciept.rate;
+        stockPayload.incoming_rate = payload.purchaseReciept.rate;
+        
+        if(pre_valuation_rate != stockPayload.incoming_rate){
+          stockPayload.valuation_rate = this.calculateValuationRate(
+            available_stock,
+            stockPayload.actual_qty,
+            stockPayload.incoming_rate,
+            pre_valuation_rate,
+            new_quantity
+            );
+        }
+        else{
+          stockPayload.valuation_rate = stockPayload.incoming_rate;
+        }
+
         stockPayload.batch_no = '';
         stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
         stockPayload.posting_date = date;
@@ -205,7 +296,6 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
         stockPayload.voucher_no = payload.pr_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = payload.purchaseReciept.rate;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
@@ -217,6 +307,12 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         return of(stockPayload);
       }),
     );
+  }
+  //function for calculate valuation
+  calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
+    var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
+    result = Math.round(result)
+    return result
   }
 
   cancelERPNextDocs(docs: { [key: string]: string[] }, req, settings) {
