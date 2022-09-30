@@ -395,7 +395,8 @@ export class PurchaseReceiptSyncService {
                 const ledger_filter_obj = {
                   item_code: `${item.item_code}`,
                   warehouse: `${item.warehouse}`,
-                  voucher_type: `${PURCHASE_RECEIPT_DOCTYPE_NAME}`
+                  batch_no: {'$ne':null},
+                  actual_qty: {'$gt':0},
                 }
                 const $match: any = ledger_filter_obj;
                 where.push({$match})
@@ -403,23 +404,23 @@ export class PurchaseReceiptSyncService {
                   'modified': -1,
                 };
                 where.push({ $sort });
-                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((response)=>{
-                return this.createStockLedgerPayload(
-                  {
-                    pr_no: receipt.purchase_invoice_name,
-                    purchaseReceipt: item,
-                  },
-                  token,
-                  settings,
-                  data,
-                  response
-                ).pipe(
-                  switchMap((response: StockLedger) => {
-                    return from(this.stockLedgerService.create(response));
+                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger:StockLedger)=>{
+                  return this.createStockLedgerPayload(
+                   {
+                     pr_no: receipt.purchase_invoice_name,
+                     purchaseReceipt: item,
+                   },
+                   token,
+                   settings,
+                     data,
+                     latest_stock_ledger
+                   ).pipe(
+                    switchMap((response: StockLedger) => {
+                      return from(this.stockLedgerService.create(response));
                   }),
-              );
+                );
+              }))
             }))
-          }))
           }),
           toArray(),
         );
@@ -433,15 +434,15 @@ export class PurchaseReceiptSyncService {
     token,
     settings: ServerSettings,
     data,
-    response
+    latest_stock_ledger
   ) {
     var pre_valuation_rate;
     var available_stock;
     var new_quantity;
     var pre_incoming_rate;
-    if(response && response.length > 0){
-      pre_valuation_rate = response[0].valuation_rate;
-      pre_incoming_rate = response[0].incoming_rate;
+    if(latest_stock_ledger && latest_stock_ledger.length > 0){
+      pre_valuation_rate = latest_stock_ledger[0].valuation_rate;
+      pre_incoming_rate = latest_stock_ledger[0].incoming_rate;
     }
     else{
       pre_valuation_rate = payload.purchaseReceipt.rate;
@@ -468,13 +469,13 @@ export class PurchaseReceiptSyncService {
         stockPayload.incoming_rate = payload.purchaseReceipt.rate;
 
         if(pre_incoming_rate != stockPayload.incoming_rate){
-          stockPayload.valuation_rate = this.calculateValuationRate(
+          stockPayload.valuation_rate = parseFloat(this.calculateValuationRate(
             available_stock,
             stockPayload.actual_qty,
             stockPayload.incoming_rate,
             pre_valuation_rate,
             new_quantity
-            );
+            ));
         }
         else{
           stockPayload.valuation_rate = pre_valuation_rate;
@@ -501,8 +502,7 @@ export class PurchaseReceiptSyncService {
   //function for calculate valuation
   calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
     var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
-    result = Math.round(result)
-    return result
+    return result.toFixed(2)
   }
 
   updateInvoiceDeliveredState(docName, fullName, parent) {
