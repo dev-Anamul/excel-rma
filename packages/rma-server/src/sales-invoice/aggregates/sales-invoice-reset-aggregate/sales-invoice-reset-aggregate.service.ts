@@ -103,7 +103,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
         ) {
           return from(salesInvoice.delivery_note_items).pipe(
             concatMap(item => {
-              // fetch available stock
+              // fetch available stock of item in warehouse
             const filter_query = [
               [ 'item_code', 'like', `${item.item_code}` ],
               [ 'warehouse', 'like', `${salesInvoice.delivery_warehouse}` ],
@@ -151,7 +151,8 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
                 const ledger_filter_obj = {
                   item_code: `${item.item_code}`,
                   warehouse: `${salesInvoice.delivery_warehouse}`,
-                  voucher_type: `${DELIVERY_NOTE_DOCTYPE}`
+                  actual_qty: {'$gt':0},
+                  batch_no: {'$ne':null}
                 }
                 const $match: any = ledger_filter_obj;
                 where.push({$match})
@@ -160,7 +161,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
                 };
                 where.push({ $sort });
 
-                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((response)=>{
+                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger:StockLedger)=>{
                    return this.createStockLedgerPayload(
                      {
                        warehouse: salesInvoice.delivery_warehouse,
@@ -168,8 +169,9 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
                      },
                      req.token,
                      serverSettings,
-                     response,
-                     data
+                     latest_stock_ledger,
+                     data,
+                     salesInvoice
                   ).pipe(
                      switchMap((response: StockLedger) => {
                        return from(this.stockLedgerService.create(response));
@@ -190,12 +192,31 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
     payload: { warehouse: string; deliveryNoteItem },
     token,
     settings: ServerSettings,
-    response,
-    data
+    latest_stock_ledger,
+    data,
+    SalesInvoice
   ) {
-    var pre_valuation_rate = response[0].valuation_rate;
-    var available_stock = data[0].stockAvailability;
-    var new_quantity = available_stock+payload.deliveryNoteItem.qty;
+    
+    var current_valuation_rate;
+    var available_stock;
+    var new_quantity;
+    var pre_incoming_rate;
+    if(latest_stock_ledger && latest_stock_ledger.length > 0){
+      current_valuation_rate = latest_stock_ledger[0].valuation_rate;
+      pre_incoming_rate = latest_stock_ledger[0].incoming_rate;
+    }
+    else{
+      current_valuation_rate = payload.deliveryNoteItem.rate;
+      pre_incoming_rate = payload.deliveryNoteItem.rate;
+    }
+    if(data && data.length > 0){
+      available_stock = data[0].stockAvailability;
+    }
+    else{
+      available_stock = 0;
+    }
+    new_quantity = payload.deliveryNoteItem.qty+available_stock;
+    
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -207,18 +228,17 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = payload.deliveryNoteItem.qty;
         stockPayload.incoming_rate = payload.deliveryNoteItem.rate;
-        
-        if(pre_valuation_rate != stockPayload.incoming_rate){
-          stockPayload.valuation_rate = this.calculateValuationRate(
+        if(pre_incoming_rate != stockPayload.incoming_rate){
+          stockPayload.valuation_rate = parseFloat(this.calculateValuationRate(
             available_stock,
             stockPayload.actual_qty,
             stockPayload.incoming_rate,
-            pre_valuation_rate,
+            current_valuation_rate,
             new_quantity
-            );
+            ));
         }
         else{
-          stockPayload.valuation_rate = stockPayload.incoming_rate;
+          stockPayload.valuation_rate = current_valuation_rate;
         }
         
         stockPayload.batch_no = '';
@@ -226,9 +246,8 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
         stockPayload.posting_time = date;
         stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
         stockPayload.voucher_no =
-          payload.deliveryNoteItem.against_sales_invoice;
+          SalesInvoice.name;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
@@ -244,8 +263,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
   //function for calculate valuation
   calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
     var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
-    result = Math.round(result)
-    return result
+    return result.toFixed(2)
   }
 
   resetSalesInvoiceSerialState(salesInvoice: SalesInvoice, serials: string[]) {

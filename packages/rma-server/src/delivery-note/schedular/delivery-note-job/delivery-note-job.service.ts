@@ -373,12 +373,14 @@ export class DeliveryNoteJobService {
       })
   });
 
-    
-
     from(payload.items).forEach((item: DeliveryNoteItemDto) => {
+
+      // fetch latest incoming item's ledger report
       const filter_obj = {
         item_code : `${item.item_code}`,
-        warehouse: `${payload.set_warehouse}`
+        warehouse: `${payload.set_warehouse}`,
+        batch_no: {'$ne':null},
+        actual_qty: {'$gt':0}
       }
       const $match: any = filter_obj;
       const where: any = [];
@@ -387,13 +389,13 @@ export class DeliveryNoteJobService {
         'modified': -1,
       };
       where.push({ $sort });
-      return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((ledger)=>{
+      return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_ledger:StockLedger)=>{
 
          return this.createStockLedgerPayload(
            { warehouse: payload.set_warehouse, deliveryNoteItem: item },
            token,
            settings,
-           ledger
+           latest_ledger
          )
            .pipe(
              switchMap((response: StockLedger) => {
@@ -411,7 +413,7 @@ export class DeliveryNoteJobService {
     payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
     token,
     settings: ServerSettings,
-    ledger
+    latest_ledger
   ) {
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
@@ -424,8 +426,8 @@ export class DeliveryNoteJobService {
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
 
-        //assign latest valuation rate of item in particular warehouse
-        stockPayload.valuation_rate = ledger[0].valuation_rate        
+        //assign current valuation rate of item in particular warehouse
+        stockPayload.valuation_rate = latest_ledger[0].valuation_rate        
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
