@@ -16,6 +16,9 @@ import {
   REJECT_STOCK_ENTRY_JOB,
   STOCK_ENTRY_STATUS,
   STOCK_MATERIAL_TRANSFER,
+  STOCK_MATERIAL_RECEIPT,
+  STOCK_MATERIAL_ISSUE,
+  STOCK_RND_PRODUCTS,
 } from '../../../constants/app-strings';
 // import { POST_DELIVERY_NOTE_ENDPOINT, STOCK_ENTRY_API_ENDPOINT } from '../../../constants/routes';
 import { DirectService } from '../../../direct/aggregates/direct/direct.service';
@@ -340,13 +343,15 @@ export class StockEntrySyncService {
             item.qty = -item.qty;
           }
         }
-        // incoming item
+        // if item is coming in our warehouse
         if(warehouse_type == 't_warehouse'){
 
         const where = []
         const ledger_filter_obj = {
           item_code: `${item.item_code}`,
           warehouse: `${item.t_warehouse}`,
+          actual_qty: {'$gt':0},
+          batch_no: {'$ne':null}
         }
         const $match: any = ledger_filter_obj;
         where.push({$match})
@@ -397,9 +402,10 @@ export class StockEntrySyncService {
             const $match: any = filter_Obj;
             where.push({ $match });
             return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
-      
+              // if item is transfer In our warehouse
               if(payload.stock_entry_type === 'Material Transfer'){
 
+                //fetch item price from it's TROUT
                 const where = []
                 const ledger_filter_obj = {
                   voucher_no: `${payload.stock_id}`,
@@ -410,6 +416,7 @@ export class StockEntrySyncService {
                   
                   return this.createStockLedgerPayload(
                     payload.stock_id,
+                    payload.stock_entry_type,
                     item,
                     token,
                     settings,
@@ -429,6 +436,7 @@ export class StockEntrySyncService {
 
                 return this.createStockLedgerPayload(
                   payload.stock_id,
+                  payload.stock_entry_type,
                   item,
                   token,
                   settings,
@@ -446,11 +454,13 @@ export class StockEntrySyncService {
            }))
        }))
       }
-      // outgoing item
+      // item is going from warehouse
       else{
         const filter_obj = {
           item_code : `${item.item_code}`,
-          warehouse: `${item.s_warehouse}`
+          warehouse: `${item.s_warehouse}`,
+          actual_qty: {'$gt':0},
+          batch_no: {'$ne':null}
         }
         const $match: any = filter_obj;
         const where: any = [];
@@ -459,15 +469,15 @@ export class StockEntrySyncService {
           'modified': -1,
         };
         where.push({ $sort });
-        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((ledger)=>{
-
+        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger:StockLedger)=>{
           return this.createStockLedgerPayload(
             payload.stock_id,
+            payload.stock_entry_type,
             item,
             token,
             settings,
             warehouse_type,
-            ledger,
+            latest_stock_ledger,
             null,
             null
           ).pipe(
@@ -486,6 +496,7 @@ export class StockEntrySyncService {
 
   createStockLedgerPayload(
     stock_entry_no: string,
+    stock_entry_type,
     deliveryNoteItem: StockEntryItem,
     token,
     settings: ServerSettings,
@@ -495,7 +506,7 @@ export class StockEntrySyncService {
     TROUT_ledger?
   ) {
     var available_stock;
-    var pre_valuation_rate;
+    var current_valuation_rate;
     var pre_incoming_rate;
     var new_quantity;
     var current_valuation_rate;
@@ -508,11 +519,11 @@ export class StockEntrySyncService {
       }
       
       if(latest_stock_ledger && latest_stock_ledger.length > 0){
-        pre_valuation_rate = latest_stock_ledger[0].valuation_rate;
+        current_valuation_rate = latest_stock_ledger[0].valuation_rate;
         pre_incoming_rate =  latest_stock_ledger[0].incoming_rate;
       }
       else{
-        pre_valuation_rate = deliveryNoteItem.basic_rate;
+        current_valuation_rate = deliveryNoteItem.basic_rate;
         pre_incoming_rate = deliveryNoteItem.basic_rate;
       }
       if (data && data.length > 0){
@@ -524,7 +535,7 @@ export class StockEntrySyncService {
       new_quantity = available_stock+deliveryNoteItem.qty;
     }
     if(warehouse_type === 's_warehouse'){
-      if(latest_stock_ledger){
+      if(latest_stock_ledger && latest_stock_ledger.length > 0){
         current_valuation_rate = latest_stock_ledger[0].valuation_rate;
       }
       else{
@@ -542,48 +553,54 @@ export class StockEntrySyncService {
         stockPayload.actual_qty = deliveryNoteItem.qty;
 
         if(warehouse_type === 't_warehouse'){
+          stockPayload.warehouse = deliveryNoteItem.t_warehouse;
           stockPayload.incoming_rate = 
             deliveryNoteItem.basic_rate? deliveryNoteItem.basic_rate:rate_of_transfer_item;
           
           if(pre_incoming_rate != stockPayload.incoming_rate){
              
-            if(pre_valuation_rate == 0){
-               stockPayload.valuation_rate = 
-                  deliveryNoteItem.basic_rate? deliveryNoteItem.basic_rate:rate_of_transfer_item;
-             }
-             else{
-                stockPayload.valuation_rate = parseFloat(this.calculateValuationRate(
+                var calculated_valuation = parseFloat(this.calculateValuationRate(
                   available_stock,
                   stockPayload.actual_qty,
                   stockPayload.incoming_rate,
-                  pre_valuation_rate,
+                  current_valuation_rate,
                   new_quantity
                   ))
                   ;
-               }
+                  stockPayload.valuation_rate = calculated_valuation?
+                      calculated_valuation:rate_of_transfer_item;
             }
            else{
-             stockPayload.valuation_rate = pre_valuation_rate;
+             stockPayload.valuation_rate = current_valuation_rate;
            }
          }
         if(warehouse_type === 's_warehouse'){
-            stockPayload.incoming_rate = current_valuation_rate;
+            stockPayload.incoming_rate = deliveryNoteItem.basic_rate?
+            deliveryNoteItem.basic_rate:0;
             stockPayload.valuation_rate = current_valuation_rate;
+            stockPayload.warehouse = deliveryNoteItem.s_warehouse;
          }
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
-        stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
+        
+        if(stock_entry_type === 'Material Transfer'){
+          stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
+        }
+        if(stock_entry_type === 'Material Receipt'){
+          stockPayload.voucher_type = STOCK_MATERIAL_RECEIPT;
+        }
+        if(stock_entry_type === 'Material Issue'){
+          stockPayload.voucher_type = STOCK_MATERIAL_ISSUE;
+        }
+        if(stock_entry_type === 'R&D Products'){
+          stockPayload.voucher_type = STOCK_RND_PRODUCTS;
+        }
+        
         stockPayload.voucher_no = stock_entry_no;
         stockPayload.voucher_detail_no = '';
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
-        if (warehouse_type === 't_warehouse') {
-          stockPayload.warehouse = deliveryNoteItem.t_warehouse;
-        }
-        if (warehouse_type === 's_warehouse') {
-          stockPayload.warehouse = deliveryNoteItem.s_warehouse;
-        }
         stockPayload.stock_value =
           stockPayload.qty_after_transaction * stockPayload.valuation_rate;
         stockPayload.stock_value_difference =
@@ -597,7 +614,6 @@ export class StockEntrySyncService {
   //function for calculate valuation
   calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
     var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
-    // result = Math.round(result)
     return result.toFixed(2)
   }
 
