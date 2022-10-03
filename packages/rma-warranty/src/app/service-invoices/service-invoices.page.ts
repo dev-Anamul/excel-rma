@@ -4,7 +4,7 @@ import { MatSort } from '@angular/material/sort';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, startWith, switchMap } from 'rxjs/operators';
 import { AUTH_SERVER_URL } from '../constants/storage';
-import { AddServiceInvoiceService } from '../warranty-ui/shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
+import { ServiceInvoiceService } from '../warranty-ui/shared-warranty-modules/service-invoices/service-invoice.service';
 import { ServiceInvoicesDataSource } from './service-invoices-datasource';
 import { Location } from '@angular/common';
 import { CsvJsonService } from '../api/csv-json/csv-json.service';
@@ -59,7 +59,7 @@ export class ServiceInvoicesPage implements OnInit {
   constructor(
     private location: Location,
     private readonly route: ActivatedRoute,
-    private readonly serviceInvoice: AddServiceInvoiceService,
+    private readonly serviceInvoice: ServiceInvoiceService,
     private readonly router: Router,
     private readonly timeService: TimeService,
     private csvService: CsvJsonService,
@@ -232,9 +232,9 @@ export class ServiceInvoicesPage implements OnInit {
     });
   }
 
-  openERPServiceInvoice(row) {
+  openERPServiceInvoice(row: any) {
     this.serviceInvoice
-      .getStore()
+      .getStorage()
       .getItem(AUTH_SERVER_URL)
       .then(auth_url => {
         window.open(

@@ -10,7 +10,7 @@ import { switchMap } from 'rxjs/operators';
 import {
   AggregatedDocument,
   SalesInvoice,
-} from 'src/app/common/interfaces/sales.interface';
+} from '../../../common/interfaces/sales.interface';
 import { CLOSE } from '../../../constants/app-string';
 import { StorageService } from '../../../api/storage/storage.service';
 import {

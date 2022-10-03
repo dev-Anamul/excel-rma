@@ -2,7 +2,7 @@ import { DataSource, CollectionViewer } from '@angular/cdk/collections';
 import { map, catchError, finalize } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { ServiceInvoiceDetails } from '../warranty-ui/shared-warranty-modules/service-invoices/add-service-invoice/service-invoice-interface';
-import { AddServiceInvoiceService } from '../warranty-ui/shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
+import { ServiceInvoiceService } from '../warranty-ui/shared-warranty-modules/service-invoices/service-invoice.service';
 
 export interface ListResponse {
   docs: ServiceInvoiceDetails[];
@@ -21,7 +21,7 @@ export class ServiceInvoicesDataSource extends DataSource<ServiceInvoiceDetails>
 
   loading$ = this.loadingSubject.asObservable();
 
-  constructor(private serviceInvoice: AddServiceInvoiceService) {
+  constructor(private readonly serviceInvoice: ServiceInvoiceService) {
     super();
   }
 

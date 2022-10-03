@@ -120,24 +120,6 @@ export class ServiceInvoiceAggregateService extends AggregateRoot {
       }),
     );
   }
-  // we did not need any response, it increase load timing
-  async updateserviceInvoice(req, uuid) {
-    this.serviceInvoiceService
-      .updateOne(
-        { invoice_no: req.name },
-        {
-          $set: { outstanding_amount: req.outstanding_amount },
-        },
-      )
-      .then(response => {
-        this.warrantyAggregateService.updateOne(
-          { uuid },
-          {
-            $set: { outstanding_amount: req.outstanding_amount },
-          },
-        );
-      });
-  }
 
   async retrieveServiceInvoice(uuid: string, req) {
     const provider = await this.serviceInvoiceService.findOne({ uuid });
@@ -167,13 +149,8 @@ export class ServiceInvoiceAggregateService extends AggregateRoot {
     const update = Object.assign(provider, updatePayload);
     this.apply(new ServiceInvoiceUpdatedEvent(update));
   }
-  async findServiceInvoice(uuid: string) {
-    return await this.serviceInvoiceService.findOne({
-      warrantyClaimUuid: uuid,
-    });
-  }
 
-  updateDocStatus(invoice_no: string) {
+  syncWithERP(invoice_no: string) {
     return forkJoin({
       headers: this.clientToken.getServiceAccountApiHeaders(),
       settings: this.settings.find(),
@@ -186,18 +163,19 @@ export class ServiceInvoiceAggregateService extends AggregateRoot {
         return this.http.get(url, { headers }).pipe(
           map(res => res.data.data),
           switchMap(service_invoice => {
-            this.serviceInvoiceService
-              .updateOne(
-                { invoice_no },
-                {
-                  $set: {
-                    docstatus: service_invoice.docstatus,
-                  },
+            this.serviceInvoiceService.updateOne(
+              { invoice_no },
+              {
+                $set: {
+                  docstatus: service_invoice.docstatus,
+                  outstanding_amount: service_invoice.outstanding_amount,
                 },
-              )
-              .then(success => {})
-              .catch(error => {});
-            return of({ docstatus: service_invoice.docstatus });
+              },
+            );
+            return of({
+              docstatus: service_invoice.docstatus,
+              outstanding_amount: service_invoice.outstanding_amount,
+            });
           }),
         );
       }),
