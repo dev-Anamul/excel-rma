@@ -452,22 +452,57 @@ export class StockEntryAggregateService {
           switchMap(success => this.updateStockEntryReset(stockEntry)),
           switchMap(() => {
             if (stockEntry.stock_entry_type === 'Material Transfer') {
-              return this.createTransferStockEntryLedger(
-                stockEntry,
-                req.token,
-                serverSettings,
-                's_warehouse',
-              ).pipe(
+
+              // fetch Its created invoicc from ledger
+              const where = []
+              const ledger_filter_obj = {
+                voucher_no: `${stockEntry.stock_id}`,
+                actual_qty : {'$lt':0}
+              }
+              const $match: any = ledger_filter_obj;
+              where.push({$match})
+              return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((TROUT_ledger)=>{
+
+                return this.createTransferStockEntryLedger(
+                  stockEntry,
+                  req.token,
+                  serverSettings,
+                  's_warehouse',
+                  TROUT_ledger
+                )
+              })).pipe(
                 switchMap(() => {
-                  return this.createTransferStockEntryLedger(
-                    stockEntry,
-                    req.token,
-                    serverSettings,
-                    't_warehouse',
-                  );
+                  // set batch == null of created invoice on cancelling to make it unfetchble
+                  this.stockLedgerService.updateOne({
+                    voucher_no: stockEntry.stock_id,
+                    actual_qty : {'$gt':0}
+                     },
+                     {
+                         $set : {
+                             batch_no : null
+                         }
+                     });
+
+                   // fetch Its created invoicc from ledger
+                  const where = []
+                  const ledger_filter_obj = {
+                    voucher_no: `${stockEntry.stock_id}`,
+                    actual_qty : {'$gt':0}
+                  }
+                  const $match: any = ledger_filter_obj;
+                  where.push({$match})
+                  return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((TRIN_ledger)=>{
+                    return this.createTransferStockEntryLedger(
+                      stockEntry,
+                      req.token,
+                      serverSettings,
+                      't_warehouse',
+                      TRIN_ledger
+                    );
+                  }))
                 }),
               );
-            }
+          }
             return this.createTransferStockEntryLedger(
               stockEntry,
               req.token,
@@ -484,40 +519,124 @@ export class StockEntryAggregateService {
     token,
     settings,
     warehouse_type?,
+    transfer_ledger?
   ) {
+    
     return from(payload.items).pipe(
       concatMap((item: StockEntryItem) => {
         if (payload.stock_entry_type === 'Material Issue') {
           warehouse_type = 's_warehouse';
-        }
+             // fetch created purchase invoice
+             const filter_obj = {
+              voucher_no : `${payload.stock_id}`
+            }
+            const $match: any = filter_obj;
+            const where: any = [];
+            where.push({$match})
+             return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_invoice:StockLedger)=>{
+  
+               return this.createStockLedgerPayload(
+                item,
+                token,
+                settings,
+                warehouse_type,
+                created_invoice
+              ).pipe(
+                switchMap((response: StockLedger) => {
+                  return from(this.stockLedgerService.create(response));
+                }),
+              );
+            }))
+          }
         if (payload.stock_entry_type === 'R&D Products') {
           warehouse_type = 's_warehouse';
-        }
+             // fetch created purchase invoice
+             const filter_obj = {
+              voucher_no : `${payload.stock_id}`
+            }
+            const $match: any = filter_obj;
+            const where: any = [];
+            where.push({$match})
+             return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_invoice:StockLedger)=>{
+  
+               return this.createStockLedgerPayload(
+                item,
+                token,
+                settings,
+                warehouse_type,
+                created_invoice
+              ).pipe(
+                switchMap((response: StockLedger) => {
+                  return from(this.stockLedgerService.create(response));
+                }),
+              );
+            }))
+          }
         if (payload.stock_entry_type === 'Material Receipt') {
           warehouse_type = 't_warehouse';
+          // set batch == null of created invoice on cancelling to make it unfetchble
+          this.stockLedgerService.updateOne({
+            voucher_no: payload.stock_id,
+             },
+             {
+                 $set : {
+                     batch_no : null
+                 }
+             });
+             // fetch created purchase invoice
+          const filter_obj = {
+            voucher_no : `${payload.stock_id}`
+          }
+          const $match: any = filter_obj;
+          const where: any = [];
+          where.push({$match})
+           return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_invoice:StockLedger)=>{
+
+             return this.createStockLedgerPayload(
+              item,
+              token,
+              settings,
+              warehouse_type,
+              created_invoice
+            ).pipe(
+              switchMap((response: StockLedger) => {
+                return from(this.stockLedgerService.create(response));
+              }),
+            );
+          }))
+        }else{
+          //default work is for Materail Transfer Cancellation
+          return this.createStockLedgerPayload(
+            item,
+            token,
+            settings,
+            warehouse_type,
+            transfer_ledger
+          ).pipe(
+            switchMap((response: StockLedger) => {
+              return from(this.stockLedgerService.create(response));
+            }),
+          );
         }
-        return this.createStockLedgerPayload(
-          payload.naming_series,
-          item,
-          token,
-          settings,
-          warehouse_type,
-        ).pipe(
-          switchMap((response: StockLedger) => {
-            return from(this.stockLedgerService.create(response));
-          }),
-        );
       }),
     );
   }
 
   createStockLedgerPayload(
-    stock_entry_no: string,
     deliveryNoteItem: StockEntryItem,
     token,
     settings: ServerSettings,
     warehouse_type?,
+    created_invoice?
   ) {
+    var invoice_valuation_rate;
+    var invoice_incoming_rate;
+
+    invoice_valuation_rate = created_invoice[0].valuation_rate?
+        created_invoice[0].valuation_rate:0;
+    invoice_incoming_rate = created_invoice[0].incoming_rate?
+        created_invoice[0].incoming_rate:0;
+    
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -526,28 +645,29 @@ export class StockEntryAggregateService {
         stockPayload.modified = date;
         stockPayload.modified_by = token.email;
         stockPayload.item_code = deliveryNoteItem.item_code;
-        stockPayload.actual_qty =
-          warehouse_type === 't_warehouse'
-            ? -deliveryNoteItem.qty
-            : deliveryNoteItem.qty;
-        stockPayload.valuation_rate = deliveryNoteItem.basic_rate
-          ? deliveryNoteItem.basic_rate
-          : 0;
-        stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
-        stockPayload.voucher_no = stock_entry_no;
+        stockPayload.voucher_no = created_invoice[0].voucher_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
+
         if (warehouse_type === 't_warehouse') {
+          stockPayload.actual_qty = -deliveryNoteItem.qty;
+          stockPayload.incoming_rate = invoice_incoming_rate;
+          stockPayload.valuation_rate = invoice_valuation_rate;
           stockPayload.warehouse = deliveryNoteItem.t_warehouse;
+          stockPayload.batch_no = '';
         }
         if (warehouse_type === 's_warehouse') {
+          stockPayload.actual_qty = deliveryNoteItem.qty;
+          stockPayload.valuation_rate = invoice_valuation_rate;
+          stockPayload.incoming_rate = invoice_incoming_rate;
           stockPayload.warehouse = deliveryNoteItem.s_warehouse;
+          stockPayload.batch_no = null
         }
+
         stockPayload.stock_value =
           stockPayload.qty_after_transaction * stockPayload.valuation_rate;
         stockPayload.stock_value_difference =

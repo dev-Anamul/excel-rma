@@ -162,6 +162,8 @@ export class WarrantyStockEntryAggregateService {
               deliveryNote,
               req.token,
               settingState,
+              deliveredStockId,
+              returnedStockId,
             );
           }),
         );
@@ -248,8 +250,10 @@ export class WarrantyStockEntryAggregateService {
     payload: WarrantyStockEntryDto,
     token,
     settings: ServerSettings,
+    deliveredStockId,
+    returnedStockId,
   ) {
-    return this.createStockLedgerPayload(payload, token, settings).pipe(
+    return this.createStockLedgerPayload(payload, token, settings,deliveredStockId,returnedStockId).pipe(
       switchMap((stockLedgers: StockLedger[]) => {
         return from(stockLedgers).pipe(
           switchMap(stockLedger => {
@@ -261,60 +265,261 @@ export class WarrantyStockEntryAggregateService {
   }
 
   createStockLedgerPayload(
-    res: WarrantyStockEntryDto,
+    res,
     token,
     settings: ServerSettings,
+    deliveredStockId,
+    returnedStockId,
   ) {
+    
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
         return from(res.items).pipe(
           concatMap((item: any) => {
+
+            // Returned
+            if(res.stock_entry_type == STOCK_ENTRY_STATUS.returned){
+              
+              var current_valuation_rate;
+              var available_stock;
+              var new_quantity;
+              var pre_incoming_rate;
+              var incoming_rate;
+
+              //fetch total qty in warehouse
+            const filter_query = [
+              [ 'item_code', 'like', `${item.item_code}` ],
+              [ 'warehouse', 'like', `${item.s_warehouse}` ],
+              [ 'actual_qty', '!=', 0 ]
+            ]
+        
+            const filter_Obj: any = {};
+            filter_query.forEach(element => {
+              if (element[0] === 'item_code') {
+                filter_Obj['item.item_code'] = element[2];
+              }
+              if (element[0] === 'warehouse') {
+                filter_Obj['_id.warehouse'] = element[2];
+              }
+              if (element[1] === '!=') {
+                filter_Obj.stockAvailability = { $gt: element[2] };
+              }
+            });
+              const obj: any = {
+                _id: {
+                  warehouse: '$warehouse',
+                  item_code: '$item_code',
+                },
+                stockAvailability: {
+                  $sum: '$actual_qty',
+                },
+              };
+              const $group: any = obj;
+              const where: any = [];
+              where.push({ $group });
+              const $lookup: any = {
+                from: 'item',
+                localField: '_id.item_code',
+                foreignField: 'item_code',
+                as: 'item',
+              };
+              where.push({ $lookup });
+              const $match: any = filter_Obj;
+              where.push({ $match });
+              const $unwind: any = '$item';
+              where.push({ $unwind });
+              return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
+                
+                //fetch created invoive
+                const where = []
+
+                // use sales voucher on creating and stock id on cancelling to fetch created one
+                var voucher = item.sales_invoice_name?
+                    item.sales_invoice_name:res.stock_id;
+                const ledger_filter_obj = {
+                  voucher_no: `${voucher}`,
+                }
+                const $match: any = ledger_filter_obj;
+                where.push({$match})
+                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_sales_invoice:StockLedger)=>{
+                  
+                  // fetch current valuation of wrehouse
+                  const where = []
+                  const ledger_filter_obj = {
+                    item_code: `${item.item_code}`,
+                    warehouse: `${item.s_warehouse}`,
+                    actual_qty: {'$gt':0},
+                    batch_no: {'$ne':null}
+                  }
+                  const $match: any = ledger_filter_obj;
+                  where.push({$match})
+                  const $sort: any = {
+                    'modified': -1,
+                  };
+                  where.push({ $sort });
+                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
+
+                  new_quantity = data[0].stockAvailability+item.qty
+              
+                  const stockPayload = new StockLedger();
+              
+                   // treated as sold from our warehoue
+                   if(Object.keys(created_sales_invoice).length > 0){
+                     incoming_rate = created_sales_invoice[0].valuation_rate?
+                           created_sales_invoice[0].valuation_rate:latest_stock_ledger[0].valuation_rate;
+                     stockPayload.incoming_rate = incoming_rate?
+                     incoming_rate:pre_incoming_rate;
+                     current_valuation_rate = latest_stock_ledger[0].valuation_rate?
+                           latest_stock_ledger[0].valuation_rate:incoming_rate;
+                     pre_incoming_rate = latest_stock_ledger[0].incoming_rate?
+                           latest_stock_ledger[0].incoming_rate:incoming_rate;
+                   }
+                   // treated as third party
+                   else{
+                     current_valuation_rate = latest_stock_ledger[0].valuation_rate?
+                         latest_stock_ledger[0].valuation_rate:incoming_rate;
+                     pre_incoming_rate = latest_stock_ledger[0].incoming_rate?
+                         latest_stock_ledger[0].incoming_rate:incoming_rate;
+                     stockPayload.incoming_rate = pre_incoming_rate?
+                          pre_incoming_rate:0;
+                   }
+                   available_stock = data[0].stockAvailability?
+                         data[0].stockAvailability:0;
+                    stockPayload.name = uuidv4();
+                    stockPayload.modified = date;
+                    stockPayload.modified_by = token.email;
+
+                    if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
+                    
+                      // set batch == null of created invoice on cancelling to make it unfetchble
+                      this.stockLedgerService.updateOne({
+                          voucher_no: `${res.stock_id}`,
+                           },
+                           {
+                               $set : {
+                                   batch_no : null
+                               }
+                           });
+                      stockPayload.voucher_no = res.stock_id;
+                      if (item.qty < 0) {
+                        item.qty = -item.qty;
+                      }
+                      stockPayload.actual_qty = -item.qty;
+                      stockPayload.valuation_rate = stockPayload.incoming_rate;
+                      stockPayload.batch_no = '';
+                    } else {
+                      stockPayload.actual_qty = 1;
+                      if(pre_incoming_rate != stockPayload.incoming_rate){
+                        stockPayload.valuation_rate = parseFloat(this.calculateValuationRate(
+                          available_stock,
+                          stockPayload.actual_qty,
+                          stockPayload.incoming_rate,
+                          current_valuation_rate,
+                          new_quantity
+                          )); 
+                        }
+                      else{
+                        stockPayload.valuation_rate = current_valuation_rate;
+                      }
+                      stockPayload.actual_qty = item.qty;
+                      stockPayload.voucher_no = returnedStockId;
+                      stockPayload.batch_no = '';
+                    }
+                    stockPayload.warehouse = item.s_warehouse
+                      ? item.s_warehouse
+                      : item.warehouse;
+                    stockPayload.item_code = item.item_code;
+                    stockPayload.posting_date = date;
+                    stockPayload.posting_time = date;
+                    stockPayload.voucher_type = STOCK_ENTRY;
+                    stockPayload.voucher_detail_no = '';
+                    stockPayload.outgoing_rate = 0;
+                    stockPayload.company = settings.defaultCompany;
+                    stockPayload.fiscal_year = fiscalYear;
+            return of(stockPayload);
+          }))
+        }))
+      }))
+      }
+
+      // Delivered
+      if(res.stock_entry_type == STOCK_ENTRY_STATUS.delivered){
+        
+        // fetch created invoice
+        const where = []
+        const ledger_filter_obj = {
+          voucher_no: `${res.stock_id}`,
+        }
+        const $match: any = ledger_filter_obj;
+        where.push({$match})
+        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_sales_invoice:StockLedger)=>{
+       
+
+        // fetch current valuation of wrehouse
+        const where = []
+        const ledger_filter_obj = {
+          item_code: `${item.item_code}`,
+          warehouse: `${item.s_warehouse}`,
+          actual_qty: {'$gt':0},
+          batch_no: {'$ne':null}
+        }
+        const $match: any = ledger_filter_obj;
+        where.push({$match})
+        const $sort: any = {
+          'modified': -1,
+        };
+        where.push({ $sort });
+        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
             const stockPayload = new StockLedger();
             stockPayload.name = uuidv4();
             stockPayload.modified = date;
             stockPayload.modified_by = token.email;
-
             if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
-              if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-                if (item.qty < 0) {
-                  item.qty = -item.qty;
-                }
-                stockPayload.actual_qty = -item.qty;
-              } else {
-                stockPayload.actual_qty = item.qty;
-              }
-            } else {
-              if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-                stockPayload.actual_qty = item.qty;
-              } else {
-                stockPayload.actual_qty = -item.qty;
-              }
+              stockPayload.voucher_no = res.stock_id;
+              stockPayload.actual_qty = item.qty;
+              stockPayload.batch_no = null;
+              stockPayload.incoming_rate = created_sales_invoice[0].incoming_rate?
+                          created_sales_invoice[0].incoming_rate:0;
+            }else{
+              stockPayload.actual_qty = -item.qty;
+              stockPayload.voucher_no = deliveredStockId;
+              stockPayload.batch_no = '';
+              stockPayload.incoming_rate = item.rate?item.rate:0;
             }
             stockPayload.warehouse = item.s_warehouse
               ? item.s_warehouse
               : item.warehouse;
             stockPayload.item_code = item.item_code;
-            stockPayload.valuation_rate = 0;
-            stockPayload.batch_no = '';
+            if(latest_stock_ledger && latest_stock_ledger[1].valuation_rate > 0){
+              stockPayload.valuation_rate = latest_stock_ledger[1].valuation_rate;
+            }else{
+              stockPayload.valuation_rate = item.rate?item.rate:0;
+            }
             stockPayload.posting_date = date;
             stockPayload.posting_time = date;
             stockPayload.voucher_type = STOCK_ENTRY;
-            stockPayload.voucher_no = res.stock_voucher_number;
             stockPayload.voucher_detail_no = '';
-            stockPayload.incoming_rate = 0;
+            
             stockPayload.outgoing_rate = 0;
             stockPayload.company = settings.defaultCompany;
             stockPayload.fiscal_year = fiscalYear;
             return of(stockPayload);
-          }),
-          toArray(),
-          switchMap(data => {
-            return of(data);
-          }),
-        );
-      }),
+        }))
+      }))
+      }
+    }),
+      toArray(),
+    switchMap(data => {
+          return of(data);
+        }),
+      );
+    }),
     );
+  }
+  calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
+    var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
+    return result.toFixed(2)
   }
 
   makeStockEntry(deliveryNote: WarrantyStockEntryDto, req, settings) {
@@ -804,7 +1009,7 @@ export class WarrantyStockEntryAggregateService {
         }),
         switchMap(settings => {
           stockEntry.action = CANCEL_WARRANTY_STOCK_ENTRY;
-          return this.createStockLedger(stockEntry, req.token, settings);
+          return this.createStockLedger(stockEntry, req.token, settings,null,null);
         }),
         // DELETING PROGRESS STATE ON CANCELLING ENTRIES
         switchMap(() => {
