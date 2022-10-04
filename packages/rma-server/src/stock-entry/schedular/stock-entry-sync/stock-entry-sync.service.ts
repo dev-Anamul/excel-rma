@@ -346,6 +346,7 @@ export class StockEntrySyncService {
         // if item is coming in our warehouse
         if(warehouse_type == 't_warehouse'){
 
+        //fetch current valuation
         const where = []
         const ledger_filter_obj = {
           item_code: `${item.item_code}`,
@@ -360,6 +361,8 @@ export class StockEntrySyncService {
         };
         where.push({ $sort });
         return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
+
+          //fetch available stock of t_warehouse
           const filter_query = [
             [ 'item_code', 'like', `${item.item_code}` ],
             [ 'warehouse', 'like', `${item.t_warehouse}` ],
@@ -402,6 +405,7 @@ export class StockEntrySyncService {
             const $match: any = filter_Obj;
             where.push({ $match });
             return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
+              
               // if item is transfer In our warehouse
               if(payload.stock_entry_type === 'Material Transfer'){
 
@@ -456,37 +460,82 @@ export class StockEntrySyncService {
       }
       // item is going from warehouse
       else{
-        const filter_obj = {
-          item_code : `${item.item_code}`,
-          warehouse: `${item.s_warehouse}`,
-          actual_qty: {'$gt':0},
-          batch_no: {'$ne':null}
-        }
-        const $match: any = filter_obj;
-        const where: any = [];
-        where.push({$match});
-        const $sort: any = {
-          'modified': -1,
-        };
-        where.push({ $sort });
-        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger:StockLedger)=>{
-          return this.createStockLedgerPayload(
-            payload.stock_id,
-            payload.stock_entry_type,
-            item,
-            token,
-            settings,
-            warehouse_type,
-            latest_stock_ledger,
-            null,
-            null
-          ).pipe(
-            switchMap((response: StockLedger) => {
+        
+        const filter_query = [
+          [ 'item_code', 'like', `${item.item_code}` ],
+          [ 'warehouse', 'like', `${item.s_warehouse}` ],
+          [ 'actual_qty', '!=', 0 ]
+        ]
+      
+        const filter_Obj: any = {};
+        filter_query.forEach(element => {
+          if (element[0] === 'item_code') {
+            filter_Obj['item.item_code'] = element[2];
+          }
+          if (element[0] === 'warehouse') {
+            filter_Obj['_id.warehouse'] = element[2];
+          }
+          if (element[1] === '!=') {
+            filter_Obj.stockAvailability = { $gt: element[2] };
+          }
+        });
+          const obj: any = {
+            _id: {
+              warehouse: '$warehouse',
+              item_code: '$item_code',
+            },
+            stockAvailability: {
+              $sum: '$actual_qty',
+            },
+          };
+          const $group: any = obj;
+          const where: any = [];
+          where.push({ $group });
+          const $lookup: any = {
+            from: 'item',
+            localField: '_id.item_code',
+            foreignField: 'item_code',
+            as: 'item',
+          };
+          where.push({ $lookup });
+          const $unwind: any = '$item';
+          where.push({ $unwind });
+          const $match: any = filter_Obj;
+          where.push({ $match });
+          return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
+         
+            const filter_obj = {
+              item_code : `${item.item_code}`,
+              warehouse: `${item.s_warehouse}`,
+              actual_qty: {'$gt':0},
+              batch_no: {'$ne':null}
+            }
+            const $match: any = filter_obj;
+            const where: any = [];
+            where.push({$match});
+            const $sort: any = {
+              'modified': -1,
+            };
+            where.push({ $sort });
+            return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger:StockLedger)=>{
+             return this.createStockLedgerPayload(
+              payload.stock_id,
+              payload.stock_entry_type,
+              item,
+              token,
+              settings,
+              warehouse_type,
+              latest_stock_ledger,
+              data,
+              null
+            ).pipe(
+              switchMap((response: StockLedger) => {
 
-              return from(this.stockLedgerService.create(response));
-            }),
-          );
-         }))
+                return from(this.stockLedgerService.create(response));
+              }),
+            );
+          }))
+        }))
        }
       }
     ),
@@ -513,6 +562,15 @@ export class StockEntrySyncService {
     var current_valuation_rate;
     var rate_of_transfer_item;
     
+    if (data && data.length > 0){
+      available_stock = data[0].stockAvailability
+      }
+      else{
+        available_stock = 0;
+      }
+    
+      new_quantity = available_stock+deliveryNoteItem.qty;
+
     if(warehouse_type === 't_warehouse'){
       if(TROUT_ledger != null){
         rate_of_transfer_item = TROUT_ledger[0].valuation_rate;
@@ -526,14 +584,8 @@ export class StockEntrySyncService {
         current_valuation_rate = deliveryNoteItem.basic_rate;
         pre_incoming_rate = deliveryNoteItem.basic_rate;
       }
-      if (data && data.length > 0){
-      available_stock = data[0].stockAvailability
       }
-      else{
-        available_stock = 0;
-      }
-      new_quantity = available_stock+deliveryNoteItem.qty;
-    }
+    
     if(warehouse_type === 's_warehouse'){
       if(latest_stock_ledger && latest_stock_ledger.length > 0){
         current_valuation_rate = latest_stock_ledger[0].valuation_rate;
@@ -556,6 +608,8 @@ export class StockEntrySyncService {
           stockPayload.warehouse = deliveryNoteItem.t_warehouse;
           stockPayload.incoming_rate = 
             deliveryNoteItem.basic_rate? deliveryNoteItem.basic_rate:rate_of_transfer_item;
+          stockPayload.outgoing_rate = 0;
+          stockPayload.balance_qty = available_stock;
           
           if(pre_incoming_rate != stockPayload.incoming_rate){
              
@@ -568,17 +622,23 @@ export class StockEntrySyncService {
                   ))
                   ;
                   stockPayload.valuation_rate = calculated_valuation?
-                      calculated_valuation:rate_of_transfer_item;
+                      calculated_valuation:stockPayload.incoming_rate;
             }
            else{
              stockPayload.valuation_rate = current_valuation_rate;
            }
+           stockPayload.balance_value = parseFloat(
+            (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
          }
         if(warehouse_type === 's_warehouse'){
-            stockPayload.incoming_rate = deliveryNoteItem.basic_rate?
-            deliveryNoteItem.basic_rate:0;
+            stockPayload.incoming_rate = 0;
             stockPayload.valuation_rate = current_valuation_rate;
             stockPayload.warehouse = deliveryNoteItem.s_warehouse;
+            stockPayload.balance_qty = available_stock;
+            stockPayload.balance_value = parseFloat(
+              (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
+            stockPayload.outgoing_rate = deliveryNoteItem.basic_rate?
+            deliveryNoteItem.basic_rate:0;
          }
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
@@ -599,7 +659,7 @@ export class StockEntrySyncService {
         
         stockPayload.voucher_no = stock_entry_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.outgoing_rate = 0;
+        
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
           stockPayload.qty_after_transaction * stockPayload.valuation_rate;
