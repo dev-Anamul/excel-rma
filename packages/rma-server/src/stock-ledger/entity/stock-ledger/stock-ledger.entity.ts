@@ -72,6 +72,12 @@ export class StockLedger extends BaseEntity {
   valuation_rate: number;
 
   @Column()
+  balance_value: number;
+  
+  @Column()
+  balance_qty: number;
+
+  @Column()
   stock_value: number;
 
   @Column()

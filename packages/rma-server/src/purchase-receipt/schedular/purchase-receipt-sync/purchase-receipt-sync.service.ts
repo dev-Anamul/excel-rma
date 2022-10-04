@@ -480,6 +480,9 @@ export class PurchaseReceiptSyncService {
         else{
           stockPayload.valuation_rate = pre_valuation_rate;
         }
+        stockPayload.balance_qty = available_stock;
+        stockPayload.balance_value = parseFloat(
+            (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
         stockPayload.batch_no = '';
         stockPayload.stock_uom = payload.purchaseReceipt.stock_uom;
         stockPayload.posting_date = date;

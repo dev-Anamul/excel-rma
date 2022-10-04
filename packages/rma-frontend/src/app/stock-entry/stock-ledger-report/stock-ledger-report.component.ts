@@ -37,18 +37,19 @@ export class StockLedgerReportComponent implements OnInit {
 
   displayedColumns = [
     'posting_date',
-    // 'company',
     'item_name',
     'item_code',
     'item_group',
     'voucher_no',
-    // 'batch_no',
     'brand',
     'warehouse',
     'stock_uom',
     'actual_qty',
+    'balance_qty',
     'incoming_rate',
+    'outgoing_rate',
     'valuation_rate',
+    'balance_value',
 
   ];
 
@@ -116,23 +117,7 @@ export class StockLedgerReportComponent implements OnInit {
       switchMap(data => {
         return of(data);
       }),
-    );
-
-    // this.filteredProjectList = this.stockLedgerForm
-    // .get('project')
-    // .valueChanges.pipe(
-    //   startWith(''),
-    //   switchMap(value => {
-    //     const filter = `[["name", "like", "%${value}%"]]`;
-    //     return this.stockEntryService.getFilteredAccountingDimensions(
-    //       RELAY_LIST_PROJECT_ENDPOINT,
-    //       filter,
-    //     );
-    //   }),
-    // );
-
-    
-
+    ); 
   }
 
   navigateBack() {
@@ -148,10 +133,6 @@ export class StockLedgerReportComponent implements OnInit {
       start_date: new FormControl(),
       end_date: new FormControl(),
       voucher: new FormControl(),
-      // project: new FormControl(),
-      // stock_uom: new FormControl(),
-      // batch_no: new FormControl(),
-      
     });
   }
 
@@ -163,9 +144,6 @@ export class StockLedgerReportComponent implements OnInit {
     this.f.voucher.setValue('');
     this.f.start_date.setValue(null);
     this.f.end_date.setValue(null);
-    // this.f.project.setValue('');
-    // this.f.stock_uom.setValue('');
-    // this.f.batch_no.setValue('');
     this.setFilter();
   }
 

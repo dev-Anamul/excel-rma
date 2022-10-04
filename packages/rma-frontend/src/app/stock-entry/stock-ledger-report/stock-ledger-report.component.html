@@ -294,6 +294,16 @@
             <mat-cell *matCellDef="let row">{{ row.voucher_no }}</mat-cell>
           </ng-container>
 
+          <ng-container matColumnDef="balance_qty">
+            <mat-header-cell *matHeaderCellDef>Balance Qty</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.balance_qty }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="balance_value">
+            <mat-header-cell *matHeaderCellDef>Balance Value</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.balance_value }}</mat-cell>
+          </ng-container>
+
           <ng-container matColumnDef="item_group">
             <mat-header-cell *matHeaderCellDef>Item Group</mat-header-cell>
             <mat-cell *matCellDef="let row">{{ row.item.item_group }}</mat-cell>
@@ -312,6 +322,11 @@
           <ng-container matColumnDef="incoming_rate">
             <mat-header-cell *matHeaderCellDef>Incoming Rate</mat-header-cell>
             <mat-cell *matCellDef="let row">{{ row.incoming_rate }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="outgoing_rate">
+            <mat-header-cell *matHeaderCellDef>Outgoing Rate</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.outgoing_rate }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="valuation_rate">

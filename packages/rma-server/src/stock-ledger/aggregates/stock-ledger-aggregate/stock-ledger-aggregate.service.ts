@@ -314,6 +314,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
       if (date.start_date != null && date.end_date != null){
         startDate = new Date(date.start_date);
         endDate = new Date(date.end_date);
+        endDate.setDate(endDate.getDate()+1)
         const dateObj: any = {
           $gte:startDate,
           $lte:endDate
