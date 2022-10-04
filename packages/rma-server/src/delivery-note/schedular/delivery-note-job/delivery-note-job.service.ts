@@ -390,20 +390,65 @@ export class DeliveryNoteJobService {
       };
       where.push({ $sort });
       return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_ledger:StockLedger)=>{
+        //fetch available stock
+        const filter_query = [
+          [ 'item_code', 'like', `${item.item_code}` ],
+          [ 'warehouse', 'like', `${payload.set_warehouse}` ],
+          [ 'actual_qty', '!=', 0 ]
+        ]
+    
+        const filter_Obj: any = {};
+        filter_query.forEach(element => {
+          if (element[0] === 'item_code') {
+            filter_Obj['item.item_code'] = element[2];
+          }
+          if (element[0] === 'warehouse') {
+            filter_Obj['_id.warehouse'] = element[2];
+          }
+          if (element[1] === '!=') {
+            filter_Obj.stockAvailability = { $gt: element[2] };
+          }
+        });
+          const obj: any = {
+            _id: {
+              warehouse: '$warehouse',
+              item_code: '$item_code',
+            },
+            stockAvailability: {
+              $sum: '$actual_qty',
+            },
+          };
+          const $group: any = obj;
+          const where: any = [];
+          where.push({ $group });
+          const $lookup: any = {
+            from: 'item',
+            localField: '_id.item_code',
+            foreignField: 'item_code',
+            as: 'item',
+          };
+          where.push({ $lookup });
+          const $unwind: any = '$item';
+          where.push({ $unwind });
+          const $match: any = filter_Obj;
+          where.push({ $match });
+          return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
 
-         return this.createStockLedgerPayload(
-           { warehouse: payload.set_warehouse, deliveryNoteItem: item },
-           token,
-           settings,
-           latest_ledger
-         )
-           .pipe(
-             switchMap((response: StockLedger) => {
-               return from(this.stockLedgerService.create(response));
-             }),
+            return this.createStockLedgerPayload(
+              { warehouse: payload.set_warehouse, deliveryNoteItem: item },
+              token,
+              settings,
+              latest_ledger,
+              data
             )
+              .pipe(
+                switchMap((response: StockLedger) => {
+                  return from(this.stockLedgerService.create(response));
+                }),
+               )
+             }))
           }))         
-        .subscribe();
+           .subscribe();
     });
 
     return of(true);
@@ -413,8 +458,13 @@ export class DeliveryNoteJobService {
     payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
     token,
     settings: ServerSettings,
-    latest_ledger
+    latest_ledger,
+    data
   ) {
+    var available_stock = data[0].stockAvailability?data[0].stockAvailability:0;
+    var current_valuation = latest_ledger[0].valuation_rate?
+        latest_ledger[0].valuation_rate:0;
+        
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -425,9 +475,10 @@ export class DeliveryNoteJobService {
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
-
-        //assign current valuation rate of item in particular warehouse
-        stockPayload.valuation_rate = latest_ledger[0].valuation_rate        
+        stockPayload.balance_qty = available_stock;
+        stockPayload.valuation_rate = current_valuation;        
+        stockPayload.balance_value = parseFloat(
+          (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
@@ -435,8 +486,8 @@ export class DeliveryNoteJobService {
         stockPayload.voucher_no =
           payload.deliveryNoteItem.against_sales_invoice;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = payload.deliveryNoteItem.rate;
-        stockPayload.outgoing_rate = stockPayload.valuation_rate;
+        stockPayload.incoming_rate = 0;
+        stockPayload.outgoing_rate = payload.deliveryNoteItem.rate;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
           stockPayload.qty_after_transaction * stockPayload.valuation_rate;
