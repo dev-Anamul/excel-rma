@@ -344,7 +344,7 @@ export class WarrantyStockEntryAggregateService {
         break;
       case STOCK_ENTRY_STATUS.delivered:
         serialData = {
-          replace_serial: deliveryNote.items[0].serial_no[0],
+          replace_serial: deliveryNote.items[0].serial_no,
           replace_warehouse: deliveryNote.items[0].s_warehouse,
           replace_product: deliveryNote.items[0].item_name,
         };

@@ -150,11 +150,11 @@ export class BulkClaimDetailsComponent implements OnInit {
     });
     await loading.present();
     this.warrantyService.generateWarrantyPrintBody(this.uuid).subscribe({
-      next: success => {
+      next: () => {
         this.warrantyService.openPdf(format, this.uuid);
         loading.dismiss();
       },
-      error: err => {
+      error: () => {
         loading.dismiss();
         this.snackBar.open(`Failed To Print`, CLOSE, { duration: 4500 });
       },

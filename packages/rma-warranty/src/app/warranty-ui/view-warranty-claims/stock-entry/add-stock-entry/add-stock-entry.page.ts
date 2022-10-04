@@ -78,7 +78,7 @@ export class AddStockEntryPage implements OnInit {
 
   async ngOnInit() {
     this.dataSource = new ItemsDataSource();
-    this.setDateTime(new Date());
+    this.setDateTime();
     this.checkActive(this.dataSource.data().length);
 
     this.company = await this.addServiceInvoiceService
@@ -206,25 +206,23 @@ export class AddStockEntryPage implements OnInit {
     selectedItem.company = this.company;
     selectedItem.warrantyClaimUuid = this.warrantyObject.uuid;
     selectedItem.naming_series = this.warrantyObject.claim_no;
-    selectedItem.posting_date = this.stockEntryForm.controls.date.value;
-    selectedItem.posting_time = this.stockEntryForm.controls.time.value;
-    selectedItem.type = this.stockEntryForm.controls.type.value;
+    selectedItem.posting_date = this.f.date.value;
+    selectedItem.posting_time = this.f.time.value;
+    selectedItem.type = this.f.type.value;
     selectedItem.stock_entry_type = item.stock_entry_type;
-    selectedItem.description = this.stockEntryForm.controls.description.value;
+    selectedItem.description = this.f.description.value;
     if (item.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED) {
       selectedItem.is_return = 1;
     }
     return selectedItem;
   }
 
-  async setDateTime(date: Date) {
-    const dateTime = await this.time.getDateAndTime(date);
-    this.stockEntryForm.controls.date.setValue(dateTime.date);
-    this.stockEntryForm.controls.time.setValue(dateTime.time);
-  }
-
-  getOption(option) {
-    if (option) return option;
+  async setDateTime(event?: any) {
+    const dateTime = await this.time.getDateAndTime(
+      event ? event.value : new Date(),
+    );
+    this.f.date.setValue(dateTime.date);
+    this.f.time.setValue(dateTime.time);
   }
 
   setStockEntryType(type: string) {

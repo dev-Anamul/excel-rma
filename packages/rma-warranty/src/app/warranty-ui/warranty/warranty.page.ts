@@ -88,7 +88,7 @@ export class WarrantyPage implements OnInit {
     CLAIM_STATUS.REJECTED,
     CLAIM_STATUS.ALL,
   ];
-  dateType: string[] = [DATE_TYPE.RECEIVED_DATE, DATE_TYPE.RECEIVED_DATE];
+  dateType: string[] = [DATE_TYPE.RECEIVED_DATE, DATE_TYPE.DELIVERED_DATE];
   validateInput: any = ValidateInputSelected;
   warrantyForm: FormGroup;
 
