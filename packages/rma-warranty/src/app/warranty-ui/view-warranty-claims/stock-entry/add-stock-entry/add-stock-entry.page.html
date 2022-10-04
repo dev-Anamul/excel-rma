@@ -47,7 +47,6 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #Type="matAutocomplete"
-                  [displayWith]="getOption"
                   (keyup.enter)="setStockEntryType($event.option.value)"
                   (optionSelected)="setStockEntryType($event.option.value)"
                 >
@@ -68,6 +67,7 @@
                   [matDatepicker]="date"
                   placeholder="Date"
                   formControlName="date"
+                  (dateChange)="setDateTime($event)"
                 />
                 <mat-datepicker-toggle
                   matSuffix
