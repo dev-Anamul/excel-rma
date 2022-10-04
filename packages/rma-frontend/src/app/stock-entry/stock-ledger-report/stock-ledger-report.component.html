@@ -134,20 +134,7 @@
             </ion-col>
           </ion-row>
           <ion-row>
-            <ion-col>
-              <mat-form-field class="mat-input-wrapper">
-                <input
-                  matInput
-                  required
-                  placeholder="Company"
-                  readonly
-                  formControlName="company"
-                />
-                <mat-error *ngIf="f.company.hasError('required')">
-                  Company is <strong>required</strong>
-                </mat-error>
-              </mat-form-field>
-            </ion-col>
+            
             <ion-col>
               <mat-form-field 
                 class="mat-input-wrapper">
@@ -206,6 +193,21 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
+            <ion-button
+                (click)="clearFilters()"
+                fill="outline"
+                color="tertiary"
+              >
+                Clear
+              </ion-button>
+               <ion-button
+                color="tertiary"
+
+                (click)="downloadServiceInvoices()"
+                fill="outline"
+              >
+                Download CSV
+            </ion-button>
           </ion-row>
           <ion-row>
             <ion-col>
@@ -246,47 +248,6 @@
                 </mat-form-field>
               </div>
             </ion-col>
-            <!-- <ion-col>
-              <mat-form-field  class="mat-input-wrapper">
-                <mat-label>UOM</mat-label>
-                <mat-select
-                  formControlName="stock_uom" 
-                >
-                  <mat-option *ngFor="let UOM of stockUomList" 
-                    [value]="UOM"
-                    >
-                    {{UOM}}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-            </ion-col> -->
-            <!-- <ion-col>
-              <mat-form-field 
-                class="mat-input-wrapper">
-                <input
-                  matInput
-                  placeholder="Batch No."
-                  formControlName="batch_no"
-                  (keyup.enter)="setFilter()"
-                />
-              </mat-form-field>
-            </ion-col> -->
-          
-            <ion-button
-                (click)="clearFilters()"
-                fill="outline"
-                color="tertiary"
-              >
-                Clear
-              </ion-button>
-               <ion-button
-                color="tertiary"
-
-                (click)="downloadServiceInvoices()"
-                fill="outline"
-              >
-                Download CSV
-            </ion-button>
           </ion-row>  
         </ion-grid>
       </form>
@@ -298,9 +259,9 @@
           [dataSource]="dataSource"
           matSort
         >
-          <ng-container matColumnDef="modified">
+          <ng-container matColumnDef="posting_date">
             <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.modified | date: 'd MMM, y' }}</mat-cell>
+            <mat-cell *matCellDef="let row">{{ row.posting_date | date: 'd MMM, y' }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="item_code">

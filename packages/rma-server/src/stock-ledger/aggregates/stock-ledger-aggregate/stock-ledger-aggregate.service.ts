@@ -339,7 +339,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
       const $match: any = filter_Obj;
       where.push({ $match });
       const $sort: any = {
-        'modified': -1,
+        'posting_date': 1,
       };
       where.push({ $sort });
       const $limit: any = limit;
@@ -365,7 +365,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
       const $limit: any = limit;
       const $skip: any = offset;
       const $sort: any = {
-        'modified': -1,
+        'posting_date': 1,
       };
       where.push({ $sort });
       where.push({ $skip });

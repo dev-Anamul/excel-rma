@@ -36,7 +36,7 @@ export class StockLedgerReportComponent implements OnInit {
   // dataSource: StockBalanceSummaryDataSource;
 
   displayedColumns = [
-    'modified',
+    'posting_date',
     // 'company',
     'item_name',
     'item_code',
@@ -141,7 +141,6 @@ export class StockLedgerReportComponent implements OnInit {
 
   createFormGroup() {
     this.stockLedgerForm = new FormGroup({
-      company: new FormControl('Excel Technologies Ltd.'),
       item_name: new FormControl(),
       warehouse: new FormControl(),
       excel_item_group: new FormControl(),
@@ -167,7 +166,6 @@ export class StockLedgerReportComponent implements OnInit {
     // this.f.project.setValue('');
     // this.f.stock_uom.setValue('');
     // this.f.batch_no.setValue('');
-    this.f.company.setValue('Excel Technologies Ltd.');
     this.setFilter();
   }
 
