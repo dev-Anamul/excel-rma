@@ -277,23 +277,13 @@ export class WarrantyStockEntryAggregateService {
         const date = new DateTime(settings.timeZone).toJSDate();
         return from(res.items).pipe(
           concatMap((item: any) => {
-
-            // Returned
-            if(res.stock_entry_type == STOCK_ENTRY_STATUS.returned){
-              
-              var current_valuation_rate;
-              var available_stock;
-              var new_quantity;
-              var pre_incoming_rate;
-              var incoming_rate;
-
-              //fetch total qty in warehouse
+            var available_stock;
+            //fetch total qty in warehouse
             const filter_query = [
               [ 'item_code', 'like', `${item.item_code}` ],
               [ 'warehouse', 'like', `${item.s_warehouse}` ],
               [ 'actual_qty', '!=', 0 ]
             ]
-        
             const filter_Obj: any = {};
             filter_query.forEach(element => {
               if (element[0] === 'item_code') {
@@ -330,10 +320,19 @@ export class WarrantyStockEntryAggregateService {
               const $unwind: any = '$item';
               where.push({ $unwind });
               return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
-                
+                available_stock = data[0].stockAvailability?
+                         data[0].stockAvailability:0;
+                         
+                // Returned
+                if(res.stock_entry_type == STOCK_ENTRY_STATUS.returned){
+              
+                var current_valuation_rate;
+                var new_quantity;
+                var pre_incoming_rate;
+                var incoming_rate;
+
                 //fetch created invoive
                 const where = []
-
                 // use sales voucher on creating and stock id on cancelling to fetch created one
                 var voucher = item.sales_invoice_name?
                     item.sales_invoice_name:res.stock_id;
@@ -360,8 +359,6 @@ export class WarrantyStockEntryAggregateService {
                   where.push({ $sort });
                 return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
 
-                  new_quantity = data[0].stockAvailability+item.qty
-              
                   const stockPayload = new StockLedger();
               
                    // treated as sold from our warehoue
@@ -369,11 +366,11 @@ export class WarrantyStockEntryAggregateService {
                      incoming_rate = created_sales_invoice[0].valuation_rate?
                            created_sales_invoice[0].valuation_rate:latest_stock_ledger[0].valuation_rate;
                      stockPayload.incoming_rate = incoming_rate?
-                     incoming_rate:pre_incoming_rate;
+                            incoming_rate:0;
                      current_valuation_rate = latest_stock_ledger[0].valuation_rate?
                            latest_stock_ledger[0].valuation_rate:incoming_rate;
                      pre_incoming_rate = latest_stock_ledger[0].incoming_rate?
-                           latest_stock_ledger[0].incoming_rate:incoming_rate;
+                           latest_stock_ledger[0].incoming_rate:0;
                    }
                    // treated as third party
                    else{
@@ -384,8 +381,8 @@ export class WarrantyStockEntryAggregateService {
                      stockPayload.incoming_rate = pre_incoming_rate?
                           pre_incoming_rate:0;
                    }
-                   available_stock = data[0].stockAvailability?
-                         data[0].stockAvailability:0;
+                   new_quantity = available_stock+item.qty
+                   
                     stockPayload.name = uuidv4();
                     stockPayload.modified = date;
                     stockPayload.modified_by = token.email;
@@ -429,6 +426,9 @@ export class WarrantyStockEntryAggregateService {
                     stockPayload.warehouse = item.s_warehouse
                       ? item.s_warehouse
                       : item.warehouse;
+                    stockPayload.balance_qty = available_stock;
+                    stockPayload.balance_value = parseFloat(
+                      (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
                     stockPayload.item_code = item.item_code;
                     stockPayload.posting_date = date;
                     stockPayload.posting_time = date;
@@ -440,9 +440,7 @@ export class WarrantyStockEntryAggregateService {
             return of(stockPayload);
           }))
         }))
-      }))
       }
-
       // Delivered
       if(res.stock_entry_type == STOCK_ENTRY_STATUS.delivered){
         
@@ -455,7 +453,6 @@ export class WarrantyStockEntryAggregateService {
         where.push({$match})
         return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_sales_invoice:StockLedger)=>{
        
-
         // fetch current valuation of wrehouse
         const where = []
         const ledger_filter_obj = {
@@ -485,17 +482,20 @@ export class WarrantyStockEntryAggregateService {
               stockPayload.actual_qty = -item.qty;
               stockPayload.voucher_no = deliveredStockId;
               stockPayload.batch_no = '';
-              stockPayload.incoming_rate = item.rate?item.rate:0;
+              stockPayload.incoming_rate = 0;
             }
             stockPayload.warehouse = item.s_warehouse
               ? item.s_warehouse
               : item.warehouse;
             stockPayload.item_code = item.item_code;
-            if(latest_stock_ledger && latest_stock_ledger[1].valuation_rate > 0){
-              stockPayload.valuation_rate = latest_stock_ledger[1].valuation_rate;
+            if(latest_stock_ledger && latest_stock_ledger[0].valuation_rate > 0){
+              stockPayload.valuation_rate = latest_stock_ledger[0].valuation_rate;
             }else{
-              stockPayload.valuation_rate = item.rate?item.rate:0;
+              stockPayload.valuation_rate = 0;
             }
+            stockPayload.balance_qty = available_stock;
+            stockPayload.balance_value = parseFloat(
+              (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
             stockPayload.posting_date = date;
             stockPayload.posting_time = date;
             stockPayload.voucher_type = STOCK_ENTRY;
@@ -505,9 +505,10 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.company = settings.defaultCompany;
             stockPayload.fiscal_year = fiscalYear;
             return of(stockPayload);
+          }))
         }))
-      }))
       }
+      }))
     }),
       toArray(),
     switchMap(data => {
