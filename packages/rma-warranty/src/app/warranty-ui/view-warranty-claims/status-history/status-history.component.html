@@ -307,12 +307,9 @@
   </ion-card-header>
   <ion-card-content>
     <ion-grid
-      class="ion-no-padding"
       *ngIf="
         dataSource?.data[dataSource?.data?.length - 1]?.delivery_status ===
-          'Upgraded' ||
-        dataSource?.data[dataSource?.data?.length - 1]?.delivery_status ===
-          'Replaced'
+          'Upgraded' || 'Replaced'
       "
     >
       <ion-row>
