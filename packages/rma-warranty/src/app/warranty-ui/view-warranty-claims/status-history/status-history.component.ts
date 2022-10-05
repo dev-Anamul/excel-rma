@@ -2,13 +2,13 @@ import { Component, OnInit, Input } from '@angular/core';
 import {
   WarrantyClaimsDetails,
   StatusHistoryDetails,
-  StockEntryItems,
 } from '../../../common/interfaces/warranty.interface';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { debounceTime, startWith } from 'rxjs/operators';
 import { StatusHistoryService } from './status-history.service';
 import { TimeService } from '../../../api/time/time.service';
 import {
+  CLOSE,
   CURRENT_STATUS_VERDICT,
   DELIVERY_STATUS,
   DURATION,
@@ -17,7 +17,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   STATUS_HISTORY_ADD_FAILURE,
   STATUS_HISTORY_REMOVE_FAILURE,
-  ERROR_FETCHING_DETAILS,
 } from '../../../constants/messages';
 import { StatusHistoryDataSource } from './status-history-datasource';
 
@@ -44,7 +43,6 @@ export class StatusHistoryComponent implements OnInit {
   deliveryStatus: any = [];
   dataSource: StatusHistoryDataSource;
   date: { date: string; time: string };
-  stockEntry: StockEntryItems;
 
   displayedColumns = [
     'posting_date',
@@ -78,7 +76,6 @@ export class StatusHistoryComponent implements OnInit {
     );
     this.resetWarrantyDetail(this.warrantyObject?.uuid);
     this.dataSource.loadItems(this.warrantyObject?.uuid);
-    this.setStockEntryStatusFields();
     this.statusHistoryForm.controls.transfer_branch.disable();
     this.statusHistoryForm.controls.transfer_branch.updateValueAndValidity();
     this.statusHistoryForm.controls.delivery_status.disable();
@@ -102,14 +99,8 @@ export class StatusHistoryComponent implements OnInit {
     this.selectedPostingDate({ value: new Date() });
   }
 
-  branchOptionChanged(option) {}
-
   getBranchOption(option) {
     if (option) return option.name;
-  }
-
-  getCurrentStatus(option) {
-    if (option) return option;
   }
 
   async selectedPostingDate($event) {
@@ -149,11 +140,10 @@ export class StatusHistoryComponent implements OnInit {
         this.dataSource.loadItems(this.warrantyObject?.uuid);
         this.resetWarrantyDetail(this.warrantyObject?.uuid);
         this.setInitialFormValue();
-        this.setStockEntryStatusFields();
       },
       error: ({ message }) => {
         if (!message) message = STATUS_HISTORY_ADD_FAILURE;
-        this.snackbar.open(message, 'Close', {
+        this.snackbar.open(message, CLOSE, {
           duration: DURATION,
         });
       },
@@ -183,30 +173,14 @@ export class StatusHistoryComponent implements OnInit {
         },
         error: ({ message }) => {
           if (!message) message = STATUS_HISTORY_REMOVE_FAILURE;
-          this.snackbar.open(message, 'Close', {
+          this.snackbar.open(message, CLOSE, {
             duration: DURATION,
           });
         },
       });
   }
 
-  setStockEntryStatusFields() {
-    this.statusHistoryService
-      .getStockEntry(this.warrantyObject?.uuid)
-      .subscribe({
-        next: (res: any) => {
-          this.stockEntry = res;
-        },
-        error: ({ message }) => {
-          if (!message) message = ERROR_FETCHING_DETAILS;
-          this.snackbar.open(message, 'Close', {
-            duration: DURATION,
-          });
-        },
-      });
-  }
-
-  selectedCurrentStatus(option) {
+  selectedCurrentStatus(option: any) {
     switch (option) {
       case CURRENT_STATUS_VERDICT.TRANSFERRED:
         this.statusHistoryForm.controls.transfer_branch.setValidators(
@@ -216,7 +190,6 @@ export class StatusHistoryComponent implements OnInit {
         this.statusHistoryForm.controls.transfer_branch.updateValueAndValidity();
         this.statusHistoryForm.controls.delivery_status.disable();
         this.statusHistoryForm.controls.delivery_status.updateValueAndValidity();
-
         break;
       case CURRENT_STATUS_VERDICT.DELIVER_TO_CUSTOMER:
         this.statusHistoryForm.controls.delivery_status.setValidators(
