@@ -262,8 +262,11 @@
               <mat-form-field class="full-width">
                 <mat-label>Date type</mat-label>
                 <mat-select formControlName="date_type">
-                  <mat-option *ngFor="let date of dateType" [value]="date">
-                    {{date}}
+                  <mat-option
+                    *ngFor="let dateType of dateTypeList"
+                    [value]="dateType"
+                  >
+                    {{dateType}}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -273,17 +276,17 @@
               <mat-form-field class="full-width">
                 <input
                   matInput
-                  [matDatepicker]="fromDate"
+                  [matDatepicker]="from_date"
                   placeholder="From Date"
                   readonly
-                  formControlName="fromDate"
+                  formControlName="from_date"
                   (dateChange)="dateFilter()"
                 />
                 <mat-datepicker-toggle
                   matSuffix
-                  [for]="fromDate"
+                  [for]="from_date"
                 ></mat-datepicker-toggle>
-                <mat-datepicker #fromDate disabled="false"></mat-datepicker>
+                <mat-datepicker #from_date disabled="false"></mat-datepicker>
               </mat-form-field>
             </ion-col>
 
@@ -291,17 +294,17 @@
               <mat-form-field class="full-width">
                 <input
                   matInput
-                  [matDatepicker]="toDate"
+                  [matDatepicker]="to_date"
                   placeholder="To Date"
                   readonly
-                  formControlName="toDate"
+                  formControlName="to_date"
                   (dateChange)="dateFilter()"
                 />
                 <mat-datepicker-toggle
                   matSuffix
-                  [for]="toDate"
+                  [for]="to_date"
                 ></mat-datepicker-toggle>
-                <mat-datepicker #toDate disabled="false"></mat-datepicker>
+                <mat-datepicker #to_date disabled="false"></mat-datepicker>
               </mat-form-field>
             </ion-col>
 

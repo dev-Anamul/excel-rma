@@ -36,11 +36,11 @@
                 type="text"
                 placeholder="Status from"
                 formControlName="status_from"
-                [matAutocomplete]="recievingBranch"
+                [matAutocomplete]="receivingBranch"
               />
               <mat-autocomplete
                 autoActiveFirstOption
-                #recievingBranch="matAutocomplete"
+                #receivingBranch="matAutocomplete"
                 [displayWith]="getCurrentStatus"
                 (optionSelected)="branchOptionChanged($event.option.value)"
               >
@@ -230,9 +230,9 @@
       </ng-container>
 
       <ng-container matColumnDef="verdict">
-        <mat-header-cell *matHeaderCellDef
-          >Current Status / Verdict</mat-header-cell
-        >
+        <mat-header-cell *matHeaderCellDef>
+          Current Status / Verdict
+        </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ng-container>
             {{ row.verdict }}
@@ -249,7 +249,6 @@
         <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
       </ng-container>
 
-      <!-- colume name not maintion in excel sheet -->
       <ng-container matColumnDef="delivery_status">
         <mat-header-cell *matHeaderCellDef>Delivery Status</mat-header-cell>
         <mat-cell *matCellDef="let row">
