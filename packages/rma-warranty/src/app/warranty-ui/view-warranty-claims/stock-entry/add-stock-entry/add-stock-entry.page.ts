@@ -13,7 +13,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   STOCK_ENTRY_ITEM_TYPE,
   STOCK_ENTRY_STATUS,
-  WARRANTY_TYPE,
   CLOSE,
 } from '../../../../constants/app-string';
 import { AddServiceInvoiceService } from '../../../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
@@ -40,7 +39,7 @@ export class AddStockEntryPage implements OnInit {
   item: any;
   stockEntryForm = new FormGroup({
     type: new FormControl('', [Validators.required]),
-    date: new FormControl('', Validators.required),
+    date: new FormControl('', [Validators.required]),
     time: new FormControl(),
     description: new FormControl(),
     items: new FormArray([]),
@@ -227,12 +226,7 @@ export class AddStockEntryPage implements OnInit {
 
   setStockEntryType(type: string) {
     this.trimRow();
-    if (
-      (this.warrantyObject.claim_type !== WARRANTY_TYPE.THIRD_PARTY &&
-        type === STOCK_ENTRY_STATUS.REPLACE) ||
-      (this.warrantyObject.claim_type !== WARRANTY_TYPE.THIRD_PARTY &&
-        type === STOCK_ENTRY_STATUS.UPGRADE)
-    ) {
+    if (type === STOCK_ENTRY_STATUS.REPLACE || STOCK_ENTRY_STATUS.UPGRADE) {
       this.button_active = true;
       this.addServiceInvoiceService
         .getItemFromRMAServer(this.warrantyObject.item_code)

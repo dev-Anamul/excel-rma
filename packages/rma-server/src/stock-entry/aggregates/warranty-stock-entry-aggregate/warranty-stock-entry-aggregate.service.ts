@@ -199,13 +199,11 @@ export class WarrantyStockEntryAggregateService {
         );
         const statusHistoryDetails = {} as any;
         statusHistoryDetails.uuid = claim.warranty.uuid;
-        (statusHistoryDetails.time = new DateTime(
+        statusHistoryDetails.time = claim.warranty.posting_time;
+        statusHistoryDetails.posting_date = new DateTime(
           claim.settingState.timeZone,
-        ).toFormat('HH:mm:ss')),
-          (statusHistoryDetails.posting_date = new DateTime(
-            claim.settingState.timeZone,
-          ).toFormat('yyyy-MM-dd')),
-          (statusHistoryDetails.status_from = req.token.territory[0]);
+        ).toFormat('yyyy-MM-dd');
+        statusHistoryDetails.status_from = req.token.territory[0];
         statusHistoryDetails.verdict = VERDICT.DELIVER_TO_CUSTOMER;
         statusHistoryDetails.description =
           claim.warranty.progress_state[0].description;

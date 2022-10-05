@@ -88,7 +88,7 @@ export class WarrantyPage implements OnInit {
     CLAIM_STATUS.REJECTED,
     CLAIM_STATUS.ALL,
   ];
-  dateType: string[] = [DATE_TYPE.RECEIVED_DATE, DATE_TYPE.DELIVERED_DATE];
+  dateTypeList: string[] = [DATE_TYPE.RECEIVED_DATE, DATE_TYPE.DELIVERED_DATE];
   validateInput: any = ValidateInputSelected;
   warrantyForm: FormGroup;
 
@@ -200,9 +200,9 @@ export class WarrantyPage implements OnInit {
       replace_serial: new FormControl(''),
       received_by: new FormControl(''),
       delivered_by: new FormControl(''),
-      date_type: new FormControl(DATE_TYPE.RECEIVED_DATE),
-      fromDate: new FormControl(''),
-      toDate: new FormControl(''),
+      date_type: new FormControl(''),
+      from_date: new FormControl(''),
+      to_date: new FormControl(''),
       singleDate: new FormControl(''),
     });
   }
@@ -225,16 +225,21 @@ export class WarrantyPage implements OnInit {
     if (this.f.received_by.value) query.received_by = this.f.received_by.value;
     if (this.f.delivered_by.value)
       query.delivered_by = this.f.delivered_by.value;
-    if (this.f.fromDate.value && this.f.toDate.value) {
+    if (this.f.from_date.value && this.f.to_date.value) {
       query.date_type = this.f.date_type.value;
-      query.fromDate = new Date(this.f.fromDate.value).setHours(0, 0, 0, 0);
-      query.toDate = new Date(this.f.toDate.value).setHours(23, 59, 59, 59);
+      query.from_date = new Date(this.f.from_date.value).setHours(0, 0, 0, 0);
+      query.to_date = new Date(this.f.to_date.value).setHours(23, 59, 59, 59);
     }
 
     if (this.f.singleDate.value) {
       query.date_type = this.f.date_type.value;
-      query.fromDate = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
-      query.toDate = new Date(this.f.singleDate.value).setHours(23, 59, 59, 59);
+      query.from_date = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
+      query.to_date = new Date(this.f.singleDate.value).setHours(
+        23,
+        59,
+        59,
+        59,
+      );
     }
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
@@ -286,16 +291,21 @@ export class WarrantyPage implements OnInit {
     if (this.f.delivered_by.value)
       query.delivered_by = this.f.delivered_by.value;
 
-    if (this.f.fromDate.value && this.f.toDate.value) {
+    if (this.f.from_date.value && this.f.to_date.value) {
       query.date_type = this.f.date_type.value;
-      query.fromDate = new Date(this.f.fromDate.value).setHours(0, 0, 0, 0);
-      query.toDate = new Date(this.f.toDate.value).setHours(23, 59, 59, 59);
+      query.from_date = new Date(this.f.from_date.value).setHours(0, 0, 0, 0);
+      query.to_date = new Date(this.f.to_date.value).setHours(23, 59, 59, 59);
     }
 
     if (this.f.singleDate.value) {
       query.date_type = this.f.date_type.value;
-      query.fromDate = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
-      query.toDate = new Date(this.f.singleDate.value).setHours(23, 59, 59, 59);
+      query.from_date = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
+      query.to_date = new Date(this.f.singleDate.value).setHours(
+        23,
+        59,
+        59,
+        59,
+      );
     }
 
     this.sortQuery = {};
@@ -341,8 +351,8 @@ export class WarrantyPage implements OnInit {
   }
 
   singleDateFilter() {
-    this.f.fromDate.setValue('');
-    this.f.toDate.setValue('');
+    this.f.from_date.setValue('');
+    this.f.to_date.setValue('');
     this.setFilter();
   }
 
@@ -358,8 +368,8 @@ export class WarrantyPage implements OnInit {
     this.f.serial_no.setValue('');
     this.f.received_by.setValue('');
     this.f.delivered_by.setValue('');
-    this.f.fromDate.setValue('');
-    this.f.toDate.setValue('');
+    this.f.from_date.setValue('');
+    this.f.to_date.setValue('');
     this.f.singleDate.setValue('');
     this.f.replace_serial.setValue('');
     this.f.date_type.setValue(DATE_TYPE.RECEIVED_DATE);
@@ -392,7 +402,7 @@ export class WarrantyPage implements OnInit {
     return option;
   }
 
-  warrantyRoute(row) {
+  warrantyRoute(row: any) {
     this.dataSource.loadItems(
       undefined,
       undefined,
