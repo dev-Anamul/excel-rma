@@ -247,21 +247,29 @@ export class WarrantyStockEntryAggregateService {
   }
 
   createStockLedger(
-    payload: WarrantyStockEntryDto,
+    payload,
     token,
     settings: ServerSettings,
     deliveredStockId,
     returnedStockId,
   ) {
-    return this.createStockLedgerPayload(payload, token, settings,deliveredStockId,returnedStockId).pipe(
-      switchMap((stockLedgers: StockLedger[]) => {
-        return from(stockLedgers).pipe(
-          switchMap(stockLedger => {
-            return from(this.stockLedgerService.create(stockLedger));
-          }),
-        );
-      }),
-    );
+     if(payload.action === CANCEL_WARRANTY_STOCK_ENTRY){
+        return from(this.stockLedgerService.deleteOne(
+          {
+            voucher_no: payload.stock_id
+          }
+        ));
+     }else{
+     return this.createStockLedgerPayload(payload, token, settings,deliveredStockId,returnedStockId).pipe(
+       switchMap((stockLedgers: StockLedger[]) => {
+         return from(stockLedgers).pipe(
+           switchMap(stockLedger => {
+             return from(this.stockLedgerService.create(stockLedger));
+           }),
+         );
+       }),
+     );
+    }
   }
 
   createStockLedgerPayload(
@@ -333,11 +341,9 @@ export class WarrantyStockEntryAggregateService {
 
                 //fetch created invoive
                 const where = []
-                // use sales voucher on creating and stock id on cancelling to fetch created one
-                var voucher = item.sales_invoice_name?
-                    item.sales_invoice_name:res.stock_id;
+                ;
                 const ledger_filter_obj = {
-                  voucher_no: `${voucher}`,
+                  voucher_no: `${item.sales_invoice_name}`
                 }
                 const $match: any = ledger_filter_obj;
                 where.push({$match})
@@ -349,7 +355,6 @@ export class WarrantyStockEntryAggregateService {
                     item_code: `${item.item_code}`,
                     warehouse: `${item.s_warehouse}`,
                     actual_qty: {'$gt':0},
-                    batch_no: {'$ne':null}
                   }
                   const $match: any = ledger_filter_obj;
                   where.push({$match})
@@ -378,26 +383,16 @@ export class WarrantyStockEntryAggregateService {
                          latest_stock_ledger[0].valuation_rate:incoming_rate;
                      pre_incoming_rate = latest_stock_ledger[0].incoming_rate?
                          latest_stock_ledger[0].incoming_rate:incoming_rate;
-                     stockPayload.incoming_rate = pre_incoming_rate?
-                          pre_incoming_rate:0;
+                     stockPayload.incoming_rate = current_valuation_rate?
+                     current_valuation_rate:0;
                    }
                    new_quantity = available_stock+item.qty
                    
                     stockPayload.name = uuidv4();
                     stockPayload.modified = date;
                     stockPayload.modified_by = token.email;
-
+                   // ledger will not be made on cancellation we can remove cancellation work
                     if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
-                    
-                      // set batch == null of created invoice on cancelling to make it unfetchble
-                      this.stockLedgerService.updateOne({
-                          voucher_no: `${res.stock_id}`,
-                           },
-                           {
-                               $set : {
-                                   batch_no : null
-                               }
-                           });
                       stockPayload.voucher_no = res.stock_id;
                       if (item.qty < 0) {
                         item.qty = -item.qty;
@@ -444,22 +439,12 @@ export class WarrantyStockEntryAggregateService {
       // Delivered
       if(res.stock_entry_type == STOCK_ENTRY_STATUS.delivered){
         
-        // fetch created invoice
-        const where = []
-        const ledger_filter_obj = {
-          voucher_no: `${res.stock_id}`,
-        }
-        const $match: any = ledger_filter_obj;
-        where.push({$match})
-        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_sales_invoice:StockLedger)=>{
-       
         // fetch current valuation of wrehouse
         const where = []
         const ledger_filter_obj = {
           item_code: `${item.item_code}`,
           warehouse: `${item.s_warehouse}`,
           actual_qty: {'$gt':0},
-          batch_no: {'$ne':null}
         }
         const $match: any = ledger_filter_obj;
         where.push({$match})
@@ -472,12 +457,12 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.name = uuidv4();
             stockPayload.modified = date;
             stockPayload.modified_by = token.email;
+            // ledger will not be made on cancellation we can remove cancellation work
             if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
               stockPayload.voucher_no = res.stock_id;
               stockPayload.actual_qty = item.qty;
-              stockPayload.batch_no = null;
-              stockPayload.incoming_rate = created_sales_invoice[0].incoming_rate?
-                          created_sales_invoice[0].incoming_rate:0;
+              stockPayload.batch_no = '';
+              stockPayload.incoming_rate = 0;
             }else{
               stockPayload.actual_qty = -item.qty;
               stockPayload.voucher_no = deliveredStockId;
@@ -506,7 +491,6 @@ export class WarrantyStockEntryAggregateService {
             stockPayload.fiscal_year = fiscalYear;
             return of(stockPayload);
           }))
-        }))
       }
       }))
     }),

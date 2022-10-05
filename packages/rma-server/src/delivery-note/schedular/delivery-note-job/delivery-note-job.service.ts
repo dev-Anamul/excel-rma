@@ -379,7 +379,6 @@ export class DeliveryNoteJobService {
       const filter_obj = {
         item_code : `${item.item_code}`,
         warehouse: `${payload.set_warehouse}`,
-        batch_no: {'$ne':null},
         actual_qty: {'$gt':0}
       }
       const $match: any = filter_obj;

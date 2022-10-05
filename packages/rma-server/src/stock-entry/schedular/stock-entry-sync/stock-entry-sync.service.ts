@@ -352,7 +352,6 @@ export class StockEntrySyncService {
           item_code: `${item.item_code}`,
           warehouse: `${item.t_warehouse}`,
           actual_qty: {'$gt':0},
-          batch_no: {'$ne':null}
         }
         const $match: any = ledger_filter_obj;
         where.push({$match})
@@ -508,7 +507,6 @@ export class StockEntrySyncService {
               item_code : `${item.item_code}`,
               warehouse: `${item.s_warehouse}`,
               actual_qty: {'$gt':0},
-              batch_no: {'$ne':null}
             }
             const $match: any = filter_obj;
             const where: any = [];

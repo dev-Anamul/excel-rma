@@ -145,39 +145,23 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
   ) {
     return from(purchaseOrder.items).pipe(
       concatMap((item: PurchaseOrderItemDto) => {
-
-        // set batch == null of created invoice on cancelling to make it unfetchble
-        this.stockLedgerService.updateOne({
-          voucher_no: purchaseOrder.purchase_invoice_name,
-           },
-           {
-               $set : {
-                   batch_no : null
-               }
-           });
-
-        // fetch created purchase invoice
-          const filter_obj = {
-            voucher_no : `${purchaseOrder.purchase_invoice_name}`
-          }
-          const $match: any = filter_obj;
-          const where: any = [];
-          where.push({$match})
-           return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_invoice:StockLedger)=>{
-             return this.createStockLedgerPayload(
-               {
-                 pr_no: purchaseOrder.purchase_invoice_name,
-                 purchaseReciept: item,
-               },
-               token,
-               settings,
-               created_invoice
-                 ).pipe(
-               switchMap((response: StockLedger) => {
-                 return from(this.stockLedgerService.create(response));
-             }),
-           );
-        }))
+          return this.createStockLedgerPayload(
+          {
+            pr_no: purchaseOrder.purchase_invoice_name,
+            purchaseReciept: item,
+          },
+          token,
+          settings,
+            ).pipe(
+          switchMap((response: StockLedger) => {
+            // return from(this.stockLedgerService.create(response));
+            return from(this.stockLedgerService.deleteOne(
+              {
+                voucher_no: purchaseOrder.purchase_invoice_name
+              }
+            ))
+          }),
+        );
       }),
       toArray(),
     );
@@ -200,9 +184,7 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
     payload: { pr_no: string; purchaseReciept: PurchaseOrderItemDto },
     token,
     settings: ServerSettings,
-    created_invoice
   ) {
-    var invoice_valuation_rate = created_invoice[0].valuation_rate;
     return forkJoin({
       purchaseDelvieredQty: this.getDeliveredQuantity(
         payload.pr_no,
@@ -221,7 +203,7 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         stockPayload.item_code = payload.purchaseReciept.item_code;
         stockPayload.actual_qty = -payload.purchaseReciept.qty;
         stockPayload.incoming_rate = payload.purchaseReciept.rate;
-        stockPayload.valuation_rate = invoice_valuation_rate;
+        stockPayload.valuation_rate = 0;
         stockPayload.batch_no = '';
         stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
         stockPayload.posting_date = date;

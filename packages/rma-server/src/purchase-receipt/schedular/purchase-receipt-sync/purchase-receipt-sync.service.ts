@@ -395,7 +395,6 @@ export class PurchaseReceiptSyncService {
                 const ledger_filter_obj = {
                   item_code: `${item.item_code}`,
                   warehouse: `${item.warehouse}`,
-                  batch_no: {'$ne':null},
                   actual_qty: {'$gt':0},
                 }
                 const $match: any = ledger_filter_obj;

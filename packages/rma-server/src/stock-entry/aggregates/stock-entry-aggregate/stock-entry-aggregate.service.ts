@@ -57,6 +57,7 @@ import { getUserPermissions } from '../../../constants/agenda-job';
 import { StockEntrySyncService } from '../../../stock-entry/schedular/stock-entry-sync/stock-entry-sync.service';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
+// import { DRAFT_STATUS } from 'dist/constants/app-strings';
 
 @Injectable()
 export class StockEntryAggregateService {
@@ -452,57 +453,23 @@ export class StockEntryAggregateService {
           switchMap(success => this.updateStockEntryReset(stockEntry)),
           switchMap(() => {
             if (stockEntry.stock_entry_type === 'Material Transfer') {
-
-              // fetch Its created invoicc from ledger
-              const where = []
-              const ledger_filter_obj = {
-                voucher_no: `${stockEntry.stock_id}`,
-                actual_qty : {'$lt':0}
-              }
-              const $match: any = ledger_filter_obj;
-              where.push({$match})
-              return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((TROUT_ledger)=>{
-
                 return this.createTransferStockEntryLedger(
                   stockEntry,
                   req.token,
                   serverSettings,
                   's_warehouse',
-                  TROUT_ledger
                 )
-              })).pipe(
+              .pipe(
                 switchMap(() => {
-                  // set batch == null of created invoice on cancelling to make it unfetchble
-                  this.stockLedgerService.updateOne({
-                    voucher_no: stockEntry.stock_id,
-                    actual_qty : {'$gt':0}
-                     },
-                     {
-                         $set : {
-                             batch_no : null
-                         }
-                     });
-
-                   // fetch Its created invoicc from ledger
-                  const where = []
-                  const ledger_filter_obj = {
-                    voucher_no: `${stockEntry.stock_id}`,
-                    actual_qty : {'$gt':0}
-                  }
-                  const $match: any = ledger_filter_obj;
-                  where.push({$match})
-                  return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((TRIN_ledger)=>{
                     return this.createTransferStockEntryLedger(
                       stockEntry,
                       req.token,
                       serverSettings,
                       't_warehouse',
-                      TRIN_ledger
                     );
-                  }))
-                }),
-              );
-          }
+                   }),
+                  );
+                }
             return this.createTransferStockEntryLedger(
               stockEntry,
               req.token,
@@ -518,106 +485,26 @@ export class StockEntryAggregateService {
     payload: StockEntry,
     token,
     settings,
-    warehouse_type?,
-    transfer_ledger?
+    warehouse_type?
   ) {
-    
     return from(payload.items).pipe(
       concatMap((item: StockEntryItem) => {
-        if (payload.stock_entry_type === 'Material Issue') {
-          warehouse_type = 's_warehouse';
-             // fetch created purchase invoice
-             const filter_obj = {
-              voucher_no : `${payload.stock_id}`
+       return this.createStockLedgerPayload(
+         item,
+         token,
+         settings,
+         warehouse_type,
+       ).pipe(
+         switchMap((response: StockLedger) => {
+          //  return from(this.stockLedgerService.create(response));
+          console.log(payload.stock_id)
+          return from(this.stockLedgerService.deleteOne(
+            {
+            voucher_no: payload.stock_id
             }
-            const $match: any = filter_obj;
-            const where: any = [];
-            where.push({$match})
-             return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_invoice:StockLedger)=>{
-  
-               return this.createStockLedgerPayload(
-                item,
-                token,
-                settings,
-                warehouse_type,
-                created_invoice
-              ).pipe(
-                switchMap((response: StockLedger) => {
-                  return from(this.stockLedgerService.create(response));
-                }),
-              );
-            }))
-          }
-        if (payload.stock_entry_type === 'R&D Products') {
-          warehouse_type = 's_warehouse';
-             // fetch created purchase invoice
-             const filter_obj = {
-              voucher_no : `${payload.stock_id}`
-            }
-            const $match: any = filter_obj;
-            const where: any = [];
-            where.push({$match})
-             return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_invoice:StockLedger)=>{
-  
-               return this.createStockLedgerPayload(
-                item,
-                token,
-                settings,
-                warehouse_type,
-                created_invoice
-              ).pipe(
-                switchMap((response: StockLedger) => {
-                  return from(this.stockLedgerService.create(response));
-                }),
-              );
-            }))
-          }
-        if (payload.stock_entry_type === 'Material Receipt') {
-          warehouse_type = 't_warehouse';
-          // set batch == null of created invoice on cancelling to make it unfetchble
-          this.stockLedgerService.updateOne({
-            voucher_no: payload.stock_id,
-             },
-             {
-                 $set : {
-                     batch_no : null
-                 }
-             });
-             // fetch created purchase invoice
-          const filter_obj = {
-            voucher_no : `${payload.stock_id}`
-          }
-          const $match: any = filter_obj;
-          const where: any = [];
-          where.push({$match})
-           return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_invoice:StockLedger)=>{
-
-             return this.createStockLedgerPayload(
-              item,
-              token,
-              settings,
-              warehouse_type,
-              created_invoice
-            ).pipe(
-              switchMap((response: StockLedger) => {
-                return from(this.stockLedgerService.create(response));
-              }),
-            );
-          }))
-        }else{
-          //default work is for Materail Transfer Cancellation
-          return this.createStockLedgerPayload(
-            item,
-            token,
-            settings,
-            warehouse_type,
-            transfer_ledger
-          ).pipe(
-            switchMap((response: StockLedger) => {
-              return from(this.stockLedgerService.create(response));
-            }),
-          );
-        }
+          ))
+         }),
+       );
       }),
     );
   }
@@ -627,15 +514,7 @@ export class StockEntryAggregateService {
     token,
     settings: ServerSettings,
     warehouse_type?,
-    created_invoice?
   ) {
-    var invoice_valuation_rate;
-    var invoice_incoming_rate;
-
-    invoice_valuation_rate = created_invoice[0].valuation_rate?
-        created_invoice[0].valuation_rate:0;
-    invoice_incoming_rate = created_invoice[0].incoming_rate?
-        created_invoice[0].incoming_rate:0;
     
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
@@ -648,24 +527,24 @@ export class StockEntryAggregateService {
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = STOCK_MATERIAL_TRANSFER;
-        stockPayload.voucher_no = created_invoice[0].voucher_no;
+        stockPayload.voucher_no = '';
         stockPayload.voucher_detail_no = '';
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
 
         if (warehouse_type === 't_warehouse') {
           stockPayload.actual_qty = -deliveryNoteItem.qty;
-          stockPayload.incoming_rate = invoice_incoming_rate;
-          stockPayload.valuation_rate = invoice_valuation_rate;
+          stockPayload.incoming_rate = 0;
+          stockPayload.valuation_rate = 0;
           stockPayload.warehouse = deliveryNoteItem.t_warehouse;
           stockPayload.batch_no = '';
         }
         if (warehouse_type === 's_warehouse') {
           stockPayload.actual_qty = deliveryNoteItem.qty;
-          stockPayload.valuation_rate = invoice_valuation_rate;
-          stockPayload.incoming_rate = invoice_incoming_rate;
+          stockPayload.valuation_rate = 0;
+          stockPayload.incoming_rate = 0;
           stockPayload.warehouse = deliveryNoteItem.s_warehouse;
-          stockPayload.batch_no = null
+          stockPayload.batch_no = '';
         }
 
         stockPayload.stock_value =
