@@ -13,7 +13,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   STOCK_ENTRY_ITEM_TYPE,
   STOCK_ENTRY_STATUS,
-  WARRANTY_TYPE,
   CLOSE,
 } from '../../../../constants/app-string';
 import { AddServiceInvoiceService } from '../../../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
@@ -40,7 +39,7 @@ export class AddStockEntryPage implements OnInit {
   item: any;
   stockEntryForm = new FormGroup({
     type: new FormControl('', [Validators.required]),
-    date: new FormControl('', Validators.required),
+    date: new FormControl('', [Validators.required]),
     time: new FormControl(),
     description: new FormControl(),
     items: new FormArray([]),
@@ -78,7 +77,7 @@ export class AddStockEntryPage implements OnInit {
 
   async ngOnInit() {
     this.dataSource = new ItemsDataSource();
-    this.setDateTime(new Date());
+    this.setDateTime();
     this.checkActive(this.dataSource.data().length);
 
     this.company = await this.addServiceInvoiceService
@@ -206,35 +205,28 @@ export class AddStockEntryPage implements OnInit {
     selectedItem.company = this.company;
     selectedItem.warrantyClaimUuid = this.warrantyObject.uuid;
     selectedItem.naming_series = this.warrantyObject.claim_no;
-    selectedItem.posting_date = this.stockEntryForm.controls.date.value;
-    selectedItem.posting_time = this.stockEntryForm.controls.time.value;
-    selectedItem.type = this.stockEntryForm.controls.type.value;
+    selectedItem.posting_date = this.f.date.value;
+    selectedItem.posting_time = this.f.time.value;
+    selectedItem.type = this.f.type.value;
     selectedItem.stock_entry_type = item.stock_entry_type;
-    selectedItem.description = this.stockEntryForm.controls.description.value;
+    selectedItem.description = this.f.description.value;
     if (item.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED) {
       selectedItem.is_return = 1;
     }
     return selectedItem;
   }
 
-  async setDateTime(date: Date) {
-    const dateTime = await this.time.getDateAndTime(date);
-    this.stockEntryForm.controls.date.setValue(dateTime.date);
-    this.stockEntryForm.controls.time.setValue(dateTime.time);
-  }
-
-  getOption(option) {
-    if (option) return option;
+  async setDateTime(event?: any) {
+    const dateTime = await this.time.getDateAndTime(
+      event ? event.value : new Date(),
+    );
+    this.f.date.setValue(dateTime.date);
+    this.f.time.setValue(dateTime.time);
   }
 
   setStockEntryType(type: string) {
     this.trimRow();
-    if (
-      (this.warrantyObject.claim_type !== WARRANTY_TYPE.THIRD_PARTY &&
-        type === STOCK_ENTRY_STATUS.REPLACE) ||
-      (this.warrantyObject.claim_type !== WARRANTY_TYPE.THIRD_PARTY &&
-        type === STOCK_ENTRY_STATUS.UPGRADE)
-    ) {
+    if (type === STOCK_ENTRY_STATUS.REPLACE || STOCK_ENTRY_STATUS.UPGRADE) {
       this.button_active = true;
       this.addServiceInvoiceService
         .getItemFromRMAServer(this.warrantyObject.item_code)

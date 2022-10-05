@@ -427,12 +427,12 @@ export class WarrantyService {
             subClaimServiceInvoices: {
               docs: ServiceInvoiceDetails[];
               offset: number;
-              length;
+              length: number;
             }[],
           ) => {
             return of({
               subClaimServiceInvoices: subClaimServiceInvoices.map(
-                subclaim => subclaim.docs,
+                subClaim => subClaim.docs,
               ),
             });
           },
@@ -533,7 +533,7 @@ export class WarrantyService {
         erpBody.delivery_status = warrantyDetail.claim_status;
         return forkJoin({
           mappedWarrantyItemsPayload: this.mapWarrantyItems(warrantyDetail),
-          bulkserviceInvoiceListPayload: this.mapBulkServiceInvoice(
+          bulkServiceInvoiceListPayload: this.mapBulkServiceInvoice(
             warrantyDetail,
           )
             ? this.mapBulkServiceInvoice(warrantyDetail)
@@ -590,7 +590,7 @@ export class WarrantyService {
             }
             erpBody.warranty_invoices = JSON.stringify([warrantyInvoices]);
             return this.bulkInvoiceMap(
-              mappedWarrantyDetails.bulkserviceInvoiceListPayload
+              mappedWarrantyDetails.bulkServiceInvoiceListPayload
                 .subClaimServiceInvoices,
             );
           }),
