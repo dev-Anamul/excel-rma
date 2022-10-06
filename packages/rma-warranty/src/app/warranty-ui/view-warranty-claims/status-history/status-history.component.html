@@ -41,8 +41,6 @@
               <mat-autocomplete
                 autoActiveFirstOption
                 #receivingBranch="matAutocomplete"
-                [displayWith]="getCurrentStatus"
-                (optionSelected)="branchOptionChanged($event.option.value)"
               >
                 <mat-option *ngFor="let option of territory" [value]="option">
                   {{ option }}
@@ -66,7 +64,6 @@
                 autoActiveFirstOption
                 #deliveryBranch="matAutocomplete"
                 [displayWith]="getBranchOption"
-                (optionSelected)="branchOptionChanged($event.option.value)"
               >
                 <mat-option
                   *ngFor="let option of territoryList | async"
@@ -94,7 +91,6 @@
               <mat-autocomplete
                 autoActiveFirstOption
                 #currentState="matAutocomplete"
-                [displayWith]="getCurrentStatus"
                 (optionSelected)="selectedCurrentStatus($event.option.value)"
               >
                 <mat-option
@@ -121,8 +117,6 @@
               <mat-autocomplete
                 autoActiveFirstOption
                 #deliveryState="matAutocomplete"
-                [displayWith]="getCurrentStatus"
-                (optionSelected)="branchOptionChanged($event.option.value)"
               >
                 <mat-option
                   *ngFor="let option of deliveryStatus"
@@ -281,14 +275,14 @@
         <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
       </ng-container>
 
-      <mat-header-row
-        *matHeaderRowDef="displayedColumns; sticky: true"
-      ></mat-header-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
+      </mat-header-row>
       <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
       <mat-footer-row
         class="footer"
         *matFooterRowDef="displayedColumns; sticky: true"
-      ></mat-footer-row>
+      >
+      </mat-footer-row>
     </mat-table>
   </ion-card-content>
 </ion-card>
@@ -304,9 +298,8 @@
       <ion-col class="ion-text-left">
         <ion-card-title>
           <ion-text color="tertiary">
-            Delivery Status:{{
-              dataSource?.data[dataSource?.data?.length - 1].delivery_status
-            }}
+            Delivery Status:
+            {{ dataSource?.data[dataSource?.data?.length - 1].delivery_status }}
           </ion-text>
         </ion-card-title>
       </ion-col>
@@ -314,12 +307,9 @@
   </ion-card-header>
   <ion-card-content>
     <ion-grid
-      class="ion-no-padding"
       *ngIf="
         dataSource?.data[dataSource?.data?.length - 1]?.delivery_status ===
-          'Upgraded' ||
-        dataSource?.data[dataSource?.data?.length - 1]?.delivery_status ===
-          'Replaced'
+          'Upgraded' || 'Replaced'
       "
     >
       <ion-row>
@@ -333,14 +323,10 @@
           >
             <input
               matInput
+              readonly
               type="text"
               placeholder="Upgrade Warehouse"
-              readonly
-              [value]="
-                stockEntry?.items?.length
-                  ? (stockEntry?.items)[0].s_warehouse
-                  : ''
-              "
+              [value]="this.dataSource.upgraded_warehouse$ | async"
             />
           </mat-form-field>
           <mat-form-field
@@ -351,11 +337,11 @@
             "
           >
             <input
-              [value]="warrantyObject?.replace_warehouse"
               matInput
-              type="text"
               readonly
+              type="text"
               placeholder="Replace Warehouse"
+              [value]="this.dataSource.replaced_warehouse$ | async"
             />
           </mat-form-field>
         </ion-col>

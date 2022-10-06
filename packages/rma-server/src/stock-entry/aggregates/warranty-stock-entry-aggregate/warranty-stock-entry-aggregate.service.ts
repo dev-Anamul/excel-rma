@@ -766,10 +766,6 @@ export class WarrantyStockEntryAggregateService {
     return stockEntry;
   }
 
-  retrieveStockEntry(warrantyClaimUuid: string) {
-    return from(this.stockEntryService.findOne(warrantyClaimUuid));
-  }
-
   removeStockEntry(stockEntry: WarrantyStockEntryDto, req) {
     let array_Value;
     if (typeof stockEntry.items[0]?.serial_no === 'string') {

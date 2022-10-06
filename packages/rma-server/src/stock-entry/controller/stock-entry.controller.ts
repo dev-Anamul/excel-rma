@@ -115,13 +115,6 @@ export class StockEntryController {
     return this.warrantyStockAggregate.makeStatusHistory(uuid, req);
   }
 
-  @Get('v1/get_warranty_stock/:warrantyClaimUuid')
-  @UseGuards(TokenGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
-  retrieveWarrantyStock(@Param() warrantyClaimUuid: string) {
-    return this.warrantyStockAggregate.retrieveStockEntry(warrantyClaimUuid);
-  }
-
   @Post('v1/cancel_warranty_stock_entry')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
