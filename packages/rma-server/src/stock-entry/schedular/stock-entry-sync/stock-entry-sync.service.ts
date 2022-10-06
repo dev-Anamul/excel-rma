@@ -559,6 +559,7 @@ export class StockEntrySyncService {
     var current_valuation_rate;
     var current_valuation_rate;
     var rate_of_transfer_item;
+    var TRIN_id;
     
     if (data && data.length > 0){
       available_stock = data[0].stockAvailability
@@ -572,6 +573,11 @@ export class StockEntrySyncService {
     if(warehouse_type === 't_warehouse'){
       if(TROUT_ledger != null){
         rate_of_transfer_item = TROUT_ledger[0].valuation_rate;
+        var voucher = TROUT_ledger[0].voucher_no;
+        const myArray = [];
+        myArray.push(voucher.split('-'));
+        myArray[0][0] = 'TRIN';
+        TRIN_id = myArray[0].join('-');
       }
       
       if(latest_stock_ledger && latest_stock_ledger.length > 0){
@@ -655,7 +661,12 @@ export class StockEntrySyncService {
           stockPayload.voucher_type = STOCK_RND_PRODUCTS;
         }
         
-        stockPayload.voucher_no = stock_entry_no;
+        if(TRIN_id){
+            stockPayload.voucher_no = TRIN_id;  
+        }
+        else{
+            stockPayload.voucher_no = stock_entry_no;
+        }
         stockPayload.voucher_detail_no = '';
         
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
