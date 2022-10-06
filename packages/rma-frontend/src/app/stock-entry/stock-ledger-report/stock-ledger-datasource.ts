@@ -4,13 +4,20 @@ import { map, catchError, finalize } from 'rxjs/operators';
 import { SalesService } from '../../sales-ui/services/sales.service';
 
 export interface ListingData {
-  actual_qty: number;
   item_code: string;
-  name: string;
-  ordered_qty: number;
-  projected_qty: number;
-  stock_value: number;
+  item_name: string;
+  item_group: string;
   warehouse: string;
+  item_brand: string;
+  actual_qty: number;
+  stock_uom: string;
+  transferin_id: string;
+  voucher_no: string;
+  balance_qty: number;
+  incoming_rate: number;
+  outgoing_rate: number;
+  valuation_rate: number;
+  balance_value: number;
 }
 
 export interface ItemListResponse {
@@ -48,6 +55,11 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
       .pipe(
         map((items: ListingData[]) => {
           this.data = items;
+          items.forEach(item => {
+            if(item.transferin_id){
+              item.voucher_no = item.transferin_id;
+            }
+          })
           return items;
         }),
         catchError(() => of([])),

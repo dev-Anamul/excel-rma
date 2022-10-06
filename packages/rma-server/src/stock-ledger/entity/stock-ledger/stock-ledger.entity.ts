@@ -124,4 +124,8 @@ export class StockLedger extends BaseEntity {
 
   @Column()
   to_rename: number;
+
+  @Column()
+  transferin_id: string;
+
 }

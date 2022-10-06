@@ -662,11 +662,9 @@ export class StockEntrySyncService {
         }
         
         if(TRIN_id){
-            stockPayload.voucher_no = TRIN_id;  
+            stockPayload.transferin_id = TRIN_id;  
         }
-        else{
-            stockPayload.voucher_no = stock_entry_no;
-        }
+        stockPayload.voucher_no = stock_entry_no;
         stockPayload.voucher_detail_no = '';
         
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
