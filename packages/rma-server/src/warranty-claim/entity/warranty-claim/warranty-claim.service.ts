@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import {
   CATEGORY,
+  DATE_TYPE,
   DEFAULT_NAMING_SERIES,
 } from '../../../constants/app-strings';
 import { PARSE_REGEX } from '../../../constants/app-strings';
@@ -40,7 +41,7 @@ export class WarrantyClaimService {
   }
 
   async list(skip, take, sort, filter_query?, territory?, clientHttpRequest?) {
-    let sortQuery;
+    let sortQuery: any;
     let dateQuery = {};
 
     try {
@@ -53,30 +54,22 @@ export class WarrantyClaimService {
     sortQuery =
       Object.keys(sortQuery).length === 0 ? { modifiedOn: 'desc' } : sortQuery;
 
-    if (
-      filter_query?.fromDate &&
-      filter_query?.toDate &&
-      filter_query.date_type === 'Delivery Date'
-    ) {
-      const date = new Date(filter_query.fromDate);
-      const newDate = date.setDate(date.getDate() + 1);
-      dateQuery = {
-        delivery_date: {
-          $gte: new Date(newDate).toISOString().split('T')[0],
-          $lte: new Date(filter_query.toDate).toISOString().split('T')[0],
-        },
-      };
-    } else if (
-      filter_query?.fromDate &&
-      filter_query?.toDate &&
-      filter_query.date_type === 'Recieved Date'
-    ) {
-      dateQuery = {
-        createdOn: {
-          $gte: new Date(filter_query.fromDate),
-          $lte: new Date(filter_query.toDate),
-        },
-      };
+    if (filter_query?.from_date && filter_query?.to_date) {
+      if (filter_query.date_type === DATE_TYPE.RECEIVED_DATE) {
+        dateQuery = {
+          createdOn: {
+            $gte: new Date(filter_query.from_date),
+            $lte: new Date(filter_query.to_date),
+          },
+        };
+      } else if (filter_query.date_type === DATE_TYPE.DELIVERED_DATE) {
+        dateQuery = {
+          delivery_date: {
+            $gte: new Date(filter_query.from_date).toISOString().split('T')[0],
+            $lte: new Date(filter_query.to_date).toISOString().split('T')[0],
+          },
+        };
+      }
     }
 
     for (const key of Object.keys(sortQuery)) {

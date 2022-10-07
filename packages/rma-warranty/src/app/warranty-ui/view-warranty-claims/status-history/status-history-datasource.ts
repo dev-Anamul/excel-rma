@@ -14,7 +14,7 @@ import {
 export class StatusHistoryDataSource extends DataSource<StatusHistoryDetails> {
   upgraded_warehouse$ = new BehaviorSubject<string>('');
   replaced_warehouse$ = new BehaviorSubject<string>('');
-  data: StatusHistoryDetails[];
+  data: StatusHistoryDetails[] = [];
   length: number;
   offset: number;
 
