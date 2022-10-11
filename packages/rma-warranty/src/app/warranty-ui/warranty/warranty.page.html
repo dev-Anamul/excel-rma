@@ -19,6 +19,7 @@
               <ion-text color="tertiary"> Warranty Claims </ion-text>
             </ion-card-title>
           </ion-col>
+
           <ion-col class="ion-text-right">
             <ion-button
               color="tertiary"
@@ -38,12 +39,15 @@
           </ion-col>
         </ion-row>
       </ion-card-header>
+
       <div class="loading-shade" *ngIf="dataSource.loading$ | async">
         <mat-progress-bar
           *ngIf="dataSource.loading$ | async"
           mode="indeterminate"
-        ></mat-progress-bar>
+        >
+        </mat-progress-bar>
       </div>
+
       <ion-card-content class="ion-no-padding">
         <ion-grid>
           <ion-row>
@@ -75,6 +79,7 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -85,6 +90,7 @@
                 />
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -95,6 +101,7 @@
                 />
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -153,6 +160,7 @@
               </mat-form-field>
             </ion-col>
           </ion-row>
+
           <ion-row>
             <ion-col>
               <mat-form-field class="full-width">
@@ -170,27 +178,21 @@
                 </mat-select>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
-                <input
-                  matInput
-                  type="text"
+                <mat-label>Claim type</mat-label>
+                <mat-select
                   formControlName="claim_type"
-                  placeholder="Claim Type"
-                  [matAutocomplete]="claimType"
-                />
-                <mat-autocomplete
-                  autoActiveFirstOption
-                  #claimType="matAutocomplete"
-                  [displayWith]="getOption"
-                  (optionSelected)="setFilter($event.option.value)"
+                  (selectionChange)="setFilter()"
                 >
-                  <mat-option *ngFor="let option of claimList" [value]="option">
-                    {{ option }}
+                  <mat-option *ngFor="let claim of claimList" [value]="claim">
+                    {{claim}}
                   </mat-option>
-                </mat-autocomplete>
+                </mat-select>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -214,6 +216,7 @@
                 </mat-autocomplete>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -224,28 +227,7 @@
                 />
               </mat-form-field>
             </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col>
-              <mat-form-field class="full-width">
-                <input
-                  matInput
-                  placeholder="Received By"
-                  formControlName="received_by"
-                  (keyup.enter)="setFilter()"
-                />
-              </mat-form-field>
-            </ion-col>
-            <ion-col>
-              <mat-form-field class="full-width">
-                <input
-                  matInput
-                  placeholder="Delivered By"
-                  formControlName="delivered_by"
-                  (keyup.enter)="setFilter()"
-                />
-              </mat-form-field>
-            </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -257,11 +239,37 @@
               </mat-form-field>
             </ion-col>
           </ion-row>
+
           <ion-row>
             <ion-col>
               <mat-form-field class="full-width">
+                <input
+                  matInput
+                  placeholder="Received By"
+                  formControlName="received_by"
+                  (keyup.enter)="setFilter()"
+                />
+              </mat-form-field>
+            </ion-col>
+
+            <ion-col>
+              <mat-form-field class="full-width">
+                <input
+                  matInput
+                  placeholder="Delivered By"
+                  formControlName="delivered_by"
+                  (keyup.enter)="setFilter()"
+                />
+              </mat-form-field>
+            </ion-col>
+
+            <ion-col>
+              <mat-form-field class="full-width">
                 <mat-label>Date type</mat-label>
-                <mat-select formControlName="date_type">
+                <mat-select
+                  formControlName="date_type"
+                  (selectionChange)="setFilter()"
+                >
                   <mat-option
                     *ngFor="let dateType of dateTypeList"
                     [value]="dateType"
@@ -272,58 +280,37 @@
               </mat-form-field>
             </ion-col>
 
-            <ion-col class="ion-text-center">
+            <ion-col>
               <mat-form-field class="full-width">
-                <input
-                  matInput
-                  [matDatepicker]="from_date"
-                  placeholder="From Date"
-                  readonly
-                  formControlName="from_date"
-                  (dateChange)="dateFilter()"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="from_date"
-                ></mat-datepicker-toggle>
-                <mat-datepicker #from_date disabled="false"></mat-datepicker>
+                <mat-label>Enter a date range</mat-label>
+                <mat-date-range-input [rangePicker]="date_range_picker">
+                  <input
+                    readonly
+                    matStartDate
+                    placeholder="From Date"
+                    formControlName="from_date"
+                  />
+                  <input
+                    readonly
+                    matEndDate
+                    placeholder="To Date"
+                    formControlName="to_date"
+                    (dateChange)="setFilter()"
+                  />
+                </mat-date-range-input>
+                <mat-datepicker-toggle matSuffix [for]="date_range_picker">
+                </mat-datepicker-toggle>
+                <mat-date-range-picker
+                  #date_range_picker
+                  [disabled]="!this.f.date_type.value"
+                >
+                </mat-date-range-picker>
               </mat-form-field>
             </ion-col>
+          </ion-row>
 
-            <ion-col class="ion-text-center">
-              <mat-form-field class="full-width">
-                <input
-                  matInput
-                  [matDatepicker]="to_date"
-                  placeholder="To Date"
-                  readonly
-                  formControlName="to_date"
-                  (dateChange)="dateFilter()"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="to_date"
-                ></mat-datepicker-toggle>
-                <mat-datepicker #to_date disabled="false"></mat-datepicker>
-              </mat-form-field>
-            </ion-col>
-
-            <ion-col class="ion-text-center">
-              <mat-form-field class="full-width">
-                <input
-                  matInput
-                  [matDatepicker]="singleDate"
-                  placeholder="Select Date"
-                  readonly
-                  formControlName="singleDate"
-                  (dateChange)="singleDateFilter()"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="singleDate"
-                ></mat-datepicker-toggle>
-                <mat-datepicker #singleDate disabled="false"></mat-datepicker>
-              </mat-form-field>
+          <ion-row>
+            <ion-col class="ion-text-right">
               <ion-button
                 color="tertiary"
                 (click)="clearFilters()"
@@ -331,24 +318,20 @@
               >
                 Clear
               </ion-button>
-              <ion-button
-                color="tertiary"
-                (click)="getBulkClaims()"
-                fill="outline"
-              >
+              <ion-button color="tertiary" (click)="getBulkClaims()">
                 Bulk Claims
               </ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
+
         <div class="example-container mat-elevation-z8">
-          <table
-            mat-table
+          <mat-table
             class="full-width-table"
             matSort
             aria-label="Elements"
             [dataSource]="dataSource"
-            (matSortChange)="setFilter($event)"
+            (matSortChange)="getUpdate($event)"
           >
             <ng-container matColumnDef="sr_no">
               <mat-header-cell *matHeaderCellDef>No. </mat-header-cell>
@@ -364,13 +347,15 @@
                 <a
                   *ngIf="row.set==='Bulk'"
                   [routerLink]="['/bulk-warranty-claim', row.claim_no,row.uuid]"
-                  >{{row.claim_no || 'Draft'}}</a
                 >
+                  {{row.claim_no || 'Draft'}}
+                </a>
                 <a
                   *ngIf="row.set === 'Single' || row.set ==='Part'"
                   [routerLink]="['/warranty/view-warranty-claims', row.uuid]"
-                  >{{row.claim_no || 'Draft'}}</a
                 >
+                  {{row.claim_no || 'Draft'}}
+                </a>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
@@ -393,6 +378,7 @@
               <mat-cell *matCellDef="let row"> {{row.received_on }} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
+
             <ng-container matColumnDef="customer_name">
               <mat-header-cell *matHeaderCellDef>
                 Customer name
@@ -400,6 +386,7 @@
               <mat-cell *matCellDef="let row"> {{row.customer}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
+
             <ng-container matColumnDef="third_party_name">
               <mat-header-cell *matHeaderCellDef>
                 Third Party Customer Name
@@ -423,21 +410,7 @@
               <mat-cell *matCellDef="let row"> {{row.serial_no}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
-            <ng-container matColumnDef="product_brand">
-              <mat-header-cell *matHeaderCellDef> Brand </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.product_brand}} </mat-cell>
-              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-            </ng-container>
-            <ng-container matColumnDef="problem">
-              <mat-header-cell *matHeaderCellDef> Problem </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.problem}} </mat-cell>
-              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-            </ng-container>
-            <ng-container matColumnDef="remarks">
-              <mat-header-cell *matHeaderCellDef> Remarks </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.remarks}} </mat-cell>
-              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-            </ng-container>
+
             <ng-container matColumnDef="claim_status">
               <mat-header-cell *matHeaderCellDef>
                 Claim Status
@@ -445,29 +418,7 @@
               <mat-cell *matCellDef="let row"> {{row.claim_status}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
-            <ng-container matColumnDef="verdict">
-              <mat-header-cell *matHeaderCellDef> Verdict </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                {{row.status_history?row.status_history[row.status_history.length-1].verdict:''}}
-              </mat-cell>
-              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-            </ng-container>
-            <ng-container matColumnDef="billed_amount">
-              <mat-header-cell *matHeaderCellDef>
-                Billed Amount
-              </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.billed_amount}} </mat-cell>
-              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-            </ng-container>
-            <ng-container matColumnDef="outstanding_amount">
-              <mat-header-cell *matHeaderCellDef>
-                Outstanding Amount
-              </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                {{ row.outstanding_amount }}
-              </mat-cell>
-              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-            </ng-container>
+
             <ng-container matColumnDef="receiving_branch">
               <mat-header-cell *matHeaderCellDef>
                 Receiving Branch
@@ -493,6 +444,21 @@
               <mat-cell *matCellDef="let row"> {{row.received_by}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
+
+            <ng-container matColumnDef="delivered_by">
+              <mat-header-cell *matHeaderCellDef>
+                Delivered by
+              </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.delivered_by}} </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="product_brand">
+              <mat-header-cell *matHeaderCellDef> Brand </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.product_brand}} </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+
             <ng-container matColumnDef="replace_serial">
               <mat-header-cell *matHeaderCellDef>
                 Replaced Serial
@@ -503,13 +469,20 @@
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
-            <ng-container matColumnDef="delivered_by">
-              <mat-header-cell *matHeaderCellDef>
-                Delivered by
-              </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.delivered_by}} </mat-cell>
+            <ng-container matColumnDef="problem">
+              <mat-header-cell *matHeaderCellDef> Problem </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.problem}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
+
+            <ng-container matColumnDef="verdict">
+              <mat-header-cell *matHeaderCellDef> Verdict </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                {{row.status_history?row.status_history[row.status_history.length-1].verdict:''}}
+              </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+
             <ng-container matColumnDef="delivery_date">
               <mat-header-cell *matHeaderCellDef>
                 Delivery Date
@@ -517,21 +490,48 @@
               <mat-cell *matCellDef="let row"> {{row.delivery_date}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
-            <mat-header-row
-              *matHeaderRowDef="displayedColumns; sticky: true"
-            ></mat-header-row>
 
+            <ng-container matColumnDef="billed_amount">
+              <mat-header-cell *matHeaderCellDef>
+                Billed Amount
+              </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.billed_amount}} </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="outstanding_amount">
+              <mat-header-cell *matHeaderCellDef>
+                Outstanding Amount
+              </mat-header-cell>
+              <mat-cell *matCellDef="let row">
+                {{ row.outstanding_amount }}
+              </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="remarks">
+              <mat-header-cell *matHeaderCellDef> Remarks </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.remarks}} </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
+            </mat-header-row>
             <mat-row
               *matRowDef="let row; columns: displayedColumns;"
-              [ngStyle]="{'background-color':row.claim_status==='Cancelled'?'#F8DEDE':row.set==='Bulk'?'#F4F4FB':row.set==='Part'?'#FDFAE5':'rgb(255, 255, 255)'
-
-          }"
-            ></mat-row>
+              [ngStyle]="{
+                'background-color':row.claim_status==='Cancelled' ? '#F8DEDE' : 
+                row.set==='Bulk' ? '#F4F4FB' :
+                row.set==='Part' ? '#FDFAE5' : 'rgb(255, 255, 255)'
+              }"
+            >
+            </mat-row>
             <mat-footer-row
               class="footer"
               *matFooterRowDef="displayedColumns; sticky: true"
-            ></mat-footer-row>
-          </table>
+            >
+            </mat-footer-row>
+          </mat-table>
         </div>
         <mat-card-actions>
           <mat-paginator

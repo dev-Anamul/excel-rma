@@ -207,13 +207,11 @@ export class StatusHistoryComponent implements OnInit {
   }
 
   check() {
-    let bool: boolean = false;
-    bool = this.dataSource?.data?.length
-      ? this.dataSource.data[this.dataSource.data.length - 1].verdict ===
+    return this.dataSource?.data?.length
+      ? this.dataSource.data[this.dataSource.data.length - 1]?.verdict ===
         CURRENT_STATUS_VERDICT.DELIVER_TO_CUSTOMER
         ? true
         : false
-      : true;
-    return bool;
+      : false;
   }
 }
