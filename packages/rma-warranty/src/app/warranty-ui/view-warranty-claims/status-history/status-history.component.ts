@@ -76,14 +76,14 @@ export class StatusHistoryComponent implements OnInit {
     );
     this.resetWarrantyDetail(this.warrantyObject?.uuid);
     this.dataSource.loadItems(this.warrantyObject?.uuid);
-    this.statusHistoryForm.controls.transfer_branch.disable();
-    this.statusHistoryForm.controls.transfer_branch.updateValueAndValidity();
-    this.statusHistoryForm.controls.delivery_status.disable();
-    this.statusHistoryForm.controls.delivery_status.updateValueAndValidity();
+    this.f.transfer_branch.disable();
+    this.f.transfer_branch.updateValueAndValidity();
+    this.f.delivery_status.disable();
+    this.f.delivery_status.updateValueAndValidity();
   }
 
   getTerritoryList() {
-    this.territoryList = this.statusHistoryForm.controls.transfer_branch.valueChanges.pipe(
+    this.territoryList = this.f.transfer_branch.valueChanges.pipe(
       debounceTime(500),
       startWith(''),
       this.statusHistoryService.getTerritoryList(),
@@ -94,7 +94,7 @@ export class StatusHistoryComponent implements OnInit {
       .getItem('territory')
       .then(territory => {
         this.territory = territory;
-        this.statusHistoryForm.controls.status_from.setValue(territory[0]);
+        this.f.status_from.setValue(territory[0]);
       });
     this.selectedPostingDate({ value: new Date() });
   }
@@ -105,8 +105,8 @@ export class StatusHistoryComponent implements OnInit {
 
   async selectedPostingDate($event) {
     this.date = await this.time.getDateAndTime($event.value);
-    this.statusHistoryForm.controls.posting_date.setValue(this.date.date);
-    this.statusHistoryForm.controls.posting_time.setValue(
+    this.f.posting_date.setValue(this.date.date);
+    this.f.posting_time.setValue(
       await (await this.time.getDateAndTime(new Date())).time,
     );
   }
@@ -114,12 +114,12 @@ export class StatusHistoryComponent implements OnInit {
   addStatusHistory() {
     const statusHistoryDetails = {} as StatusHistoryDetails;
     statusHistoryDetails.uuid = this.warrantyObject.uuid;
-    statusHistoryDetails.time = this.statusHistoryForm.controls.posting_time.value;
-    statusHistoryDetails.posting_date = this.statusHistoryForm.controls.posting_date.value;
-    statusHistoryDetails.status_from = this.statusHistoryForm.controls.status_from.value;
-    statusHistoryDetails.verdict = this.statusHistoryForm.controls.current_status_verdict.value;
-    statusHistoryDetails.description = this.statusHistoryForm.controls.description.value;
-    statusHistoryDetails.delivery_status = this.statusHistoryForm.controls.delivery_status.value;
+    statusHistoryDetails.time = this.f.posting_time.value;
+    statusHistoryDetails.posting_date = this.f.posting_date.value;
+    statusHistoryDetails.status_from = this.f.status_from.value;
+    statusHistoryDetails.verdict = this.f.current_status_verdict.value;
+    statusHistoryDetails.description = this.f.description.value;
+    statusHistoryDetails.delivery_status = this.f.delivery_status.value;
     this.time.getDateAndTime(new Date()).then(dateTime => {
       statusHistoryDetails.date = dateTime.date;
     });
@@ -130,10 +130,9 @@ export class StatusHistoryComponent implements OnInit {
         statusHistoryDetails.delivery_branch = territory[0];
       });
     if (
-      this.statusHistoryForm.controls.current_status_verdict.value ===
-      CURRENT_STATUS_VERDICT.TRANSFERRED
+      this.f.current_status_verdict.value === CURRENT_STATUS_VERDICT.TRANSFERRED
     ) {
-      statusHistoryDetails.transfer_branch = this.statusHistoryForm.controls.transfer_branch.value.name;
+      statusHistoryDetails.transfer_branch = this.f.transfer_branch.value.name;
     }
     this.statusHistoryService.addStatusHistory(statusHistoryDetails).subscribe({
       next: () => {
@@ -183,25 +182,21 @@ export class StatusHistoryComponent implements OnInit {
   selectedCurrentStatus(option: any) {
     switch (option) {
       case CURRENT_STATUS_VERDICT.TRANSFERRED:
-        this.statusHistoryForm.controls.transfer_branch.setValidators(
-          Validators.required,
-        );
-        this.statusHistoryForm.controls.transfer_branch.enable();
-        this.statusHistoryForm.controls.transfer_branch.updateValueAndValidity();
-        this.statusHistoryForm.controls.delivery_status.disable();
-        this.statusHistoryForm.controls.delivery_status.updateValueAndValidity();
+        this.f.transfer_branch.setValidators(Validators.required);
+        this.f.transfer_branch.enable();
+        this.f.transfer_branch.updateValueAndValidity();
+        this.f.delivery_status.disable();
+        this.f.delivery_status.updateValueAndValidity();
         break;
       case CURRENT_STATUS_VERDICT.DELIVER_TO_CUSTOMER:
-        this.statusHistoryForm.controls.delivery_status.setValidators(
-          Validators.required,
-        );
-        this.statusHistoryForm.controls.transfer_branch.disable();
-        this.statusHistoryForm.controls.transfer_branch.updateValueAndValidity();
-        this.statusHistoryForm.controls.delivery_status.enable();
-        this.statusHistoryForm.controls.delivery_status.updateValueAndValidity();
+        this.f.delivery_status.setValidators(Validators.required);
+        this.f.transfer_branch.disable();
+        this.f.transfer_branch.updateValueAndValidity();
+        this.f.delivery_status.enable();
+        this.f.delivery_status.updateValueAndValidity();
       default:
-        this.statusHistoryForm.controls.transfer_branch.clearValidators();
-        this.statusHistoryForm.controls.transfer_branch.updateValueAndValidity();
+        this.f.transfer_branch.clearValidators();
+        this.f.transfer_branch.updateValueAndValidity();
         break;
     }
   }

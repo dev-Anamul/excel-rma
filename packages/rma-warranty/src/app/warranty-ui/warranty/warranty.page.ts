@@ -52,7 +52,7 @@ export class WarrantyPage implements OnInit {
     'sr_no',
     'claim_no',
     'claim_type',
-    'received_date',
+    'received_on',
     'customer_name',
     'third_party_name',
     'item_code',
@@ -233,33 +233,32 @@ export class WarrantyPage implements OnInit {
 
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
+    if (event) {
+      for (const key of Object.keys(event)) {
+        if (key === 'active' && event.direction !== '') {
+          this.sortQuery[event[key]] = event.direction;
+        }
+      }
+    }
     this.sortQuery =
       Object.keys(this.sortQuery).length === 0
         ? { createdOn: 'desc' }
         : this.sortQuery;
-    if (this.bulkFlag === true) {
-      this.dataSource.loadItems(
-        this.sortQuery,
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
-        query,
-        {
-          territory: this.territoryList,
-          set: [CATEGORY.BULK],
-        },
-      );
-    } else {
-      this.dataSource.loadItems(
-        this.sortQuery,
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
-        query,
-        {
-          territory: this.territoryList,
-          set: [CATEGORY.SINGLE, CATEGORY.PART],
-        },
-      );
-    }
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      this.bulkFlag
+        ? {
+            territory: this.territoryList,
+            set: [CATEGORY.BULK],
+          }
+        : {
+            territory: this.territoryList,
+            set: [CATEGORY.SINGLE, CATEGORY.PART],
+          },
+    );
   }
 
   setFilter() {
@@ -285,14 +284,23 @@ export class WarrantyPage implements OnInit {
       query.from_date = new Date(this.f.from_date.value).setHours(0, 0, 0, 0);
       query.to_date = new Date(this.f.to_date.value).setHours(23, 59, 59, 59);
     }
-    if (Object.keys(query).length) {
-      if (this.claim_status) query.claim_status = this.claim_status;
+    if (this.claim_status) query.claim_status = this.claim_status;
 
-      this.dataSource.loadItems(undefined, undefined, undefined, query, {
-        territory: this.territoryList,
-        set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
-      });
-    }
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      this.bulkFlag
+        ? {
+            territory: this.territoryList,
+            set: [CATEGORY.BULK],
+          }
+        : {
+            territory: this.territoryList,
+            set: [CATEGORY.SINGLE, CATEGORY.PART],
+          },
+    );
   }
 
   getBulkClaims() {
@@ -305,10 +313,21 @@ export class WarrantyPage implements OnInit {
 
   statusChange(status: string) {
     if (status === 'All') {
-      this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
-        territory: this.territoryList,
-        set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
-      });
+      this.dataSource.loadItems(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        this.bulkFlag
+          ? {
+              territory: this.territoryList,
+              set: [CATEGORY.BULK],
+            }
+          : {
+              territory: this.territoryList,
+              set: [CATEGORY.SINGLE, CATEGORY.PART],
+            },
+      );
     } else {
       this.claim_status = status;
       this.setFilter();
@@ -332,10 +351,11 @@ export class WarrantyPage implements OnInit {
     this.f.replace_serial.setValue('');
     this.f.date_type.setValue(DATE_TYPE.RECEIVED_DATE);
     this.paginator.pageSize = 30;
+    this.sortQuery = {};
     this.paginator.firstPage();
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
       territory: this.territoryList,
-      set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
+      set: [CATEGORY.SINGLE, CATEGORY.PART],
     });
     this.bulkFlag = false;
   }

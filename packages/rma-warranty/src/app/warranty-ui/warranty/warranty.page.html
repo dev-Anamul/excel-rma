@@ -318,7 +318,11 @@
               >
                 Clear
               </ion-button>
-              <ion-button color="tertiary" (click)="getBulkClaims()">
+              <ion-button
+                color="tertiary"
+                [fill]="bulkFlag?'solid':'outline'"
+                (click)="getBulkClaims()"
+              >
                 Bulk Claims
               </ion-button>
             </ion-col>
@@ -335,7 +339,9 @@
           >
             <ng-container matColumnDef="sr_no">
               <mat-header-cell *matHeaderCellDef>No. </mat-header-cell>
-              <mat-cell *matCellDef="let row;let i=index "> {{i+1}} </mat-cell>
+              <mat-cell *matCellDef="let row;let i=index ">
+                {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
+              </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
@@ -368,11 +374,8 @@
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
-            <ng-container matColumnDef="received_date">
-              <mat-header-cell
-                *matHeaderCellDef
-                mat-sort-header="received_date"
-              >
+            <ng-container matColumnDef="received_on">
+              <mat-header-cell *matHeaderCellDef mat-sort-header="received_on">
                 Received Date
               </mat-header-cell>
               <mat-cell *matCellDef="let row"> {{row.received_on }} </mat-cell>
