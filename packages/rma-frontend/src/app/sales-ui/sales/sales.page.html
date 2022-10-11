@@ -12,13 +12,11 @@
 <ion-content class="page-background">
   <ion-card>
     <form [formGroup]="salesForm">
-      <ion-card-header style="padding-bottom: 0;">
+      <ion-card-header style="padding-bottom: 0">
         <ion-row class="align">
           <ion-col>
             <ion-card-title>
-              <ion-text color="tertiary">
-                Sales Invoices
-              </ion-text>
+              <ion-text color="tertiary"> Sales Invoices </ion-text>
             </ion-card-title>
           </ion-col>
           <ion-col class="ion-text-right">
@@ -268,7 +266,7 @@
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
-            <!-- customer_name Column -->
+
             <ng-container matColumnDef="customer_name">
               <mat-header-cell
                 *matHeaderCellDef
@@ -282,13 +280,14 @@
               <mat-footer-cell *matFooterCellDef>Total</mat-footer-cell>
             </ng-container>
 
-            <!-- name Column -->
             <ng-container matColumnDef="name">
               <mat-header-cell *matHeaderCellDef mat-sort-header="name">
                 Invoice No
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                <a [routerLink]="['/sales/view-sales-invoice', row.uuid]" >{{row.name || 'Draft'}}</a>
+                <a [routerLink]="['/sales/view-sales-invoice', row.uuid]">
+                  {{row.name || 'Draft'}}
+                </a>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
@@ -297,9 +296,7 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header="createdBy">
                 Created By
               </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                {{ row.createdBy }}
-              </mat-cell>
+              <mat-cell *matCellDef="let row"> {{ row.createdBy }} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
@@ -312,7 +309,7 @@
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
-            <!-- posting Column -->
+
             <ng-container matColumnDef="posting_date">
               <mat-header-cell mat-sort-header="created_on" *matHeaderCellDef>
                 Date
@@ -334,26 +331,25 @@
             </ng-container>
 
             <ng-container matColumnDef="remarks">
-              <mat-header-cell *matHeaderCellDef>
-                Remarks
-              </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                {{row.remarks}}
-              </mat-cell>
+              <mat-header-cell *matHeaderCellDef> Remarks </mat-header-cell>
+              <mat-cell *matCellDef="let row"> {{row.remarks}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="delivered_percent">
-              <mat-header-cell *matHeaderCellDef>
-                Delivered
-              </mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Delivered </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                <mat-progress-bar class="right-margin" [color]="row.delivered_percent === 100 ? 'primary' : 'warn'" mode="determinate" [value]="row.delivered_percent"></mat-progress-bar>
+                <mat-progress-bar
+                  class="right-margin"
+                  [color]="row.delivered_percent === 100 ? 'primary' : 'warn'"
+                  mode="determinate"
+                  [value]="row.delivered_percent"
+                >
+                </mat-progress-bar>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
-            <!-- delivery status column -->
             <ng-container matColumnDef="delivery_status">
               <mat-header-cell *matHeaderCellDef>
                 Delivery Status
@@ -364,18 +360,14 @@
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
-            <!-- territory Column -->
             <ng-container matColumnDef="territory">
               <mat-header-cell *matHeaderCellDef mat-sort-header="territory">
                 Branch
               </mat-header-cell>
-              <mat-cell *matCellDef="let row">
-                {{row.territory}}
-              </mat-cell>
+              <mat-cell *matCellDef="let row"> {{row.territory}} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
-            <!-- Status Column -->
             <ng-container matColumnDef="status">
               <mat-header-cell *matHeaderCellDef mat-sort-header="status"
                 >Status</mat-header-cell
@@ -418,9 +410,7 @@
             <mat-header-row
               *matHeaderRowDef="displayedColumns; sticky: true"
             ></mat-header-row>
-            <mat-row
-              *matRowDef="let row; columns: displayedColumns;"
-            ></mat-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
             <mat-footer-row
               class="footer"
               *matFooterRowDef="displayedColumns; sticky: true"
