@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.4](https://gitlab.com/castlecraft/excel-rma/compare/rma-frontend@2.0.0-alpha.3...rma-frontend@2.0.0-alpha.4) (2022-10-12)
+
+
+### Bug Fixes
+
+* Fixed Status History table ([3e2a0f1](https://gitlab.com/castlecraft/excel-rma/commit/3e2a0f1c0d0dca30825e4609e9ec17cdd10cc2e4))
+* Fixed Warranty Service Invoice sync ([650d8aa](https://gitlab.com/castlecraft/excel-rma/commit/650d8aa388c56f58487e8be8303c6ecc7976da3c))
+* Fixed warranty stock entry ([406ae8e](https://gitlab.com/castlecraft/excel-rma/commit/406ae8e76d436dfbb3d998580882a430c6cb9a57))
+
+
+
+
+
 # [2.0.0-alpha.3](https://gitlab.com/castlecraft/excel-rma/compare/rma-frontend@2.0.0-alpha.2...rma-frontend@2.0.0-alpha.3) (2022-08-25)
 
 

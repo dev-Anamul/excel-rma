@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.4](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@2.0.0-alpha.3...rma-server@2.0.0-alpha.4) (2022-10-12)
+
+
+### Bug Fixes
+
+* filter issue breaking PR ([0351f80](https://gitlab.com/castlecraft/excel-rma/commit/0351f8038333673a585db31d6000d487d21e9d8e))
+* Fixed Date Filter on Warranty Page ([94ad324](https://gitlab.com/castlecraft/excel-rma/commit/94ad324fac08310aad180b7f5c8efe22138870c4))
+* Fixed Status History table ([3e2a0f1](https://gitlab.com/castlecraft/excel-rma/commit/3e2a0f1c0d0dca30825e4609e9ec17cdd10cc2e4))
+* Fixed warranty claim status warehouse ([793931d](https://gitlab.com/castlecraft/excel-rma/commit/793931d8f2cb34f0ad25120ab47d73d70f00b0df))
+* Fixed Warranty Service Invoice sync ([650d8aa](https://gitlab.com/castlecraft/excel-rma/commit/650d8aa388c56f58487e8be8303c6ecc7976da3c))
+* Fixed warranty stock entry ([406ae8e](https://gitlab.com/castlecraft/excel-rma/commit/406ae8e76d436dfbb3d998580882a430c6cb9a57))
+* merge conflict resolve after feedback fixes ([1496dc9](https://gitlab.com/castlecraft/excel-rma/commit/1496dc9149d3a2e1b2cbbbba18ed357b6fdbb120))
+* serial_no fix in warranty stock dto ([f06eb22](https://gitlab.com/castlecraft/excel-rma/commit/f06eb22ae5cb5fc0e0bc1bf42c99f65237866463))
+
+
+
+
+
 # [2.0.0-alpha.3](https://gitlab.com/castlecraft/excel-rma/compare/rma-server@2.0.0-alpha.2...rma-server@2.0.0-alpha.3) (2022-08-25)
 
 
