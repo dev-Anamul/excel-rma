@@ -332,9 +332,10 @@ export class SerialNoAggregateService extends AggregateRoot {
       const salesInvoice = await this.salesInvoiceService.findOne({
         name: sales_invoice_name,
       });
-      const serialNumbers = salesInvoice.returned_items.map(
-        item => item.serial_no,
-      );
+      const serialNumbers = [];
+      salesInvoice.returned_items.forEach(item => {
+        serialNumbers.push(...item.serial_no.split('\n'));
+      });
 
       return await this.serialNoService.listReturnInvoicesSerials(
         serialNumbers,
