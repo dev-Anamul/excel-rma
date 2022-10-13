@@ -46,13 +46,13 @@ export class WarrantyPage implements OnInit {
   warrantyClaimsList: Array<WarrantyClaims>;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
-  permissionState = PERMISSION_STATE;
+
   dataSource: WarrantyClaimsDataSource;
   displayedColumns = [
     'sr_no',
     'claim_no',
     'claim_type',
-    'received_date',
+    'received_on',
     'customer_name',
     'third_party_name',
     'item_code',
@@ -71,16 +71,21 @@ export class WarrantyPage implements OnInit {
     'outstanding_amount',
     'remarks',
   ];
-  claimList;
-  bulkFlag: boolean = false;
   filteredCustomerList: Observable<any[]>;
-  filteredBrandList: any;
-  filteredBrand: any = [];
   filteredProductList: Observable<any[]>;
   filteredTerritoryList: Observable<any[]>;
+  bulkFlag: boolean = false;
+  filteredBrandList: any;
+  filteredBrand: any = [];
   sortQuery: any = {};
   territoryList;
   claim_status: string = CLAIM_STATUS.ALL;
+  claimList: string[] = [
+    WARRANTY_TYPE.WARRANTY,
+    WARRANTY_TYPE.NON_WARRANTY,
+    WARRANTY_TYPE.NON_SERIAL,
+    WARRANTY_TYPE.THIRD_PARTY,
+  ];
   claimStatusList: string[] = [
     CLAIM_STATUS.IN_PROGRESS,
     CLAIM_STATUS.TO_DELIVER,
@@ -89,6 +94,8 @@ export class WarrantyPage implements OnInit {
     CLAIM_STATUS.ALL,
   ];
   dateTypeList: string[] = [DATE_TYPE.RECEIVED_DATE, DATE_TYPE.DELIVERED_DATE];
+
+  permissionState = PERMISSION_STATE;
   validateInput: any = ValidateInputSelected;
   warrantyForm: FormGroup;
 
@@ -109,12 +116,6 @@ export class WarrantyPage implements OnInit {
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
-    this.claimList = [
-      WARRANTY_TYPE.WARRANTY,
-      WARRANTY_TYPE.NON_WARRANTY,
-      WARRANTY_TYPE.NON_SERIAL,
-      WARRANTY_TYPE.THIRD_PARTY,
-    ];
     this.dataSource = new WarrantyClaimsDataSource(this.warrantyService);
     this.router.events
       .pipe(
@@ -193,21 +194,20 @@ export class WarrantyPage implements OnInit {
       third_party_name: new FormControl(''),
       product: new FormControl(''),
       brand: new FormControl(''),
-      claim_status: new FormControl(''),
+      claim_status: new FormControl(CLAIM_STATUS.ALL),
       claim_type: new FormControl(''),
       territory: new FormControl(''),
       serial_no: new FormControl(''),
       replace_serial: new FormControl(''),
       received_by: new FormControl(''),
       delivered_by: new FormControl(''),
-      date_type: new FormControl(''),
+      date_type: new FormControl(DATE_TYPE.RECEIVED_DATE),
       from_date: new FormControl(''),
       to_date: new FormControl(''),
-      singleDate: new FormControl(''),
     });
   }
 
-  getUpdate(event?) {
+  getUpdate(event?: any) {
     const query: any = {};
     if (this.f.customer_name.value)
       query.customer = this.f.customer_name.value.customer_name;
@@ -231,84 +231,8 @@ export class WarrantyPage implements OnInit {
       query.to_date = new Date(this.f.to_date.value).setHours(23, 59, 59, 59);
     }
 
-    if (this.f.singleDate.value) {
-      query.date_type = this.f.date_type.value;
-      query.from_date = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
-      query.to_date = new Date(this.f.singleDate.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
-    this.sortQuery =
-      Object.keys(this.sortQuery).length === 0
-        ? { createdOn: 'desc' }
-        : this.sortQuery;
-    if (this.bulkFlag === true) {
-      this.dataSource.loadItems(
-        this.sortQuery,
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
-        query,
-        {
-          territory: this.territoryList,
-          set: [CATEGORY.BULK],
-        },
-      );
-    } else {
-      this.dataSource.loadItems(
-        this.sortQuery,
-        this.paginator.pageIndex,
-        this.paginator.pageSize,
-        query,
-        {
-          territory: this.territoryList,
-          set: [CATEGORY.SINGLE, CATEGORY.PART],
-        },
-      );
-    }
-  }
-
-  setFilter(event?) {
-    const query: any = {};
-    if (this.f.customer_name.value)
-      query.customer = this.f.customer_name.value.customer_name;
-    if (this.f.claim_no.value) query.claim_no = this.f.claim_no.value;
-    if (this.f.third_party_name.value)
-      query.third_party_name = this.f.third_party_name.value;
-    if (this.claim_status) query.claim_status = this.claim_status;
-    if (this.f.product.value) query.item_name = this.f.product.value.item_name;
-    if (this.f.brand.value) query.product_brand = this.f.brand.value;
-    if (this.f.claim_type.value) query.claim_type = this.f.claim_type.value;
-    if (this.f.territory.value) query.receiving_branch = this.f.territory.value;
-    if (this.f.serial_no.value) query.serial_no = this.f.serial_no.value;
-    if (this.f.replace_serial.value)
-      query.replace_serial = this.f.replace_serial.value;
-    if (this.f.received_by.value) query.received_by = this.f.received_by.value;
-    if (this.f.delivered_by.value)
-      query.delivered_by = this.f.delivered_by.value;
-
-    if (this.f.from_date.value && this.f.to_date.value) {
-      query.date_type = this.f.date_type.value;
-      query.from_date = new Date(this.f.from_date.value).setHours(0, 0, 0, 0);
-      query.to_date = new Date(this.f.to_date.value).setHours(23, 59, 59, 59);
-    }
-
-    if (this.f.singleDate.value) {
-      query.date_type = this.f.date_type.value;
-      query.from_date = new Date(this.f.singleDate.value).setHours(0, 0, 0, 0);
-      query.to_date = new Date(this.f.singleDate.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
-
-    this.sortQuery = {};
     if (event) {
       for (const key of Object.keys(event)) {
         if (key === 'active' && event.direction !== '') {
@@ -316,13 +240,67 @@ export class WarrantyPage implements OnInit {
         }
       }
     }
+    this.sortQuery =
+      Object.keys(this.sortQuery).length === 0
+        ? { createdOn: 'desc' }
+        : this.sortQuery;
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      this.bulkFlag
+        ? {
+            territory: this.territoryList,
+            set: [CATEGORY.BULK],
+          }
+        : {
+            territory: this.territoryList,
+            set: [CATEGORY.SINGLE, CATEGORY.PART],
+          },
+    );
+  }
 
-    this.dataSource.loadItems(this.sortQuery, undefined, undefined, query, {
-      territory: this.territoryList,
-      set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
-    });
+  setFilter() {
+    const query: any = {};
+    if (this.f.customer_name.value)
+      query.customer = this.f.customer_name.value.customer_name;
+    if (this.f.claim_no.value) query.claim_no = this.f.claim_no.value;
+    if (this.f.third_party_name.value)
+      query.third_party_name = this.f.third_party_name.value;
+    if (this.f.product.value) query.item_name = this.f.product.value.item_name;
+    if (this.f.brand.value) query.product_brand = this.f.brand.value;
+    if (this.f.claim_type.value) query.claim_type = this.f.claim_type.value;
+    if (this.f.territory.value) query.receiving_branch = this.f.territory.value;
+    if (this.f.serial_no.value) query.serial_no = this.f.serial_no.value;
+    if (this.f.replace_serial.value)
+      query.replace_serial = this.f.replace_serial.value;
+    if (this.f.received_by.value) query.received_by = this.f.received_by.value;
+    if (this.f.delivered_by.value)
+      query.delivered_by = this.f.delivered_by.value;
 
-    this.getUpdate();
+    if (this.f.from_date.value && this.f.to_date.value) {
+      query.date_type = this.f.date_type.value;
+      query.from_date = new Date(this.f.from_date.value).setHours(0, 0, 0, 0);
+      query.to_date = new Date(this.f.to_date.value).setHours(23, 59, 59, 59);
+    }
+    if (this.claim_status) query.claim_status = this.claim_status;
+
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      this.bulkFlag
+        ? {
+            territory: this.territoryList,
+            set: [CATEGORY.BULK],
+          }
+        : {
+            territory: this.territoryList,
+            set: [CATEGORY.SINGLE, CATEGORY.PART],
+          },
+    );
   }
 
   getBulkClaims() {
@@ -333,27 +311,27 @@ export class WarrantyPage implements OnInit {
     });
   }
 
-  statusChange(status) {
+  statusChange(status: string) {
     if (status === 'All') {
-      this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
-        territory: this.territoryList,
-        set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
-      });
+      this.dataSource.loadItems(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        this.bulkFlag
+          ? {
+              territory: this.territoryList,
+              set: [CATEGORY.BULK],
+            }
+          : {
+              territory: this.territoryList,
+              set: [CATEGORY.SINGLE, CATEGORY.PART],
+            },
+      );
     } else {
       this.claim_status = status;
       this.setFilter();
     }
-  }
-
-  dateFilter() {
-    this.f.singleDate.setValue('');
-    this.setFilter();
-  }
-
-  singleDateFilter() {
-    this.f.from_date.setValue('');
-    this.f.to_date.setValue('');
-    this.setFilter();
   }
 
   clearFilters() {
@@ -362,7 +340,7 @@ export class WarrantyPage implements OnInit {
     this.f.third_party_name.setValue('');
     this.f.product.setValue('');
     this.f.brand.setValue('');
-    this.f.claim_status.setValue('');
+    this.f.claim_status.setValue(CLAIM_STATUS.ALL);
     this.f.claim_type.setValue('');
     this.f.territory.setValue('');
     this.f.serial_no.setValue('');
@@ -370,14 +348,14 @@ export class WarrantyPage implements OnInit {
     this.f.delivered_by.setValue('');
     this.f.from_date.setValue('');
     this.f.to_date.setValue('');
-    this.f.singleDate.setValue('');
     this.f.replace_serial.setValue('');
     this.f.date_type.setValue(DATE_TYPE.RECEIVED_DATE);
     this.paginator.pageSize = 30;
+    this.sortQuery = {};
     this.paginator.firstPage();
     this.dataSource.loadItems(undefined, undefined, undefined, undefined, {
       territory: this.territoryList,
-      set: [CATEGORY.BULK, CATEGORY.SINGLE, CATEGORY.PART],
+      set: [CATEGORY.SINGLE, CATEGORY.PART],
     });
     this.bulkFlag = false;
   }

@@ -24,8 +24,6 @@ import {
   FRAPPE_QUEUE_JOB,
   STOCK_ENTRY_STATUS,
   CREATE_STOCK_ENTRY_JOB,
-  // ACCEPT_STOCK_ENTRY_JOB,
-  // REJECT_STOCK_ENTRY_JOB,
   AUTHORIZATION,
   BEARER_HEADER_VALUE_PREFIX,
   STOCK_OPERATION,
@@ -436,21 +434,19 @@ export class StockEntryAggregateService {
           stockEntry: this.stockEntryPolicies.validateStockEntryCancel(
             stockEntry,
           ),
-          // stockEntryQueue: this.stockEntryPolicies.validateStockEntryQueue(stockEntry),
           settings: this.settingService.find(),
         });
       }),
       switchMap(({ stockEntry, settings }) => {
         serverSettings = settings;
         return of(stockEntry);
-        // return this.cancelERPNextDocument(stockEntry, settings, req);
       }),
       switchMap(stockEntry => {
         return forkJoin({
           serialReset: this.resetStockEntrySerial(stockEntry),
           serialHistoryReset: this.resetStockEntrySerialHistory(stockEntry),
         }).pipe(
-          switchMap(success => this.updateStockEntryReset(stockEntry)),
+          switchMap(() => this.updateStockEntryReset(stockEntry)),
           switchMap(() => {
             if (stockEntry.stock_entry_type === 'Material Transfer') {
                 return this.createTransferStockEntryLedger(
@@ -557,6 +553,7 @@ export class StockEntryAggregateService {
       }),
     );
   }
+
   cancelERPNextDocument(stockEntry: StockEntry, settings: ServerSettings, req) {
     return from(stockEntry.names.reverse()).pipe(
       concatMap(docName => {
@@ -576,7 +573,7 @@ export class StockEntryAggregateService {
         return throwError(new BadRequestException(err));
       }),
       toArray(),
-      switchMap(success => {
+      switchMap(() => {
         return of(stockEntry);
       }),
     );
@@ -590,7 +587,7 @@ export class StockEntryAggregateService {
           { uuid: payload.uuid },
           { $set: payload },
         ),
-      ).pipe(switchMap(data => of(payload)));
+      ).pipe(switchMap(() => of(payload)));
     }
     return this.settingService.find().pipe(
       switchMap(settings => {
@@ -598,7 +595,7 @@ export class StockEntryAggregateService {
         stockEntry.status = STOCK_ENTRY_STATUS.draft;
         stockEntry.stock_id = stockEntry.uuid;
         return from(this.stockEntryService.create(stockEntry)).pipe(
-          switchMap(data => of(stockEntry)),
+          switchMap(() => of(stockEntry)),
           catchError(err => {
             return throwError(err);
           }),
@@ -724,20 +721,19 @@ export class StockEntryAggregateService {
           validateJobState: this.stockEntryPolicies.validateStockEntryQueue(
             stockEntry,
           ),
-        }).pipe(switchMap(success => of(stockEntry)));
+        }).pipe(switchMap(() => of(stockEntry)));
       }),
       mergeMap(stockEntry => {
         if (!stockEntry) {
           return throwError(new BadRequestException('Stock Entry not found.'));
         }
-        // const payload: any = this.removeStockEntryFields(stockEntry);
         this.stockEntryService
           .updateOne(
             { uuid },
             { $set: { status: STOCK_ENTRY_STATUS.returned } },
           )
-          .catch(err => {})
-          .then(success => {});
+          .catch(() => {})
+          .then(() => {});
         settings
           .pipe(
             switchMap(settings => {
@@ -755,12 +751,6 @@ export class StockEntryAggregateService {
       }),
     );
   }
-
-  // removeStockEntryFields(stockEntry: StockEntry) {
-  //   delete stockEntry.names;
-  //   delete stockEntry.createdAt;
-  //   return stockEntry;
-  // }
 
   acceptStockEntry(uuid: string, req) {
     const settings = this.settingService.find();
@@ -782,20 +772,19 @@ export class StockEntryAggregateService {
           validateJobState: this.stockEntryPolicies.validateStockEntryQueue(
             stockEntry,
           ),
-        }).pipe(switchMap(success => of(stockEntry)));
+        }).pipe(switchMap(() => of(stockEntry)));
       }),
       mergeMap(stockEntry => {
         if (!stockEntry) {
           return throwError(new BadRequestException('Stock Entry not found.'));
         }
-        // const payload: any = this.removeStockEntryFields(stockEntry);
         this.stockEntryService
           .updateOne(
             { uuid },
             { $set: { status: STOCK_ENTRY_STATUS.delivered } },
           )
-          .catch(err => {})
-          .then(success => {});
+          .catch(() => {})
+          .then(() => {});
         settings
           .pipe(
             switchMap(settings => {

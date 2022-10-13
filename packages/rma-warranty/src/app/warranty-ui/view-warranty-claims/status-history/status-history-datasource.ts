@@ -14,7 +14,7 @@ import {
 export class StatusHistoryDataSource extends DataSource<StatusHistoryDetails> {
   upgraded_warehouse$ = new BehaviorSubject<string>('');
   replaced_warehouse$ = new BehaviorSubject<string>('');
-  data: StatusHistoryDetails[];
+  data: StatusHistoryDetails[] = [];
   length: number;
   offset: number;
 
@@ -44,7 +44,8 @@ export class StatusHistoryDataSource extends DataSource<StatusHistoryDetails> {
       .getWarrantyDetail(uuid)
       .pipe(
         map((items: WarrantyClaimsDetails) => {
-          items.progress_state.forEach(state => {
+          this.data = items.status_history;
+          items?.progress_state?.forEach(state => {
             if (state.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.DELIVERED) {
               if (state.type === STOCK_ENTRY_STATUS.UPGRADE) {
                 this.upgraded_warehouse$.next(state.set_warehouse);
@@ -54,7 +55,6 @@ export class StatusHistoryDataSource extends DataSource<StatusHistoryDetails> {
               }
             }
           });
-          this.data = items.status_history;
           return this.data;
         }),
         catchError(() => of([])),

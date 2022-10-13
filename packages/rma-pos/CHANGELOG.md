@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.2](https://gitlab.com/castlecraft/excel-rma/compare/rma-pos@2.0.0-alpha.1...rma-pos@2.0.0-alpha.2) (2022-10-12)
+
+
+### Bug Fixes
+
+* Fixed Warranty Service Invoice sync ([650d8aa](https://gitlab.com/castlecraft/excel-rma/commit/650d8aa388c56f58487e8be8303c6ecc7976da3c))
+* Fixed warranty stock entry ([406ae8e](https://gitlab.com/castlecraft/excel-rma/commit/406ae8e76d436dfbb3d998580882a430c6cb9a57))
+
+
+
+
+
 # [2.0.0-alpha.1](https://gitlab.com/castlecraft/excel-rma/compare/rma-pos@2.0.0-alpha.0...rma-pos@2.0.0-alpha.1) (2022-07-04)
 
 **Note:** Version bump only for package rma-pos

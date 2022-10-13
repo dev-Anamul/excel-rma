@@ -266,6 +266,11 @@ export enum CATEGORY {
   PART = 'Part',
 }
 
+export const DATE_TYPE = {
+  RECEIVED_DATE: 'Received Date',
+  DELIVERED_DATE: 'Delivery Date',
+};
+
 export const PROGRESS_STATUS = {
   REPLACE: 'Replace',
   UPGRADE: 'Upgrade',
