@@ -14,6 +14,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
     super();
   }
 
+  // fetch vouchers
   async getVoucherTypeList() {
     return this.stockLedgerService.distinct();
   }
