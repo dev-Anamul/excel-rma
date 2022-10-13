@@ -157,11 +157,6 @@ export class StockLedgerReportComponent implements OnInit {
     }
   }
 
-  getVoucherOption(option){
-    if(option){
-      return option.voucher_type
-    }
-  }
 
   getItemGroupOption(option) {
     if (option) {

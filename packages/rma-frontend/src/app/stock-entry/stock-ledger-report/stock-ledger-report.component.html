@@ -169,7 +169,6 @@
                 <mat-label>Voucher Type</mat-label>
                 <mat-select
                   formControlName="voucher_type"
-                  [displayWith]="getVoucherOption"
                   (selectionChange)="setFilter()"
                 >
                   <mat-option
