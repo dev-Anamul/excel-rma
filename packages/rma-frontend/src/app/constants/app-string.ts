@@ -132,4 +132,6 @@ export const STOCK_LEDGER_REPORT_HEADERS = [
   'actual_qty',
   'incoming_rate',
   'valuation_rate',
+  'balance_qty',
+  'balance_value'
 ]

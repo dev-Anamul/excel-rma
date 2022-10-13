@@ -165,6 +165,23 @@
               </mat-form-field>
             </ion-col>
             <ion-col>
+              <mat-form-field class="mat-input-wrapper">
+                <mat-label>Voucher Type</mat-label>
+                <mat-select
+                  formControlName="voucher_type"
+                  [displayWith]="getVoucherOption"
+                  (selectionChange)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let type of VoucherType"
+                    [value]="type"
+                  >
+                    {{type}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ion-col>
+            <ion-col>
               <mat-form-field 
                 class="mat-input-wrapper">
                 <input
@@ -193,21 +210,6 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
-            <ion-button
-                (click)="clearFilters()"
-                fill="outline"
-                color="tertiary"
-              >
-                Clear
-              </ion-button>
-               <ion-button
-                color="tertiary"
-
-                (click)="downloadServiceInvoices()"
-                fill="outline"
-              >
-                Download CSV
-            </ion-button>
           </ion-row>
           <ion-row>
             <ion-col>
@@ -248,6 +250,21 @@
                 </mat-form-field>
               </div>
             </ion-col>
+            <ion-button
+                (click)="clearFilters()"
+                fill="outline"
+                color="tertiary"
+              >
+                Clear
+              </ion-button>
+               <ion-button
+                color="tertiary"
+
+                (click)="downloadServiceInvoices()"
+                fill="outline"
+              >
+                Download CSV
+            </ion-button>
           </ion-row>  
         </ion-grid>
       </form>
@@ -312,6 +329,11 @@
           <ng-container matColumnDef="stock_uom">
             <mat-header-cell *matHeaderCellDef>Stock UOM</mat-header-cell>
             <mat-cell *matCellDef="let row">{{ row.item.stock_uom }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="voucher_type">
+            <mat-header-cell *matHeaderCellDef>Voucher Type</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row.voucher_type }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="actual_qty">

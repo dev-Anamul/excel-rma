@@ -34,10 +34,10 @@ export class StockLedgerController {
     });
   }
 
-  @Get('v1/get_stock_uom')
+  @Get('v1/get_voucher_type')
   @UseGuards(TokenGuard)
-  async getUom() {
-    return this.stockLedgerAggregate.getStockUomList();
+  async getVoucher() {
+    return this.stockLedgerAggregate.getVoucherTypeList();
     
   }
 

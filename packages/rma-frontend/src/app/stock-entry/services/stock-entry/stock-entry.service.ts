@@ -15,7 +15,7 @@ import {
   ERPNEXT_WAREHOUSE_ENDPOINT,
   STOCK_ENTRY_RESET_ENDPOINT,
   GET_STOCK_ENTRY_DELIVERED_SERIALS,
-  STOCK_UOM_LIST,
+  VOUCHER_TYPE_LIST,
 } from '../../../constants/url-strings';
 import { MaterialTransferDto } from '../../material-transfer/material-transfer.datasource';
 import { JSON_BODY_MAX_SIZE } from '../../../constants/app-string';
@@ -130,8 +130,8 @@ export class StockEntryService {
     );
   }
 
-  getStockUomList() {
-    const url = STOCK_UOM_LIST;
+  getVoucherTypeList() {
+    const url = VOUCHER_TYPE_LIST;
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.get<any>(url, {headers});

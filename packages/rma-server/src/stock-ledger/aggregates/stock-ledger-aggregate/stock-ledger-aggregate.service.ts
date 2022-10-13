@@ -14,7 +14,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
     super();
   }
 
-  async getStockUomList() {
+  async getVoucherTypeList() {
     return this.stockLedgerService.distinct();
   }
   getStockSummaryList(query: {
@@ -298,6 +298,9 @@ export class StockLedgerAggregateService extends AggregateRoot {
       if (element[0] === 'voucher_no') {
         filter_Obj['voucher_no'] = element[2];
       }
+      if (element[0] === 'voucher_type') {
+        filter_Obj['voucher_type'] = element[2];
+      }
       if (element[0] === 'item_code') {
         filter_Obj['item_code'] = element[2];
       }
@@ -319,7 +322,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
           $gte:startDate,
           $lte:endDate
         } 
-        filter_Obj['modified'] = dateObj
+        filter_Obj['posting_date'] = dateObj
        }
      }
 
@@ -386,6 +389,9 @@ export class StockLedgerAggregateService extends AggregateRoot {
       if (element[0] === 'voucher_no') {
         filter_Obj['voucher_no'] = element[2];
       }
+      if (element[0] === 'voucher_type') {
+        filter_Obj['voucher_type'] = element[2];
+      }
       if (element[0] === 'item_code') {
         filter_Obj['item_code'] = element[2];
       }
@@ -402,13 +408,14 @@ export class StockLedgerAggregateService extends AggregateRoot {
       if (date.start_date != null && date.end_date != null){
         startDate = new Date(date.start_date);
         endDate = new Date(date.end_date);
+        endDate.setDate(endDate.getDate()+1)
         const dateObj: any = {
           $gte:startDate,
           $lte:endDate
-        }
-        filter_Obj['modified'] = dateObj
-      }
-    }
+        } 
+        filter_Obj['posting_date'] = dateObj
+       }
+     }
 
     // IF FILTER APPLY
     if (Object.entries(filter_Obj).length !== 0) {
@@ -427,7 +434,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
       const $match: any = filter_Obj;
       where.push({ $match });
       const $sort: any = {
-        'modified': -1,
+        'posting_date': 1,
       };
       where.push({ $sort });
       where.push({ $count: 'count' }); 

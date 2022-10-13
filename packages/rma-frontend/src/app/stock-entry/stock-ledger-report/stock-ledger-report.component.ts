@@ -12,6 +12,7 @@ import { STOCK_LEDGER_CSV_FILE, STOCK_LEDGER_REPORT_HEADERS, WAREHOUSES } from '
 // import { RELAY_LIST_PROJECT_ENDPOINT } from 'src/app/constants/url-strings';
 import { StockLedgerDataSource } from './stock-ledger-datasource';
 import { CsvJsonService } from 'src/app/api/csv-json/csv-json.service';
+import { StockEntryService } from '../services/stock-entry/stock-entry.service';
 
 @Component({
   selector: 'app-stock-ledger-report',
@@ -29,7 +30,7 @@ export class StockLedgerReportComponent implements OnInit {
   filteredItemGroupList: Observable<any>;
   filteredItemBrandList: Observable<any>;
   filteredProjectList: Observable<any[]>;
-  stockUomList= []
+  VoucherType= []
   filters: any = [];
   countFilter: any = {};
   dataSource: StockLedgerDataSource;
@@ -41,6 +42,7 @@ export class StockLedgerReportComponent implements OnInit {
     'item_code',
     'item_group',
     'voucher_no',
+    'voucher_type',
     'brand',
     'warehouse',
     'stock_uom',
@@ -61,7 +63,7 @@ export class StockLedgerReportComponent implements OnInit {
     private readonly location: Location,
     private readonly salesService: SalesService,
     private readonly csvService: CsvJsonService,
-    // private readonly stockEntryService: StockEntryService,
+    private readonly stockEntryService: StockEntryService,
   ) {}
 
   ngOnInit() {
@@ -71,11 +73,11 @@ export class StockLedgerReportComponent implements OnInit {
     this.dataSource = new StockLedgerDataSource(this.salesService);
     this.dataSource.loadItems(0, 30, this.filters, this.countFilter, this.dateSearch,);
 
-    // this.stockEntryService.getStockUomList().subscribe(res=>{
-    //   res.forEach(uom => {
-    //     this.stockUomList.push(uom)
-    //   });
-    // })
+    this.stockEntryService.getVoucherTypeList().subscribe(res=>{
+      res.forEach(voucher => {
+        this.VoucherType.push(voucher)
+      });
+    })
 
     this.filteredStockAvailabilityList = this.stockLedgerForm
       .get('item_name')
@@ -133,6 +135,7 @@ export class StockLedgerReportComponent implements OnInit {
       start_date: new FormControl(),
       end_date: new FormControl(),
       voucher: new FormControl(),
+      voucher_type: new FormControl(),
     });
   }
 
@@ -142,6 +145,7 @@ export class StockLedgerReportComponent implements OnInit {
     this.f.excel_item_brand.setValue('');
     this.f.excel_item_group.setValue('');
     this.f.voucher.setValue('');
+    this.f.voucher_type.setValue('');
     this.f.start_date.setValue(null);
     this.f.end_date.setValue(null);
     this.setFilter();
@@ -150,6 +154,12 @@ export class StockLedgerReportComponent implements OnInit {
   getStockAvailabilityOption(option) {
     if (option) {
       return option.item_name;
+    }
+  }
+
+  getVoucherOption(option){
+    if(option){
+      return option.voucher_type
     }
   }
 
@@ -197,6 +207,15 @@ export class StockLedgerReportComponent implements OnInit {
         'like',
         `${this.f.excel_item_brand.value.brand}`,
       ];
+    }
+
+    if (this.f.voucher_type.value) {
+      console.log(this.f.voucher_type.value)
+      this.filters.push([
+        'voucher_type',
+        'like',
+        `${this.f.voucher_type.value}`,
+      ]);
     }
 
     if (this.f.excel_item_group.value) {
@@ -254,6 +273,8 @@ export class StockLedgerReportComponent implements OnInit {
         element.warehouse &&
         element.modified &&
         element.voucher_no &&
+        element.balance_qty &&
+        element.balance_value &&
         element.item.stock_uom 
       ) {
         const obj1: any = {
@@ -268,6 +289,8 @@ export class StockLedgerReportComponent implements OnInit {
           stock_uom: element.item.stock_uom,
           incoming_rate: element.incoming_rate,
           valuation_rate: element.valuation_rate,
+          balance_qty: element.balance_qty,
+          balance_value: element.balance_value
 
         };
         serializedArray.push(obj1);
