@@ -69,7 +69,7 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
 
     this.salesService.getLedgerCount(pageIndex, pageSize, filters, dateSearch).subscribe({
       next: res => {
-        if (res) {
+        if (Object.keys(res).length > 0) {
           res.forEach(element => {
             this.length = element.count;
           });

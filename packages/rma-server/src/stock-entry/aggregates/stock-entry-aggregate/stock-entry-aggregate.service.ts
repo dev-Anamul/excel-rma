@@ -493,7 +493,6 @@ export class StockEntryAggregateService {
        ).pipe(
          switchMap((response: StockLedger) => {
           //  return from(this.stockLedgerService.create(response));
-          console.log(payload.stock_id)
           return from(this.stockLedgerService.deleteOne(
             {
             voucher_no: payload.stock_id
