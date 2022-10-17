@@ -1106,9 +1106,20 @@ export class WarrantyStockEntryAggregateService {
           const array_Update = [];
           array_Update.push(stockEntryObject.items[0]?.serial_no);
           return from(
-            this.serialService.deleteOne({
-              serial_no: { $in: array_Update },
-            }),
+            this.serialService.updateOne(
+              {
+                serial_no: { $in: array_Update },
+              },
+              {
+                $set: {
+                  'warranty.salesWarrantyDate': warranty.received_on,
+                  'warranty.soldOn': warranty.received_on,
+                },
+                $unset: {
+                  delivery_note: '',
+                },
+              },
+            ),
           );
         } else {
           return from(
