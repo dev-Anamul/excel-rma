@@ -21,7 +21,11 @@ import {
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 import { WarrantyClaimDto } from '../../../warranty-claim/entity/warranty-claim/warranty-claim-dto';
 import {
-  CLAIM_CANCEL_DOCUMENT,
+  CANCEL_SERVICE_INVOICES,
+  CANCEL_STOCK_ENTRIES,
+  CLAIM_CANNOT_BE_CANCELLED,
+  REVERT_STATUS_HISTORY,
+  VERDICT,
   WARRANTY_STATUS,
 } from '../../../constants/app-strings';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
@@ -81,10 +85,6 @@ export class WarrantyClaimPoliciesService {
       i++;
     });
     return of(true);
-  }
-
-  validateWarrantyCompany() {
-    // validate company from settings
   }
 
   validateWarrantyCustomer(customer_name: string) {
@@ -157,13 +157,10 @@ export class WarrantyClaimPoliciesService {
     ).pipe(
       switchMap(claim => {
         if (claim) {
-          if (
-            claim?.progress_state?.length &&
-            claim?.completed_delivery_note?.length
-          ) {
+          if (claim?.progress_state?.length) {
             return throwError(
               new BadRequestException(
-                `${CLAIM_CANCEL_DOCUMENT} Cancel Stock Entries`,
+                `${CLAIM_CANNOT_BE_CANCELLED} ${CANCEL_STOCK_ENTRIES}`,
               ),
             );
           }
@@ -171,13 +168,13 @@ export class WarrantyClaimPoliciesService {
         }
         if (
           claim.status_history[claim.status_history?.length - 1].verdict ===
-          'Received from Customer'
+          VERDICT.RECEIVED_FROM_CUSTOMER
         ) {
           return of(true);
         }
         return throwError(
           new BadRequestException(
-            `${CLAIM_CANCEL_DOCUMENT} Revert The Status History`,
+            `${CLAIM_CANNOT_BE_CANCELLED} ${REVERT_STATUS_HISTORY}`,
           ),
         );
       }),
@@ -192,7 +189,7 @@ export class WarrantyClaimPoliciesService {
         if (serviceInvoice) {
           return throwError(
             new BadRequestException(
-              `${CLAIM_CANCEL_DOCUMENT} Cancel Service Invoices`,
+              `${CLAIM_CANNOT_BE_CANCELLED} ${CANCEL_SERVICE_INVOICES}`,
             ),
           );
         }
