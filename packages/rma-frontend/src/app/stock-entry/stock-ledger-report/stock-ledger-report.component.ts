@@ -77,6 +77,7 @@ export class StockLedgerReportComponent implements OnInit {
       res.forEach(voucher => {
         this.VoucherType.push(voucher)
       });
+      this.VoucherType.push("All Vouchers")
     })
 
     this.filteredStockAvailabilityList = this.stockLedgerForm
@@ -205,12 +206,13 @@ export class StockLedgerReportComponent implements OnInit {
     }
 
     if (this.f.voucher_type.value) {
-      console.log(this.f.voucher_type.value)
-      this.filters.push([
-        'voucher_type',
-        'like',
-        `${this.f.voucher_type.value}`,
-      ]);
+      if(this.f.voucher_type.value != "All Vouchers"){
+        this.filters.push([
+          'voucher_type',
+          'like',
+          `${this.f.voucher_type.value}`,
+        ]);
+      }
     }
 
     if (this.f.excel_item_group.value) {
