@@ -419,7 +419,7 @@ export class WarrantyStockEntryAggregateService {
                     stockPayload.warehouse = item.s_warehouse
                       ? item.s_warehouse
                       : item.warehouse;
-                    stockPayload.balance_qty = available_stock;
+                    stockPayload.balance_qty = new_quantity;
                     stockPayload.balance_value = parseFloat(
                       (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
                     stockPayload.item_code = item.item_code;
@@ -476,7 +476,7 @@ export class WarrantyStockEntryAggregateService {
             }else{
               stockPayload.valuation_rate = 0;
             }
-            stockPayload.balance_qty = available_stock;
+            stockPayload.balance_qty = available_stock-item.qty;
             stockPayload.balance_value = parseFloat(
               (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
             stockPayload.posting_date = date;

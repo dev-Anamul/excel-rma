@@ -602,6 +602,7 @@ export class StockEntrySyncService {
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
         const stockPayload = new StockLedger();
+        console.log(deliveryNoteItem.qty)
         stockPayload.name = uuidv4();
         stockPayload.modified = date;
         stockPayload.modified_by = token.email;
@@ -613,7 +614,7 @@ export class StockEntrySyncService {
           stockPayload.incoming_rate = 
             deliveryNoteItem.basic_rate? deliveryNoteItem.basic_rate:rate_of_transfer_item;
           stockPayload.outgoing_rate = 0;
-          stockPayload.balance_qty = available_stock;
+          stockPayload.balance_qty = new_quantity;
           
           if(pre_incoming_rate != stockPayload.incoming_rate){
              
@@ -638,7 +639,7 @@ export class StockEntrySyncService {
             stockPayload.incoming_rate = 0;
             stockPayload.valuation_rate = current_valuation_rate;
             stockPayload.warehouse = deliveryNoteItem.s_warehouse;
-            stockPayload.balance_qty = available_stock;
+            stockPayload.balance_qty = available_stock-(-stockPayload.actual_qty);
             stockPayload.balance_value = parseFloat(
               (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
             stockPayload.outgoing_rate = deliveryNoteItem.basic_rate?

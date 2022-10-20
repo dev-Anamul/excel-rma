@@ -961,7 +961,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       stockPayload.valuation_rate = current_valuation_rate;
     }
     stockPayload.batch_no = '';
-    stockPayload.balance_qty = available_stock;
+    stockPayload.balance_qty = new_quantity;
     stockPayload.balance_value = parseFloat(
       (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
     stockPayload.posting_date = date;

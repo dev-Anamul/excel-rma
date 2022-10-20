@@ -474,7 +474,7 @@ export class DeliveryNoteJobService {
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
-        stockPayload.balance_qty = available_stock;
+        stockPayload.balance_qty = available_stock-(-stockPayload.actual_qty);
         stockPayload.valuation_rate = current_valuation;        
         stockPayload.balance_value = parseFloat(
           (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
