@@ -121,17 +121,19 @@ export const STOCK_AVAILABILITY_DOWNLOAD_HEADERS = [
   'stockAvailability',
 ];
 export const STOCK_LEDGER_REPORT_HEADERS = [
-  'date',
+  'posting_date',
   'item_name',
   'item_code',
   'item_group',
+  'voucher_no',
+  'voucher_type',
   'brand',
   'warehouse',
-  'voucher_no',
   'stock_uom',
   'actual_qty',
-  'incoming_rate',
-  'valuation_rate',
   'balance_qty',
+  'incoming_rate',
+  'outgoing_rate',
+  'valuation_rate',
   'balance_value'
 ]

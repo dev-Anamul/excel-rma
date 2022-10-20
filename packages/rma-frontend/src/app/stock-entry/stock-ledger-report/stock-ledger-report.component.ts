@@ -249,11 +249,11 @@ export class StockLedgerReportComponent implements OnInit {
     );
   }
 
-  downloadServiceInvoices() {
+  downloadStockLedgerReport() {
     const result: any = this.serializeStockAvailabilityObject(
       this.dataSource.data,
     );
-    this.csvService.downloadStockAvailabilityCSV(
+    this.csvService.downloadAsCSV(
       result,
       STOCK_LEDGER_REPORT_HEADERS,
       `${STOCK_LEDGER_CSV_FILE}`,
@@ -262,36 +262,24 @@ export class StockLedgerReportComponent implements OnInit {
   serializeStockAvailabilityObject(data: any) {
     const serializedArray: any = [];
     data.forEach(element => {
-      if (
-        element.item.item_name &&
-        element.item.item_code &&
-        element.item.item_group &&
-        element.item.brand &&
-        element.warehouse &&
-        element.modified &&
-        element.voucher_no &&
-        element.balance_qty &&
-        element.balance_value &&
-        element.item.stock_uom 
-      ) {
         const obj1: any = {
+          modified: element.modified,
           item_name: element.item.item_name,
           item_code: element.item.item_code,
-          item_group: element.item.item_group,
-          brand: element.item.brand,
+          item_group: element.item.item_group?element.item.item_group:'',
+          brand: element.item.brand?element.item.brand:'',
+          voucher: element.voucher_no,
+          voucher_type: element.voucher_type,
+          stock_uom: element.item.stock_uom?element.item.stock_uom:'',
           warehouse: element.warehouse,
           actual_qty: element.actual_qty,
-          modified: element.modified,
-          voucher: element.voucher_no,
-          stock_uom: element.item.stock_uom,
+          balance_qty: element.balance_qty?element.balance_qty:0,
           incoming_rate: element.incoming_rate,
+          outgoing_rate: element.outgoing_rate,
           valuation_rate: element.valuation_rate,
-          balance_qty: element.balance_qty,
-          balance_value: element.balance_value
-
+          balance_value: element.balance_value?element.balance_value:0
         };
         serializedArray.push(obj1);
-      }
     });
     return serializedArray;
   }
