@@ -412,6 +412,7 @@ export class StockEntrySyncService {
                 const where = []
                 const ledger_filter_obj = {
                   voucher_no: `${payload.stock_id}`,
+                  item_code: `${item.item_code}`
                 }
                 const $match: any = ledger_filter_obj;
                 where.push({$match})

@@ -125,6 +125,7 @@ export const WARRANTY_CLAIM_DOCTYPE = 'Warranty Claim';
 export const PURCHASE_RECEIPT = 'purchase_receipt';
 export const DELIVERY_NOTE = 'delivery_note';
 export const DELIVERY_NOTE_DOCTYPE = 'Delivery Note';
+export const RETURN_DELIVERY_NOTE = 'Sales Return';
 export const STOCK_ENTRY_SERIALS_BATCH_SIZE = 6000;
 export const DELIVERY_NOTE_SERIAL_BATCH_SIZE = 6000;
 export const SERIAL_NO_VALIDATION_BATCH_SIZE = 10000;

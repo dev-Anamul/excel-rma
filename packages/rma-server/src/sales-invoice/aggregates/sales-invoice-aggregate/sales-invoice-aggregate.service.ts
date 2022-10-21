@@ -46,6 +46,7 @@ import {
   INVOICE_DELIVERY_STATUS,
   CANCELED_STATUS,
   REJECTED_STATUS,
+  RETURN_DELIVERY_NOTE,
 } from '../../../constants/app-strings';
 import { ACCEPT } from '../../../constants/app-strings';
 import { APP_WWW_FORM_URLENCODED } from '../../../constants/app-strings';
@@ -846,7 +847,8 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
                   where.push({ $sort });
                   return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger:StockLedger)=>{
                     const filter_obj = {
-                      voucher_no : `${sales_invoice.name}`
+                      voucher_no : `${sales_invoice.name}`,
+                      item_code : `${item.item_code}`
                     }
                     const $match: any = filter_obj;
                     const where: any = [];
@@ -969,6 +971,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     // stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
     stockPayload.voucher_no = payload.saleReturnName;
     stockPayload.voucher_detail_no = '';
+    stockPayload.voucher_type = RETURN_DELIVERY_NOTE;
     stockPayload.outgoing_rate = 0;
     stockPayload.qty_after_transaction = stockPayload.actual_qty;
     stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
