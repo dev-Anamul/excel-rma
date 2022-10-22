@@ -193,7 +193,7 @@ export enum WARRANTY_STATUS {
   VALID = 'Valid',
   EXPIRED = 'Expired',
 }
-export const CLAIM_CANCEL_DOCUMENT = 'Claim Cannot be Cancelled';
+export const CLAIM_CANNOT_BE_CANCELLED = 'Claim Cannot be Cancelled';
 export const PURCHASE_RECEIPT_SERIALS_BATCH_SIZE = 20000;
 // changing PURCHASE_RECEIPT_INSERT_MANY_BATCH_COUNT would require change's in data import,
 // make sure to handle them before changing this.
@@ -489,6 +489,7 @@ export const STOCK_ENTRY_PERMISSIONS = {
     delete: ['General Admin'],
   },
 };
+
 export const STOCK_OPERATION = {
   read: 'read',
   create: 'create',
@@ -497,15 +498,11 @@ export const STOCK_OPERATION = {
   delete: 'delete',
   accept: 'accept',
 };
-export const CURRENT_STATUS_VERDICT = {
-  RECEIVED_FROM_CUSTOMER: 'Received from Customer',
-  RECEIVED_FROM_BRANCH: 'Received from Branch',
-  WORK_IN_PROGRESS: 'Work in Progress',
-  SENT_TO_ENG_DEPT: 'Sent to Eng. Dept',
-  SENT_TO_REPAIR_DEPT: 'Sent to Repair Dept',
-  TRANSFERRED: 'Transferred',
-  SOLVED: 'Solved - Repairing done',
-  TO_REPLACE: 'Unsolved - To Replace',
-  UNSOLVED: 'Unsolved - Return to Owner',
-  DELIVER_TO_CUSTOMER: 'Deliver to Customer',
-};
+
+export const CANCEL_STOCK_ENTRIES = 'Cancel Stock Entries';
+export const CANCEL_SERVICE_INVOICES = 'Cancel Service Invoices';
+export const REVERT_STATUS_HISTORY = 'Revert Status History';
+export const INVALID_STOCK_ENTRY_STATUS = 'Invalid Stock Entry Status';
+export const INVALID_STOCK_ENTRY_TYPE = 'Invalid Stock Entry Type';
+export const INVALID_PROGRESS_STATE = 'Invalid Progress State';
+export const STOCK_ENTRY_NOT_FOUND = 'Stock Entry Not Found';

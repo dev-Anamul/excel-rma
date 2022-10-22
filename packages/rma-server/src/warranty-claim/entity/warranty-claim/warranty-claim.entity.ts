@@ -126,9 +126,6 @@ export class WarrantyClaim extends BaseEntity {
   progress_state: any[];
 
   @Column()
-  completed_delivery_note: any[];
-
-  @Column()
   replace_serial: string;
 
   @Column()

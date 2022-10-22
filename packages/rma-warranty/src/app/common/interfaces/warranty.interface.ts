@@ -326,7 +326,6 @@ export interface WarrantyPrintDetails {
   claim_status?: string;
   status_history?: string;
   progress_state?: string;
-  completed_delivery_note?: string;
   damage?: string;
   set?: string;
   service_vouchers?: string;

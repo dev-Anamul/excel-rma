@@ -1,6 +1,5 @@
 import {
   Injectable,
-  Inject,
   BadRequestException,
   NotFoundException,
   NotImplementedException,
@@ -21,35 +20,24 @@ import { StockEntry, StockEntryItem } from '../../entities/stock-entry.entity';
 import { from, throwError, of, forkJoin } from 'rxjs';
 import {
   STOCK_ENTRY,
-  FRAPPE_QUEUE_JOB,
   STOCK_ENTRY_STATUS,
   CREATE_STOCK_ENTRY_JOB,
-  AUTHORIZATION,
-  BEARER_HEADER_VALUE_PREFIX,
   STOCK_OPERATION,
   STOCK_MATERIAL_TRANSFER,
   ACCEPT_STOCK_ENTRY_JOB,
   REJECT_STOCK_ENTRY_JOB,
   APPLICATION_JSON_CONTENT_TYPE,
+  STOCK_ENTRY_NOT_FOUND,
+  INVALID_STOCK_ENTRY_TYPE,
 } from '../../../constants/app-strings';
 import { v4 as uuidv4 } from 'uuid';
-import * as Agenda from 'agenda';
-import { AGENDA_TOKEN } from '../../../system-settings/providers/agenda.provider';
-import {
-  INVALID_FILE,
-  STOCK_ENTRY_TYPE,
-  AGENDA_JOB_STATUS,
-  DOC_NAMES,
-} from '../../../constants/app-strings';
+import { INVALID_FILE, STOCK_ENTRY_TYPE } from '../../../constants/app-strings';
 import { DateTime } from 'luxon';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { ServerSettings } from '../../../system-settings/entities/server-settings/server-settings.entity';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
 
-import {
-  FRAPPE_CLIENT_CANCEL,
-  POST_STOCK_PRINT_ENDPOINT,
-} from '../../../constants/routes';
+import { POST_STOCK_PRINT_ENDPOINT } from '../../../constants/routes';
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import { getUserPermissions } from '../../../constants/agenda-job';
 import { StockEntrySyncService } from '../../../stock-entry/schedular/stock-entry-sync/stock-entry-sync.service';
@@ -59,8 +47,6 @@ import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-led
 @Injectable()
 export class StockEntryAggregateService {
   constructor(
-    @Inject(AGENDA_TOKEN)
-    private readonly agenda: Agenda,
     private readonly stockEntryService: StockEntryService,
     private readonly stockEntryPolicies: StockEntryPoliciesService,
     private readonly http: HttpService,
@@ -121,7 +107,7 @@ export class StockEntryAggregateService {
               stockEntry.stock_id = payload.stock_id;
               if (!stockEntry) {
                 return throwError(
-                  new BadRequestException('Stock Entry not found'),
+                  new BadRequestException(STOCK_ENTRY_NOT_FOUND),
                 );
               }
               const mongoSerials: SerialHash = this.getStockEntryMongoSerials(
@@ -217,13 +203,18 @@ export class StockEntryAggregateService {
     );
   }
 
-  createMongoSerials(stockEntry: StockEntry, mongoSerials: any, req, settings) {
+  createMongoSerials(
+    stockEntry: StockEntry,
+    mongoSerials: any,
+    req: any,
+    settings: any,
+  ) {
     return of({}).pipe(
-      switchMap(obj => {
+      switchMap(() => {
         return from(
           this.serialNoService.insertMany(mongoSerials, { ordered: false }),
         ).pipe(
-          switchMap(success => {
+          switchMap(() => {
             settings
               .pipe(
                 switchMap(settings => {
@@ -241,18 +232,15 @@ export class StockEntryAggregateService {
           }),
         );
       }),
-      catchError(err => {
+      catchError(() => {
         return this.stockEntryPolicies.validateStockEntryQueue(stockEntry).pipe(
           switchMap(() => {
             const serials = [];
             mongoSerials.forEach(entry => serials.push(entry.serial_no));
-            this.serialNoService
-              .deleteMany({
-                serial_no: { $in: serials },
-                'queue_state.stock_entry.parent': stockEntry.uuid,
-              })
-              .then(success => {})
-              .catch(err => {});
+            this.serialNoService.deleteMany({
+              serial_no: { $in: serials },
+              'queue_state.stock_entry.parent': stockEntry.uuid,
+            });
             return throwError(
               new BadRequestException(
                 'Error occurred while adding serials to mongo, please try again.',
@@ -268,24 +256,7 @@ export class StockEntryAggregateService {
     return this.settingService.find().pipe(
       switchMap(serverSettings => {
         const date = new DateTime(serverSettings.timeZone).year;
-        let $match: any;
-        if (payload.stock_entry_type === 'Material Issue') {
-          $match = {
-            stock_entry_type: 'Material Issue',
-          };
-        } else if (payload.stock_entry_type === 'Material Receipt') {
-          $match = {
-            stock_entry_type: 'Material Receipt',
-          };
-        } else if (payload.stock_entry_type === 'R&D Products') {
-          $match = {
-            stock_entry_type: 'R&D Products',
-          };
-        } else if (payload.stock_entry_type === 'Material Transfer') {
-          $match = {
-            stock_entry_type: 'Material Transfer',
-          };
-        }
+        const $match = { stock_entry_type: payload.stock_entry_type };
         return this.stockEntryService.asyncAggregate([{ $match }]).pipe(
           map((result: any) => {
             const maxArray = [];
@@ -295,24 +266,15 @@ export class StockEntryAggregateService {
                 maxArray.push(Number(myArray[2]));
               }
             }
-            const myArray = Math.max(...maxArray);
-            const incrementer = Number(myArray) + 1;
-            let stockid: any;
-            if (payload.stock_entry_type === 'Material Transfer') {
-              stockid = `TROUT-${date}-${incrementer}`;
-            } else if (payload.stock_entry_type === 'Material Receipt') {
-              stockid = `PAQ-${date}-${incrementer}`;
-            } else if (payload.stock_entry_type === 'Material Issue') {
-              stockid = `PCM-${date}-${incrementer}`;
-            } else if ((payload.stock_entry_type = 'R&D Products')) {
-              stockid = `RND-${date}-${incrementer}`;
-            }
-            payload.stock_id = stockid;
+            const incrementor = Number(Math.max(...maxArray)) + 1;
+
             switch (payload.stock_entry_type) {
               case STOCK_ENTRY_TYPE.MATERIAL_RECEIPT:
+                payload.stock_id = `PAQ-${date}-${incrementor}`;
                 return payload;
 
               case STOCK_ENTRY_TYPE.MATERIAL_ISSUE:
+                payload.stock_id = `PCM-${date}-${incrementor}`;
                 payload.items.filter(item => {
                   delete item.basic_rate;
                   return item;
@@ -320,10 +282,15 @@ export class StockEntryAggregateService {
                 return payload;
 
               case STOCK_ENTRY_TYPE.MATERIAL_TRANSFER:
+                payload.stock_id = `TROUT-${date}-${incrementor}`;
                 payload.items.filter(item => {
                   delete item.basic_rate;
                   return item;
                 });
+                return payload;
+
+              case STOCK_ENTRY_TYPE.RnD_PRODUCTS:
+                payload.stock_id = `RND-${date}-${incrementor}`;
                 return payload;
 
               default:
@@ -336,8 +303,8 @@ export class StockEntryAggregateService {
   }
 
   getStockEntryMongoSerials(stockEntry) {
-    let mongoSerials;
-    stockEntry.items.forEach(item => {
+    let mongoSerials: any;
+    stockEntry.items.forEach((item: any) => {
       if (!item.has_serial_no) return;
       item.serial_no.forEach(serial_no => {
         if (stockEntry.stock_entry_type === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT) {
@@ -385,17 +352,17 @@ export class StockEntryAggregateService {
       .pipe(
         switchMap((stockCount: [{ sum: number }]) => {
           if (stockCount.length) {
-            return of(stockCount.find(summedData => summedData).sum);
+            return of(stockCount.find(data => data).sum);
           }
           return of(0);
         }),
       );
   }
 
-  async deleteDraft(uuid: string, req) {
+  async deleteDraft(uuid: string, req: any) {
     const stockEntry = await this.stockEntryService.findOne({ uuid });
     if (!stockEntry) {
-      throw new BadRequestException('Stock Entry Not Found');
+      throw new BadRequestException(STOCK_ENTRY_NOT_FOUND);
     }
     if (stockEntry.status !== STOCK_ENTRY_STATUS.draft) {
       throw new BadRequestException(
@@ -427,7 +394,7 @@ export class StockEntryAggregateService {
       }),
       switchMap(stockEntry => {
         if (!stockEntry) {
-          return throwError(new NotFoundException('Stock Entry not found'));
+          return throwError(new NotFoundException(STOCK_ENTRY_NOT_FOUND));
         }
         return forkJoin({
           stockEntry: this.stockEntryPolicies.validateStockEntryCancel(
@@ -447,7 +414,9 @@ export class StockEntryAggregateService {
         }).pipe(
           switchMap(() => this.updateStockEntryReset(stockEntry)),
           switchMap(() => {
-            if (stockEntry.stock_entry_type === 'Material Transfer') {
+            if (
+              stockEntry.stock_entry_type === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+            ) {
               return this.createTransferStockEntryLedger(
                 stockEntry,
                 req.token,
@@ -477,19 +446,19 @@ export class StockEntryAggregateService {
 
   createTransferStockEntryLedger(
     payload: StockEntry,
-    token,
-    settings,
-    warehouse_type?,
+    token: any,
+    settings: ServerSettings,
+    warehouse_type?: string,
   ) {
     return from(payload.items).pipe(
       concatMap((item: StockEntryItem) => {
-        if (payload.stock_entry_type === 'Material Issue') {
+        if (payload.stock_entry_type === STOCK_ENTRY_TYPE.MATERIAL_ISSUE) {
           warehouse_type = 's_warehouse';
-        }
-        if (payload.stock_entry_type === 'R&D Products') {
+        } else if (payload.stock_entry_type === STOCK_ENTRY_TYPE.RnD_PRODUCTS) {
           warehouse_type = 's_warehouse';
-        }
-        if (payload.stock_entry_type === 'Material Receipt') {
+        } else if (
+          payload.stock_entry_type === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+        ) {
           warehouse_type = 't_warehouse';
         }
         return this.createStockLedgerPayload(
@@ -510,9 +479,9 @@ export class StockEntryAggregateService {
   createStockLedgerPayload(
     stock_entry_no: string,
     deliveryNoteItem: StockEntryItem,
-    token,
+    token: any,
     settings: ServerSettings,
-    warehouse_type?,
+    warehouse_type?: string,
   ) {
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
@@ -555,32 +524,7 @@ export class StockEntryAggregateService {
     );
   }
 
-  cancelERPNextDocument(stockEntry: StockEntry, settings: ServerSettings, req) {
-    return from(stockEntry.names.reverse()).pipe(
-      concatMap(docName => {
-        const doctypeName =
-          stockEntry.stock_entry_type === STOCK_ENTRY_TYPE.RnD_PRODUCTS
-            ? DOC_NAMES.DELIVERY_NOTE
-            : DOC_NAMES.STOCK_ENTRY;
-        return this.cancelDoc(doctypeName, docName, settings, req);
-      }),
-      catchError(err => {
-        if (
-          err?.response?.data?.exc &&
-          err?.response?.data?.exc.includes('Cannot edit cancelled document')
-        ) {
-          return of(true);
-        }
-        return throwError(new BadRequestException(err));
-      }),
-      toArray(),
-      switchMap(() => {
-        return of(stockEntry);
-      }),
-    );
-  }
-
-  saveDraft(payload: StockEntryDto, req) {
+  saveDraft(payload: StockEntryDto, req: any) {
     if (payload.uuid) {
       payload.stock_id = payload.uuid;
       return from(
@@ -607,7 +551,7 @@ export class StockEntryAggregateService {
 
   setStockEntryDefaults(
     payload: StockEntryDto,
-    clientHttpRequest,
+    clientHttpRequest: any,
     settings: ServerSettings,
   ): StockEntry {
     const stockEntry = new StockEntry();
@@ -627,22 +571,7 @@ export class StockEntryAggregateService {
     return stockEntry;
   }
 
-  addToQueueNow(
-    data: {
-      payload: any;
-      token: any;
-      type: string;
-      parent?: string;
-      status?: string;
-    },
-    parentUuid: string,
-  ) {
-    data.parent = parentUuid;
-    data.status = AGENDA_JOB_STATUS.in_queue;
-    return this.agenda.now(FRAPPE_QUEUE_JOB, data);
-  }
-
-  StockEntryFromFile(file, req) {
+  StockEntryFromFile(file: File, req: any) {
     return from(this.getJsonData(file)).pipe(
       switchMap((data: StockEntryDto) => {
         if (!data) {
@@ -653,7 +582,7 @@ export class StockEntryAggregateService {
     );
   }
 
-  getJsonData(file) {
+  getJsonData(file: any) {
     return of(JSON.parse(file.buffer));
   }
 
@@ -667,11 +596,11 @@ export class StockEntryAggregateService {
     );
   }
 
-  getStockEntry(uuid: string, req) {
+  getStockEntry(uuid: string, req: any) {
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
         if (!stockEntry) {
-          return throwError(new BadRequestException('Stock Entry Not Found'));
+          return throwError(new BadRequestException(STOCK_ENTRY_NOT_FOUND));
         }
         return this.stockEntryPolicies
           .validateStockPermission(
@@ -681,30 +610,15 @@ export class StockEntryAggregateService {
           )
           .pipe(switchMap(() => of(stockEntry)));
       }),
-      switchMap(stockEntry => {
-        if (stockEntry.status !== STOCK_ENTRY_STATUS.draft) {
-          stockEntry.items.filter(item => {
-            // if (item.serial_no && item.serial_no.length) {
-            //   item.serial_no = [
-            //     item.serial_no[0],
-            //     item.serial_no[item.serial_no.length - 1],
-            //   ];
-            // }
-
-            return item;
-          });
-        }
-        return of(stockEntry);
-      }),
     );
   }
 
-  rejectStockEntry(uuid: string, req) {
+  rejectStockEntry(uuid: string, req: any) {
     const settings = this.settingService.find();
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
         if (!stockEntry) {
-          return throwError(new BadRequestException('Stock Entry Not Found'));
+          return throwError(new BadRequestException(STOCK_ENTRY_NOT_FOUND));
         }
         return this.stockEntryPolicies
           .validateStockPermission(
@@ -726,7 +640,7 @@ export class StockEntryAggregateService {
       }),
       mergeMap(stockEntry => {
         if (!stockEntry) {
-          return throwError(new BadRequestException('Stock Entry not found.'));
+          return throwError(new BadRequestException(STOCK_ENTRY_NOT_FOUND));
         }
         this.stockEntryService
           .updateOne(
@@ -753,7 +667,7 @@ export class StockEntryAggregateService {
     );
   }
 
-  acceptStockEntry(uuid: string, req) {
+  acceptStockEntry(uuid: string, req: any) {
     const settings = this.settingService.find();
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
@@ -777,15 +691,12 @@ export class StockEntryAggregateService {
       }),
       mergeMap(stockEntry => {
         if (!stockEntry) {
-          return throwError(new BadRequestException('Stock Entry not found.'));
+          return throwError(new BadRequestException(STOCK_ENTRY_NOT_FOUND));
         }
-        this.stockEntryService
-          .updateOne(
-            { uuid },
-            { $set: { status: STOCK_ENTRY_STATUS.delivered } },
-          )
-          .catch(() => {})
-          .then(() => {});
+        this.stockEntryService.updateOne(
+          { uuid },
+          { $set: { status: STOCK_ENTRY_STATUS.delivered } },
+        );
         settings
           .pipe(
             switchMap(settings => {
@@ -802,18 +713,6 @@ export class StockEntryAggregateService {
         return of(stockEntry);
       }),
     );
-  }
-
-  cancelDoc(doctype, docName, settings: ServerSettings, req) {
-    const doc = {
-      doctype,
-      name: docName,
-    };
-    return this.http.post(settings.authServerURL + FRAPPE_CLIENT_CANCEL, doc, {
-      headers: {
-        [AUTHORIZATION]: BEARER_HEADER_VALUE_PREFIX + req.token.accessToken,
-      },
-    });
   }
 
   updateStockEntryReset(stockEntry: StockEntry) {
@@ -848,7 +747,7 @@ export class StockEntryAggregateService {
         return this.resetMaterialTransfer(stockEntry);
 
       default:
-        return throwError(new BadRequestException('Invalid Stock Entry type.'));
+        return throwError(new BadRequestException(INVALID_STOCK_ENTRY_TYPE));
     }
   }
 
@@ -932,7 +831,7 @@ export class StockEntryAggregateService {
         );
 
       default:
-        return throwError(new BadRequestException('Invalid Stock Entry type.'));
+        return throwError(new BadRequestException(INVALID_STOCK_ENTRY_TYPE));
     }
   }
 
@@ -940,7 +839,7 @@ export class StockEntryAggregateService {
     return from(this.stockEntryService.findOne({ uuid })).pipe(
       switchMap(stockEntry => {
         if (!stockEntry) {
-          return throwError(new NotFoundException('Stock Entry not found.'));
+          return throwError(new NotFoundException(STOCK_ENTRY_NOT_FOUND));
         }
         const serials = [];
         const regex = new RegExp(search, 'i');
@@ -971,7 +870,7 @@ export class StockEntryAggregateService {
     );
   }
 
-  syncStockEntryDocument(req, stockPrintBody) {
+  syncStockEntryDocument(req: any, stockPrintBody: any) {
     let url: string = '';
     return this.settingService.find().pipe(
       switchMap(setting => {
