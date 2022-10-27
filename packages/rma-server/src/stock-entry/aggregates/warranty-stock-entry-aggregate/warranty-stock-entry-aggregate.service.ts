@@ -768,6 +768,7 @@ export class WarrantyStockEntryAggregateService {
 
   removeStockEntry(stockEntry: WarrantyStockEntryDto, req) {
     let array_Value;
+    // Condition for checking if array comes as a string convert it into array so the code will only work on array
     if (typeof stockEntry.items[0]?.serial_no === 'string') {
       array_Value = stockEntry.items[0].serial_no;
     } else {
@@ -780,6 +781,7 @@ export class WarrantyStockEntryAggregateService {
       )
       .pipe(
         switchMap(() => {
+          // Both ERPNEXT and Mongo having different spelling case so we didn't remove previous work and adding up new condition for mongo
           if (array_Value !== NON_SERIAL_ITEM) {
             if (array_Value === 'Non serial Item') {
               this.stockEntryService.deleteOne({
@@ -799,6 +801,7 @@ export class WarrantyStockEntryAggregateService {
               if (
                 stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered
               ) {
+                // Condition for checking if array comes as a string convert it into array so the code will only work on array
                 if (typeof stockEntry.items[0]?.serial_no == 'string') {
                   const array_Update = [];
                   array_Update.push(stockEntry.items[0]?.serial_no);
@@ -990,35 +993,6 @@ export class WarrantyStockEntryAggregateService {
           stockEntry.action = CANCEL_WARRANTY_STOCK_ENTRY;
           return this.createStockLedger(stockEntry, req.token, settings,null,null);
         }),
-        // DELETING PROGRESS STATE ON CANCELLING ENTRIES
-        switchMap(() => {
-          const newState = [];
-          return from(
-            this.warrantyService
-              .findOne({
-                uuid: stockEntry.warrantyClaimUuid,
-              })
-              .then(payload => {
-                payload.progress_state.forEach(state => {
-                  newState.push(state);
-                });
-                const index = newState.findIndex(object => {
-                  return (
-                    object.stock_entry_type === stockEntry.stock_entry_type
-                  );
-                });
-                newState.splice(index, 1);
-                this.warrantyService.updateOne(
-                  {
-                    uuid: stockEntry.warrantyClaimUuid,
-                  },
-                  {
-                    $set: { progress_state: newState },
-                  },
-                );
-              }),
-          );
-        }),
       );
   }
 
@@ -1056,6 +1030,7 @@ export class WarrantyStockEntryAggregateService {
       }),
       switchMap(warranty => {
         if (!warranty) {
+        // Condition for checking if array comes as a string convert it into array so the code will only work on array
           if (typeof stockEntryObject.items[0]?.serial_no === 'string') {
             const array_Update = [];
             array_Update.push(stockEntryObject.items[0]?.serial_no);
@@ -1102,6 +1077,7 @@ export class WarrantyStockEntryAggregateService {
             );
           }
         }
+        // Condition for checking if array comes as a string convert it into array so the code will only work on array
         if (typeof stockEntryObject.items[0]?.serial_no === 'string') {
           const array_Update = [];
           array_Update.push(stockEntryObject.items[0]?.serial_no);
