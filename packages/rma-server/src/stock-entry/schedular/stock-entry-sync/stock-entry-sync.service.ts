@@ -603,7 +603,6 @@ export class StockEntrySyncService {
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
         const stockPayload = new StockLedger();
-        console.log(deliveryNoteItem.qty)
         stockPayload.name = uuidv4();
         stockPayload.modified = date;
         stockPayload.modified_by = token.email;
@@ -664,7 +663,7 @@ export class StockEntrySyncService {
         }
         
         if(TRIN_id){
-            stockPayload.transferin_id = TRIN_id;  
+            stockPayload.transfer_in_id = TRIN_id;  
         }
         stockPayload.voucher_no = stock_entry_no;
         stockPayload.voucher_detail_no = '';

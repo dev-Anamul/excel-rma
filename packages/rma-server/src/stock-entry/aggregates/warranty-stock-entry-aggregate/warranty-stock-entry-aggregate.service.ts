@@ -3,8 +3,9 @@ import { StockEntryService } from '../../entities/stock-entry.service';
 import { from, throwError, of, forkJoin } from 'rxjs';
 import {
   CANCEL_WARRANTY_STOCK_ENTRY,
-  CURRENT_STATUS_VERDICT,
   DELIVERY_STATUS,
+  INVALID_PROGRESS_STATE,
+  INVALID_STOCK_ENTRY_STATUS,
   NON_SERIAL_ITEM,
   STOCK_ENTRY,
   STOCK_ENTRY_STATUS,
@@ -46,12 +47,12 @@ export class WarrantyStockEntryAggregateService {
     private readonly stockLedgerService: StockLedgerService,
   ) {}
 
-  createDeliveryNote(deliveryNotes: WarrantyStockEntryDto[], req) {
+  createDeliveryNote(deliveryNotes: WarrantyStockEntryDto[], req: any) {
     const warrantyPayload: any = {};
     let deliveryNotesList: any[] = [];
     let settingState = {} as ServerSettings;
-    let deliveredStockId;
-    let returnedStockId;
+    let deliveredStockId: string;
+    let returnedStockId: string;
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);
@@ -174,7 +175,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  makeStatusHistory(uuid: string, req) {
+  makeStatusHistory(uuid: string, req: any) {
     return forkJoin({
       warranty: this.warrantyService.findOne(uuid),
       settingState: this.settingService.find(),
@@ -222,7 +223,7 @@ export class WarrantyStockEntryAggregateService {
             statusHistoryDetails.delivery_status = DELIVERY_STATUS.REPAIRED;
             break;
           default:
-            return throwError(new BadRequestException(`not valid type`));
+            return throwError(new BadRequestException(INVALID_PROGRESS_STATE));
         }
         return this.warrantyAggregateService.addStatusHistory(
           statusHistoryDetails,
@@ -505,7 +506,11 @@ export class WarrantyStockEntryAggregateService {
     return result.toFixed(2)
   }
 
-  makeStockEntry(deliveryNote: WarrantyStockEntryDto, req, settings) {
+  makeStockEntry(
+    deliveryNote: WarrantyStockEntryDto,
+    req: any,
+    settings: ServerSettings,
+  ) {
     const stockEntry: any = this.setStockEntryDefaults(
       deliveryNote,
       req,
@@ -519,7 +524,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  updateProgressState(deliveryNote) {
+  updateProgressState(deliveryNote: any) {
     deliveryNote.isSync = false;
     let serialData = {} as any;
     switch (deliveryNote.stock_entry_type) {
@@ -538,7 +543,7 @@ export class WarrantyStockEntryAggregateService {
         };
         break;
       default:
-        return throwError(new BadRequestException(`not valid type`));
+        return throwError(new BadRequestException(INVALID_STOCK_ENTRY_STATUS));
     }
     return from(
       this.warrantyService.updateOne(
@@ -554,11 +559,11 @@ export class WarrantyStockEntryAggregateService {
   }
 
   createSerialNoHistory(
-    deliveryNote,
-    deliveredStockId,
-    returnedStockId,
-    settings,
-    req,
+    deliveryNote: any,
+    deliveredStockId: string,
+    returnedStockId: string,
+    settings: ServerSettings,
+    req: any,
   ) {
     if (deliveryNote.isSync) {
       return of({});
@@ -611,7 +616,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  syncProgressState(uuid, deliveryNote) {
+  syncProgressState(uuid: string, deliveryNote: any) {
     return from(
       this.warrantyService.updateOne(
         {
@@ -628,7 +633,11 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  updateSerials(deliveryNote, serial_no, settings) {
+  updateSerials(
+    deliveryNote: any,
+    serial_no: string,
+    settings: ServerSettings,
+  ) {
     if (deliveryNote.isSync) {
       return of(true);
     }
@@ -659,55 +668,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  checkDeliveryNoteState(deliveryNotesList) {
-    const correctDeliveryNotes: WarrantyStockEntryDto[] = [];
-    return from(deliveryNotesList).pipe(
-      concatMap((deliveryNote: any) => {
-        let query;
-        if (deliveryNote.singleDeliveryNote.items[0].serial_no) {
-          query = {
-            uuid: deliveryNote.singleDeliveryNote.warrantyClaimUuid,
-            completed_delivery_note: {
-              $elemMatch: {
-                'items.0.serial_no':
-                  deliveryNote.singleDeliveryNote.items[0].serial_no,
-                'items.0.item_code':
-                  deliveryNote.singleDeliveryNote.items[0].item_code,
-              },
-            },
-          };
-        } else {
-          query = {
-            uuid: deliveryNote.singleDeliveryNote.warrantyClaimUuid,
-            completed_delivery_note: {
-              $elemMatch: {
-                'items.0.item_code':
-                  deliveryNote.singleDeliveryNote.items[0].item_code,
-              },
-            },
-          };
-        }
-        return from(this.warrantyService.find(query)).pipe(
-          switchMap(res => {
-            if (!res.length) {
-              correctDeliveryNotes.push(deliveryNote);
-              return of();
-            }
-            return of();
-          }),
-        );
-      }),
-      toArray(),
-      switchMap(() => {
-        if (correctDeliveryNotes.length) {
-          return of(correctDeliveryNotes);
-        }
-        return of([]);
-      }),
-    );
-  }
-
-  updateSerialItem(payload, serial_no, settings) {
+  updateSerialItem(payload: any, serial_no: string, settings: ServerSettings) {
     return from(
       this.warrantyService.findOne(
         { uuid: payload.warrantyClaimUuid },
@@ -918,11 +879,7 @@ export class WarrantyStockEntryAggregateService {
           );
         }),
         switchMap(() => {
-          return this.revertStatusHistory(
-            stockEntry.warrantyClaimUuid,
-            stockEntry.customer,
-            stockEntry.items[0]?.serial_no[0],
-          );
+          return this.revertStatusHistory(stockEntry.warrantyClaimUuid);
         }),
         switchMap(() => {
           return from(
@@ -930,9 +887,6 @@ export class WarrantyStockEntryAggregateService {
               { uuid: stockEntry.warrantyClaimUuid },
               {
                 $pull: {
-                  completed_delivery_note: {
-                    name: stockEntry.stock_voucher_number,
-                  },
                   progress_state: {
                     stock_voucher_number: stockEntry.stock_voucher_number,
                   },
@@ -996,13 +950,13 @@ export class WarrantyStockEntryAggregateService {
       );
   }
 
-  revertStatusHistory(uuid: string, customer: string, serial: any) {
+  revertStatusHistory(uuid: string) {
     return from(
       this.warrantyService.findOne({
         uuid,
         status_history: {
           $elemMatch: {
-            verdict: CURRENT_STATUS_VERDICT.DELIVER_TO_CUSTOMER,
+            verdict: VERDICT.DELIVER_TO_CUSTOMER,
           },
         },
       }),

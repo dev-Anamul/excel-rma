@@ -599,7 +599,6 @@ export class WarrantyService {
       switchMap(bulkInvoices => {
         [
           'progress_state',
-          'completed_delivery_note',
           'set',
           'damaged_serial',
           'damage_warehouse',

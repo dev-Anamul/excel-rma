@@ -11,7 +11,7 @@ export interface ListingData {
   item_brand: string;
   actual_qty: number;
   stock_uom: string;
-  transferin_id: string;
+  transfer_in_id: string;
   voucher_no: string;
   balance_qty: number;
   incoming_rate: number;
@@ -56,8 +56,8 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
         map((items: ListingData[]) => {
           this.data = items;
           items.forEach(item => {
-            if(item.transferin_id){
-              item.voucher_no = item.transferin_id;
+            if(item.transfer_in_id){
+              item.voucher_no = item.transfer_in_id;
             }
           })
           return items;
