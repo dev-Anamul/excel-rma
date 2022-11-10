@@ -48,7 +48,13 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(pageIndex = 0, pageSize = 30, filters = [], countFilter = [], dateSearch='') {
+  loadItems(
+    pageIndex = 0,
+    pageSize = 30,
+    filters = [],
+    countFilter = [],
+    dateSearch = '',
+  ) {
     this.loadingSubject.next(true);
     this.salesService
       .getStockLedger(pageIndex, pageSize, filters, dateSearch)
@@ -56,10 +62,10 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
         map((items: ListingData[]) => {
           this.data = items;
           items.forEach(item => {
-            if(item.transfer_in_id){
+            if (item.transfer_in_id) {
               item.voucher_no = item.transfer_in_id;
             }
-          })
+          });
           return items;
         }),
         catchError(() => of([])),
@@ -67,17 +73,19 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
       )
       .subscribe(items => this.itemSubject.next(items));
 
-    this.salesService.getLedgerCount(pageIndex, pageSize, filters, dateSearch).subscribe({
-      next: res => {
-        if (Object.keys(res).length > 0) {
-          res.forEach(element => {
-            this.length = element.count;
-          });
-        } else {
-          this.length = 0;
-        }
-      },
-    });
+    this.salesService
+      .getLedgerCount(pageIndex, pageSize, filters, dateSearch)
+      .subscribe({
+        next: res => {
+          if (Object.keys(res).length > 0) {
+            res.forEach(element => {
+              this.length = element.count;
+            });
+          } else {
+            this.length = 0;
+          }
+        },
+      });
   }
 
   getData() {

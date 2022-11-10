@@ -16,7 +16,9 @@ export class StockLedgerService {
     return await this.stockLedgerRepository.find(query);
   }
   async distinct() {
-    return await this.stockLedgerRepository.distinct('voucher_type', {voucher_type:{$ne:null}});
+    return await this.stockLedgerRepository.distinct('voucher_type', {
+      voucher_type: { $ne: null },
+    });
   }
 
   async create(stockLedger: StockLedger) {

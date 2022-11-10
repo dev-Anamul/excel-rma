@@ -252,22 +252,28 @@ export class WarrantyStockEntryAggregateService {
     deliveredStockId,
     returnedStockId,
   ) {
-     if(payload.action === CANCEL_WARRANTY_STOCK_ENTRY){
-        return from(this.stockLedgerService.deleteOne(
-          {
-            voucher_no: payload.stock_id
-          }
-        ));
-     }else{
-     return this.createStockLedgerPayload(payload, token, settings,deliveredStockId,returnedStockId).pipe(
-       switchMap((stockLedgers: StockLedger[]) => {
-         return from(stockLedgers).pipe(
-           switchMap(stockLedger => {
-             return from(this.stockLedgerService.create(stockLedger));
-           }),
-         );
-       }),
-     );
+    if (payload.action === CANCEL_WARRANTY_STOCK_ENTRY) {
+      return from(
+        this.stockLedgerService.deleteOne({
+          voucher_no: payload.stock_id,
+        }),
+      );
+    } else {
+      return this.createStockLedgerPayload(
+        payload,
+        token,
+        settings,
+        deliveredStockId,
+        returnedStockId,
+      ).pipe(
+        switchMap((stockLedgers: StockLedger[]) => {
+          return from(stockLedgers).pipe(
+            switchMap(stockLedger => {
+              return from(this.stockLedgerService.create(stockLedger));
+            }),
+          );
+        }),
+      );
     }
   }
 
@@ -278,19 +284,18 @@ export class WarrantyStockEntryAggregateService {
     deliveredStockId,
     returnedStockId,
   ) {
-    
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
         return from(res.items).pipe(
           concatMap((item: any) => {
-            var available_stock;
-            //fetch total qty in warehouse
+            let available_stock;
+            // fetch total qty in warehouse
             const filter_query = [
-              [ 'item_code', 'like', `${item.item_code}` ],
-              [ 'warehouse', 'like', `${item.s_warehouse}` ],
-              [ 'actual_qty', '!=', 0 ]
-            ]
+              ['item_code', 'like', `${item.item_code}`],
+              ['warehouse', 'like', `${item.s_warehouse}`],
+              ['actual_qty', '!=', 0],
+            ];
             const filter_Obj: any = {};
             filter_query.forEach(element => {
               if (element[0] === 'item_code') {
@@ -303,207 +308,245 @@ export class WarrantyStockEntryAggregateService {
                 filter_Obj.stockAvailability = { $gt: element[2] };
               }
             });
-              const obj: any = {
-                _id: {
-                  warehouse: '$warehouse',
-                  item_code: '$item_code',
-                },
-                stockAvailability: {
-                  $sum: '$actual_qty',
-                },
-              };
-              const $group: any = obj;
-              const where: any = [];
-              where.push({ $group });
-              const $lookup: any = {
-                from: 'item',
-                localField: '_id.item_code',
-                foreignField: 'item_code',
-                as: 'item',
-              };
-              where.push({ $lookup });
-              const $match: any = filter_Obj;
-              where.push({ $match });
-              const $unwind: any = '$item';
-              where.push({ $unwind });
-              return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
-                available_stock = data[0].stockAvailability?
-                         data[0].stockAvailability:0;
-                         
-                // Returned
-                if(res.stock_entry_type == STOCK_ENTRY_STATUS.returned){
-              
-                var current_valuation_rate;
-                var new_quantity;
-                var pre_incoming_rate;
-                var incoming_rate;
+            const obj: any = {
+              _id: {
+                warehouse: '$warehouse',
+                item_code: '$item_code',
+              },
+              stockAvailability: {
+                $sum: '$actual_qty',
+              },
+            };
+            const $group: any = obj;
+            const where: any = [];
+            where.push({ $group });
+            const $lookup: any = {
+              from: 'item',
+              localField: '_id.item_code',
+              foreignField: 'item_code',
+              as: 'item',
+            };
+            where.push({ $lookup });
+            const $match: any = filter_Obj;
+            where.push({ $match });
+            const $unwind: any = '$item';
+            where.push({ $unwind });
+            return this.stockLedgerService.asyncAggregate(where).pipe(
+              switchMap(data => {
+                available_stock = data[0].stockAvailability
+                  ? data[0].stockAvailability
+                  : 0;
 
-                //fetch created invoive
-                const where = []
-                ;
-                const ledger_filter_obj = {
-                  voucher_no: `${item.sales_invoice_name}`
+                // Returned
+                if (res.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+                  let current_valuation_rate;
+                  let new_quantity;
+                  let pre_incoming_rate;
+                  let incoming_rate;
+
+                  // fetch created invoive
+                  const where = [];
+                  const ledger_filter_obj = {
+                    voucher_no: `${item.sales_invoice_name}`,
+                  };
+                  const $match: any = ledger_filter_obj;
+                  where.push({ $match });
+                  return this.stockLedgerService.asyncAggregate(where).pipe(
+                    switchMap((created_sales_invoice: StockLedger) => {
+                      // fetch current valuation of wrehouse
+                      const where = [];
+                      const ledger_filter_obj = {
+                        item_code: `${item.item_code}`,
+                        warehouse: `${item.s_warehouse}`,
+                        actual_qty: { $gt: 0 },
+                      };
+                      const $match: any = ledger_filter_obj;
+                      where.push({ $match });
+                      const $sort: any = {
+                        modified: -1,
+                      };
+                      where.push({ $sort });
+                      return this.stockLedgerService.asyncAggregate(where).pipe(
+                        switchMap(latest_stock_ledger => {
+                          const stockPayload = new StockLedger();
+
+                          // treated as sold from our warehoue
+                          if (Object.keys(created_sales_invoice).length > 0) {
+                            incoming_rate = created_sales_invoice[0]
+                              .valuation_rate
+                              ? created_sales_invoice[0].valuation_rate
+                              : latest_stock_ledger[0].valuation_rate;
+                            stockPayload.incoming_rate = incoming_rate
+                              ? incoming_rate
+                              : 0;
+                            current_valuation_rate = latest_stock_ledger[0]
+                              .valuation_rate
+                              ? latest_stock_ledger[0].valuation_rate
+                              : incoming_rate;
+                            pre_incoming_rate = latest_stock_ledger[0]
+                              .incoming_rate
+                              ? latest_stock_ledger[0].incoming_rate
+                              : 0;
+                          }
+                          // treated as third party
+                          else {
+                            current_valuation_rate = latest_stock_ledger[0]
+                              .valuation_rate
+                              ? latest_stock_ledger[0].valuation_rate
+                              : incoming_rate;
+                            pre_incoming_rate = latest_stock_ledger[0]
+                              .incoming_rate
+                              ? latest_stock_ledger[0].incoming_rate
+                              : incoming_rate;
+                            stockPayload.incoming_rate = current_valuation_rate
+                              ? current_valuation_rate
+                              : 0;
+                          }
+                          new_quantity = available_stock + item.qty;
+
+                          stockPayload.name = uuidv4();
+                          stockPayload.modified = date;
+                          stockPayload.modified_by = token.email;
+                          // ledger will not be made on cancellation we can remove cancellation work
+                          if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
+                            stockPayload.voucher_no = res.stock_id;
+                            if (item.qty < 0) {
+                              item.qty = -item.qty;
+                            }
+                            stockPayload.actual_qty = -item.qty;
+                            stockPayload.valuation_rate =
+                              stockPayload.incoming_rate;
+                            stockPayload.batch_no = '';
+                          } else {
+                            stockPayload.actual_qty = 1;
+                            if (
+                              pre_incoming_rate !== stockPayload.incoming_rate
+                            ) {
+                              stockPayload.valuation_rate = parseFloat(
+                                this.calculateValuationRate(
+                                  available_stock,
+                                  stockPayload.actual_qty,
+                                  stockPayload.incoming_rate,
+                                  current_valuation_rate,
+                                  new_quantity,
+                                ),
+                              );
+                            } else {
+                              stockPayload.valuation_rate = current_valuation_rate;
+                            }
+                            stockPayload.actual_qty = item.qty;
+                            stockPayload.voucher_no = returnedStockId;
+                            stockPayload.batch_no = '';
+                          }
+                          stockPayload.warehouse = item.s_warehouse
+                            ? item.s_warehouse
+                            : item.warehouse;
+                          stockPayload.balance_qty = new_quantity;
+                          stockPayload.balance_value = parseFloat(
+                            (
+                              stockPayload.balance_qty *
+                              stockPayload.valuation_rate
+                            ).toFixed(2),
+                          );
+                          stockPayload.item_code = item.item_code;
+                          stockPayload.posting_date = date;
+                          stockPayload.posting_time = date;
+                          stockPayload.voucher_type = STOCK_ENTRY;
+                          stockPayload.voucher_detail_no = '';
+                          stockPayload.outgoing_rate = 0;
+                          stockPayload.company = settings.defaultCompany;
+                          stockPayload.fiscal_year = fiscalYear;
+                          return of(stockPayload);
+                        }),
+                      );
+                    }),
+                  );
                 }
-                const $match: any = ledger_filter_obj;
-                where.push({$match})
-                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((created_sales_invoice:StockLedger)=>{
-                  
+                // Delivered
+                if (res.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
                   // fetch current valuation of wrehouse
-                  const where = []
+                  const where = [];
                   const ledger_filter_obj = {
                     item_code: `${item.item_code}`,
                     warehouse: `${item.s_warehouse}`,
-                    actual_qty: {'$gt':0},
-                  }
+                    actual_qty: { $gt: 0 },
+                  };
                   const $match: any = ledger_filter_obj;
-                  where.push({$match})
+                  where.push({ $match });
                   const $sort: any = {
-                    'modified': -1,
+                    modified: -1,
                   };
                   where.push({ $sort });
-                return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
+                  return this.stockLedgerService.asyncAggregate(where).pipe(
+                    switchMap(latest_stock_ledger => {
+                      const stockPayload = new StockLedger();
+                      stockPayload.name = uuidv4();
+                      stockPayload.modified = date;
+                      stockPayload.modified_by = token.email;
+                      // ledger will not be made on cancellation we can remove cancellation work
+                      if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
+                        stockPayload.voucher_no = res.stock_id;
+                        stockPayload.actual_qty = item.qty;
+                        stockPayload.batch_no = '';
+                        stockPayload.incoming_rate = 0;
+                      } else {
+                        stockPayload.actual_qty = -item.qty;
+                        stockPayload.voucher_no = deliveredStockId;
+                        stockPayload.batch_no = '';
+                        stockPayload.incoming_rate = 0;
+                      }
+                      stockPayload.warehouse = item.s_warehouse
+                        ? item.s_warehouse
+                        : item.warehouse;
+                      stockPayload.item_code = item.item_code;
+                      if (
+                        latest_stock_ledger &&
+                        latest_stock_ledger[0].valuation_rate > 0
+                      ) {
+                        stockPayload.valuation_rate =
+                          latest_stock_ledger[0].valuation_rate;
+                      } else {
+                        stockPayload.valuation_rate = 0;
+                      }
+                      stockPayload.balance_qty = available_stock - item.qty;
+                      stockPayload.balance_value = parseFloat(
+                        (
+                          stockPayload.balance_qty * stockPayload.valuation_rate
+                        ).toFixed(2),
+                      );
+                      stockPayload.posting_date = date;
+                      stockPayload.posting_time = date;
+                      stockPayload.voucher_type = STOCK_ENTRY;
+                      stockPayload.voucher_detail_no = '';
 
-                  const stockPayload = new StockLedger();
-              
-                   // treated as sold from our warehoue
-                   if(Object.keys(created_sales_invoice).length > 0){
-                     incoming_rate = created_sales_invoice[0].valuation_rate?
-                           created_sales_invoice[0].valuation_rate:latest_stock_ledger[0].valuation_rate;
-                     stockPayload.incoming_rate = incoming_rate?
-                            incoming_rate:0;
-                     current_valuation_rate = latest_stock_ledger[0].valuation_rate?
-                           latest_stock_ledger[0].valuation_rate:incoming_rate;
-                     pre_incoming_rate = latest_stock_ledger[0].incoming_rate?
-                           latest_stock_ledger[0].incoming_rate:0;
-                   }
-                   // treated as third party
-                   else{
-                     current_valuation_rate = latest_stock_ledger[0].valuation_rate?
-                         latest_stock_ledger[0].valuation_rate:incoming_rate;
-                     pre_incoming_rate = latest_stock_ledger[0].incoming_rate?
-                         latest_stock_ledger[0].incoming_rate:incoming_rate;
-                     stockPayload.incoming_rate = current_valuation_rate?
-                     current_valuation_rate:0;
-                   }
-                   new_quantity = available_stock+item.qty
-                   
-                    stockPayload.name = uuidv4();
-                    stockPayload.modified = date;
-                    stockPayload.modified_by = token.email;
-                   // ledger will not be made on cancellation we can remove cancellation work
-                    if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
-                      stockPayload.voucher_no = res.stock_id;
-                      if (item.qty < 0) {
-                        item.qty = -item.qty;
-                      }
-                      stockPayload.actual_qty = -item.qty;
-                      stockPayload.valuation_rate = stockPayload.incoming_rate;
-                      stockPayload.batch_no = '';
-                    } else {
-                      stockPayload.actual_qty = 1;
-                      if(pre_incoming_rate != stockPayload.incoming_rate){
-                        stockPayload.valuation_rate = parseFloat(this.calculateValuationRate(
-                          available_stock,
-                          stockPayload.actual_qty,
-                          stockPayload.incoming_rate,
-                          current_valuation_rate,
-                          new_quantity
-                          )); 
-                        }
-                      else{
-                        stockPayload.valuation_rate = current_valuation_rate;
-                      }
-                      stockPayload.actual_qty = item.qty;
-                      stockPayload.voucher_no = returnedStockId;
-                      stockPayload.batch_no = '';
-                    }
-                    stockPayload.warehouse = item.s_warehouse
-                      ? item.s_warehouse
-                      : item.warehouse;
-                    stockPayload.balance_qty = new_quantity;
-                    stockPayload.balance_value = parseFloat(
-                      (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
-                    stockPayload.item_code = item.item_code;
-                    stockPayload.posting_date = date;
-                    stockPayload.posting_time = date;
-                    stockPayload.voucher_type = STOCK_ENTRY;
-                    stockPayload.voucher_detail_no = '';
-                    stockPayload.outgoing_rate = 0;
-                    stockPayload.company = settings.defaultCompany;
-                    stockPayload.fiscal_year = fiscalYear;
-            return of(stockPayload);
-          }))
-        }))
-      }
-      // Delivered
-      if(res.stock_entry_type == STOCK_ENTRY_STATUS.delivered){
-        
-        // fetch current valuation of wrehouse
-        const where = []
-        const ledger_filter_obj = {
-          item_code: `${item.item_code}`,
-          warehouse: `${item.s_warehouse}`,
-          actual_qty: {'$gt':0},
-        }
-        const $match: any = ledger_filter_obj;
-        where.push({$match})
-        const $sort: any = {
-          'modified': -1,
-        };
-        where.push({ $sort });
-        return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_stock_ledger)=>{
-            const stockPayload = new StockLedger();
-            stockPayload.name = uuidv4();
-            stockPayload.modified = date;
-            stockPayload.modified_by = token.email;
-            // ledger will not be made on cancellation we can remove cancellation work
-            if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
-              stockPayload.voucher_no = res.stock_id;
-              stockPayload.actual_qty = item.qty;
-              stockPayload.batch_no = '';
-              stockPayload.incoming_rate = 0;
-            }else{
-              stockPayload.actual_qty = -item.qty;
-              stockPayload.voucher_no = deliveredStockId;
-              stockPayload.batch_no = '';
-              stockPayload.incoming_rate = 0;
-            }
-            stockPayload.warehouse = item.s_warehouse
-              ? item.s_warehouse
-              : item.warehouse;
-            stockPayload.item_code = item.item_code;
-            if(latest_stock_ledger && latest_stock_ledger[0].valuation_rate > 0){
-              stockPayload.valuation_rate = latest_stock_ledger[0].valuation_rate;
-            }else{
-              stockPayload.valuation_rate = 0;
-            }
-            stockPayload.balance_qty = available_stock-item.qty;
-            stockPayload.balance_value = parseFloat(
-              (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
-            stockPayload.posting_date = date;
-            stockPayload.posting_time = date;
-            stockPayload.voucher_type = STOCK_ENTRY;
-            stockPayload.voucher_detail_no = '';
-            
-            stockPayload.outgoing_rate = 0;
-            stockPayload.company = settings.defaultCompany;
-            stockPayload.fiscal_year = fiscalYear;
-            return of(stockPayload);
-          }))
-      }
-      }))
-    }),
-      toArray(),
-    switchMap(data => {
-          return of(data);
-        }),
-      );
-    }),
+                      stockPayload.outgoing_rate = 0;
+                      stockPayload.company = settings.defaultCompany;
+                      stockPayload.fiscal_year = fiscalYear;
+                      return of(stockPayload);
+                    }),
+                  );
+                }
+              }),
+            );
+          }),
+          toArray(),
+          switchMap(data => {
+            return of(data);
+          }),
+        );
+      }),
     );
   }
-  calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
-    var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
-    return result.toFixed(2)
+  calculateValuationRate(
+    preQty,
+    incomingQty,
+    incomingRate,
+    preValuation,
+    totalQty,
+  ) {
+    const result =
+      (preQty * preValuation + incomingQty * incomingRate) / totalQty;
+    return result.toFixed(2);
   }
 
   makeStockEntry(
@@ -945,7 +988,13 @@ export class WarrantyStockEntryAggregateService {
         }),
         switchMap(settings => {
           stockEntry.action = CANCEL_WARRANTY_STOCK_ENTRY;
-          return this.createStockLedger(stockEntry, req.token, settings,null,null);
+          return this.createStockLedger(
+            stockEntry,
+            req.token,
+            settings,
+            null,
+            null,
+          );
         }),
       );
   }
@@ -984,7 +1033,7 @@ export class WarrantyStockEntryAggregateService {
       }),
       switchMap(warranty => {
         if (!warranty) {
-        // Condition for checking if array comes as a string convert it into array so the code will only work on array
+          // Condition for checking if array comes as a string convert it into array so the code will only work on array
           if (typeof stockEntryObject.items[0]?.serial_no === 'string') {
             const array_Update = [];
             array_Update.push(stockEntryObject.items[0]?.serial_no);

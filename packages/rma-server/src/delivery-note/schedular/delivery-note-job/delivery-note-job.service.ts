@@ -332,18 +332,17 @@ export class DeliveryNoteJobService {
         );
       }
       const filter_obj = {
-        item_code : `${item.item_code}`,
-        warehouse: `${payload.set_warehouse}`
-      }
+        item_code: `${item.item_code}`,
+        warehouse: `${payload.set_warehouse}`,
+      };
       const $match: any = filter_obj;
       const where: any = [];
-      where.push({$match});
+      where.push({ $match });
       const $sort: any = {
-        'modified': -1,
+        modified: -1,
       };
       where.push({ $sort });
-      this.stockLedgerService.asyncAggregate(where).subscribe(ledger=>{
-
+      this.stockLedgerService.asyncAggregate(where).subscribe(ledger => {
         items.push({
           item_code: item.item_code,
           item_name: item.item_name,
@@ -359,95 +358,98 @@ export class DeliveryNoteJobService {
           delivery_note: response.name,
         });
         this.salesInvoiceService
-         .updateOne(
-           { name: sales_invoice_name },
-           {
-             $push: {
-               delivery_note_items: { $each: items },
-               delivery_note_names: response.name,
-             },
-           },
-         )
-         .then(success => {})
-         .catch(error => {});
-      })
-  });
+          .updateOne(
+            { name: sales_invoice_name },
+            {
+              $push: {
+                delivery_note_items: { $each: items },
+                delivery_note_names: response.name,
+              },
+            },
+          )
+          .then(success => {})
+          .catch(error => {});
+      });
+    });
 
     from(payload.items).forEach((item: DeliveryNoteItemDto) => {
-
       // fetch latest incoming item's ledger report
       const filter_obj = {
-        item_code : `${item.item_code}`,
+        item_code: `${item.item_code}`,
         warehouse: `${payload.set_warehouse}`,
-        actual_qty: {'$gt':0}
-      }
+        actual_qty: { $gt: 0 },
+      };
       const $match: any = filter_obj;
       const where: any = [];
-      where.push({$match});
+      where.push({ $match });
       const $sort: any = {
-        'modified': -1,
+        modified: -1,
       };
       where.push({ $sort });
-      return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((latest_ledger:StockLedger)=>{
-        //fetch available stock
-        const filter_query = [
-          [ 'item_code', 'like', `${item.item_code}` ],
-          [ 'warehouse', 'like', `${payload.set_warehouse}` ],
-          [ 'actual_qty', '!=', 0 ]
-        ]
-    
-        const filter_Obj: any = {};
-        filter_query.forEach(element => {
-          if (element[0] === 'item_code') {
-            filter_Obj['item.item_code'] = element[2];
-          }
-          if (element[0] === 'warehouse') {
-            filter_Obj['_id.warehouse'] = element[2];
-          }
-          if (element[1] === '!=') {
-            filter_Obj.stockAvailability = { $gt: element[2] };
-          }
-        });
-          const obj: any = {
-            _id: {
-              warehouse: '$warehouse',
-              item_code: '$item_code',
-            },
-            stockAvailability: {
-              $sum: '$actual_qty',
-            },
-          };
-          const $group: any = obj;
-          const where: any = [];
-          where.push({ $group });
-          const $lookup: any = {
-            from: 'item',
-            localField: '_id.item_code',
-            foreignField: 'item_code',
-            as: 'item',
-          };
-          where.push({ $lookup });
-          const $unwind: any = '$item';
-          where.push({ $unwind });
-          const $match: any = filter_Obj;
-          where.push({ $match });
-          return this.stockLedgerService.asyncAggregate(where).pipe(switchMap((data)=>{
+      return this.stockLedgerService
+        .asyncAggregate(where)
+        .pipe(
+          switchMap((latest_ledger: StockLedger) => {
+            // fetch available stock
+            const filter_query = [
+              ['item_code', 'like', `${item.item_code}`],
+              ['warehouse', 'like', `${payload.set_warehouse}`],
+              ['actual_qty', '!=', 0],
+            ];
 
-            return this.createStockLedgerPayload(
-              { warehouse: payload.set_warehouse, deliveryNoteItem: item },
-              token,
-              settings,
-              latest_ledger,
-              data
-            )
-              .pipe(
-                switchMap((response: StockLedger) => {
-                  return from(this.stockLedgerService.create(response));
-                }),
-               )
-             }))
-          }))         
-           .subscribe();
+            const filter_Obj: any = {};
+            filter_query.forEach(element => {
+              if (element[0] === 'item_code') {
+                filter_Obj['item.item_code'] = element[2];
+              }
+              if (element[0] === 'warehouse') {
+                filter_Obj['_id.warehouse'] = element[2];
+              }
+              if (element[1] === '!=') {
+                filter_Obj.stockAvailability = { $gt: element[2] };
+              }
+            });
+            const obj: any = {
+              _id: {
+                warehouse: '$warehouse',
+                item_code: '$item_code',
+              },
+              stockAvailability: {
+                $sum: '$actual_qty',
+              },
+            };
+            const $group: any = obj;
+            const where: any = [];
+            where.push({ $group });
+            const $lookup: any = {
+              from: 'item',
+              localField: '_id.item_code',
+              foreignField: 'item_code',
+              as: 'item',
+            };
+            where.push({ $lookup });
+            const $unwind: any = '$item';
+            where.push({ $unwind });
+            const $match: any = filter_Obj;
+            where.push({ $match });
+            return this.stockLedgerService.asyncAggregate(where).pipe(
+              switchMap(data => {
+                return this.createStockLedgerPayload(
+                  { warehouse: payload.set_warehouse, deliveryNoteItem: item },
+                  token,
+                  settings,
+                  latest_ledger,
+                  data,
+                ).pipe(
+                  switchMap((response: StockLedger) => {
+                    return from(this.stockLedgerService.create(response));
+                  }),
+                );
+              }),
+            );
+          }),
+        )
+        .subscribe();
     });
 
     return of(true);
@@ -458,12 +460,15 @@ export class DeliveryNoteJobService {
     token,
     settings: ServerSettings,
     latest_ledger,
-    data
+    data,
   ) {
-    var available_stock = data[0].stockAvailability?data[0].stockAvailability:0;
-    var current_valuation = latest_ledger[0].valuation_rate?
-        latest_ledger[0].valuation_rate:0;
-        
+    const available_stock = data[0].stockAvailability
+      ? data[0].stockAvailability
+      : 0;
+    const current_valuation = latest_ledger[0].valuation_rate
+      ? latest_ledger[0].valuation_rate
+      : 0;
+
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -474,10 +479,11 @@ export class DeliveryNoteJobService {
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
-        stockPayload.balance_qty = available_stock-(-stockPayload.actual_qty);
-        stockPayload.valuation_rate = current_valuation;        
+        stockPayload.balance_qty = available_stock - -stockPayload.actual_qty;
+        stockPayload.valuation_rate = current_valuation;
         stockPayload.balance_value = parseFloat(
-          (stockPayload.balance_qty*stockPayload.valuation_rate).toFixed(2));
+          (stockPayload.balance_qty * stockPayload.valuation_rate).toFixed(2),
+        );
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;

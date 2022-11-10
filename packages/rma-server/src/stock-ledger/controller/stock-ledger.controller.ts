@@ -38,7 +38,6 @@ export class StockLedgerController {
   @UseGuards(TokenGuard)
   async getVoucher() {
     return this.stockLedgerAggregate.getVoucherTypeList();
-    
   }
 
   @Get('v1/list')
@@ -64,14 +63,14 @@ export class StockLedgerController {
 
   @Get('v1/ledger-report')
   @UseGuards(TokenGuard)
-  @UsePipes(new ValidationPipe({forbidNonWhitelisted: true}))
-  async getLedgerReport(@Query() query, @Req() req){
+  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
+  async getLedgerReport(@Query() query, @Req() req) {
     const { limit_start, limit_page_length, filters, date } = query;
     let filter;
     let rangeDate;
     try {
       filter = JSON.parse(decodeURIComponent(filters));
-      rangeDate = JSON.parse(date)
+      rangeDate = JSON.parse(date);
     } catch {
       filter;
     }
@@ -86,14 +85,14 @@ export class StockLedgerController {
 
   @Get('v1/ledger-report-count')
   @UseGuards(TokenGuard)
-  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true}))
+  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
   async getLedgerReportCount(@Query() query, @Req() req) {
     const { limit_start, limit_page_length, filters, date } = query;
     let filter;
     let rangeDate;
     try {
       filter = JSON.parse(decodeURIComponent(filters));
-      rangeDate = JSON.parse(date)
+      rangeDate = JSON.parse(date);
     } catch {
       filter;
     }

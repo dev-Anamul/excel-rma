@@ -134,9 +134,9 @@ export class StockEntryService {
     const url = VOUCHER_TYPE_LIST;
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.get<any>(url, {headers});
+        return this.http.get<any>(url, { headers });
       }),
-    )
+    );
   }
 
   resetStockEntry(uuid: string) {

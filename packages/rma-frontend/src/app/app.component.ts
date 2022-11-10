@@ -246,9 +246,8 @@ export class AppComponent implements OnInit {
                     )
                     .replace(/^http:\/\//i, 'https://');
 
-                  const existingIframe = document.getElementsByClassName(
-                    'silent-iframe',
-                  );
+                  const existingIframe =
+                    document.getElementsByClassName('silent-iframe');
 
                   if (!existingIframe.length) {
                     const iframe = document.createElement('iframe');

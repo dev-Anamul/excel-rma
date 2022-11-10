@@ -158,9 +158,9 @@ const routes: Routes = [
   {
     path: 'stock-ledger',
     loadChildren: () =>
-      import('./stock-entry/stock-ledger-report/stock-ledger-report.module').then(
-        m => m.StockLedgerReportModule,
-      ),
+      import(
+        './stock-entry/stock-ledger-report/stock-ledger-report.module'
+      ).then(m => m.StockLedgerReportModule),
   },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' },

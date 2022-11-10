@@ -289,21 +289,20 @@ export class StockLedgerAggregateService extends AggregateRoot {
   }
 
   // LEDGER REPORT
-  getLedgerReportList(offset, limit, filter_query, req, date){
-
+  getLedgerReportList(offset, limit, filter_query, req, date) {
     const filter_Obj: any = {};
     filter_query.forEach(element => {
       if (element[0] === 'warehouse') {
-        filter_Obj['warehouse'] = element[2];
+        filter_Obj.warehouse = element[2];
       }
       if (element[0] === 'voucher_no') {
-        filter_Obj['voucher_no'] = element[2];
+        filter_Obj.voucher_no = element[2];
       }
       if (element[0] === 'voucher_type') {
-        filter_Obj['voucher_type'] = element[2];
+        filter_Obj.voucher_type = element[2];
       }
       if (element[0] === 'item_code') {
-        filter_Obj['item_code'] = element[2];
+        filter_Obj.item_code = element[2];
       }
       if (element[0] === 'excel_item_brand') {
         filter_Obj['item.brand'] = element[2];
@@ -314,18 +313,18 @@ export class StockLedgerAggregateService extends AggregateRoot {
     });
     let startDate;
     let endDate;
-    if(date){
-      if (date.start_date != null && date.end_date != null){
+    if (date) {
+      if (date.start_date != null && date.end_date != null) {
         startDate = new Date(date.start_date);
         endDate = new Date(date.end_date);
-        endDate.setDate(endDate.getDate()+1)
+        endDate.setDate(endDate.getDate() + 1);
         const dateObj: any = {
-          $gte:startDate,
-          $lte:endDate
-        } 
-        filter_Obj['posting_date'] = dateObj
-       }
-     }
+          $gte: startDate,
+          $lte: endDate,
+        };
+        filter_Obj.posting_date = dateObj;
+      }
+    }
 
     // IF FILTER APPLY
     if (Object.entries(filter_Obj).length !== 0) {
@@ -340,11 +339,11 @@ export class StockLedgerAggregateService extends AggregateRoot {
       where.push({ $lookup });
       const $unwind: any = '$item';
       where.push({ $unwind });
-      
+
       const $match: any = filter_Obj;
       where.push({ $match });
       const $sort: any = {
-        'posting_date': 1,
+        posting_date: 1,
       };
       where.push({ $sort });
       const $limit: any = limit;
@@ -355,7 +354,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
       return this.stockLedgerService.asyncAggregate(where);
     }
     // WITHOUT FILTER
-    else{
+    else {
       const where: any = [];
       const $lookup: any = {
         from: 'item',
@@ -366,35 +365,34 @@ export class StockLedgerAggregateService extends AggregateRoot {
       where.push({ $lookup });
       const $unwind: any = '$item';
       where.push({ $unwind });
-      
+
       const $limit: any = limit;
       const $skip: any = offset;
       const $sort: any = {
-        'posting_date': 1,
+        posting_date: 1,
       };
       where.push({ $sort });
       where.push({ $skip });
       where.push({ $limit });
-      
+
       return this.stockLedgerService.asyncAggregate(where);
     }
   }
   // LEDGER REPORT COUNT
-  getLedgerReportListCount(offset, limit, filter_query, req, date){
-
+  getLedgerReportListCount(offset, limit, filter_query, req, date) {
     const filter_Obj: any = {};
     filter_query.forEach(element => {
       if (element[0] === 'warehouse') {
-        filter_Obj['warehouse'] = element[2];
+        filter_Obj.warehouse = element[2];
       }
       if (element[0] === 'voucher_no') {
-        filter_Obj['voucher_no'] = element[2];
+        filter_Obj.voucher_no = element[2];
       }
       if (element[0] === 'voucher_type') {
-        filter_Obj['voucher_type'] = element[2];
+        filter_Obj.voucher_type = element[2];
       }
       if (element[0] === 'item_code') {
-        filter_Obj['item_code'] = element[2];
+        filter_Obj.item_code = element[2];
       }
       if (element[0] === 'excel_item_brand') {
         filter_Obj['item.brand'] = element[2];
@@ -405,18 +403,18 @@ export class StockLedgerAggregateService extends AggregateRoot {
     });
     let startDate;
     let endDate;
-    if(date){
-      if (date.start_date != null && date.end_date != null){
+    if (date) {
+      if (date.start_date != null && date.end_date != null) {
         startDate = new Date(date.start_date);
         endDate = new Date(date.end_date);
-        endDate.setDate(endDate.getDate()+1)
+        endDate.setDate(endDate.getDate() + 1);
         const dateObj: any = {
-          $gte:startDate,
-          $lte:endDate
-        } 
-        filter_Obj['posting_date'] = dateObj
-       }
-     }
+          $gte: startDate,
+          $lte: endDate,
+        };
+        filter_Obj.posting_date = dateObj;
+      }
+    }
 
     // IF FILTER APPLY
     if (Object.entries(filter_Obj).length !== 0) {
@@ -435,16 +433,16 @@ export class StockLedgerAggregateService extends AggregateRoot {
       const $match: any = filter_Obj;
       where.push({ $match });
       const $sort: any = {
-        'posting_date': 1,
+        posting_date: 1,
       };
       where.push({ $sort });
-      where.push({ $count: 'count' }); 
+      where.push({ $count: 'count' });
       return this.stockLedgerService.asyncAggregate(where);
     }
     // WITHOUT FILTER
-    else{
+    else {
       const where: any = [];
-      where.push({ $count: 'count' });   
+      where.push({ $count: 'count' });
       return this.stockLedgerService.asyncAggregate(where);
     }
   }

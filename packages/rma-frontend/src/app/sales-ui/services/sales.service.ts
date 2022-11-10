@@ -283,7 +283,7 @@ export class SalesService {
       }),
     );
   }
-  getLedgerCount(pageIndex = 0, pageSize = 30, filters, dateSearch){
+  getLedgerCount(pageIndex = 0, pageSize = 30, filters, dateSearch) {
     const url = STOCK_LEDGER_REPORT_COUNT;
     const params = new HttpParams({
       fromObject: {
@@ -609,7 +609,6 @@ export class SalesService {
     );
   }
 
-  
   relayStockAvailabilityList(pageIndex = 0, pageSize = 30, filters) {
     const url = STOCK_AVAILABILITY_ENDPOINT;
     const params = new HttpParams({
@@ -793,21 +792,19 @@ export class SalesService {
 
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http
-          .get<any>(getAddressNameURL, { params, headers })
-          .pipe(
-            map(res => res.message),
-            switchMap(address => {
-              if (address) {
-                const getFullAddressURL =
-                  RELAY_GET_FULL_ADDRESS_ENDPOINT + address;
-                return this.http
-                  .get<any>(getFullAddressURL, { headers })
-                  .pipe(map(res => res.data));
-              }
-              return of({});
-            }),
-          );
+        return this.http.get<any>(getAddressNameURL, { params, headers }).pipe(
+          map(res => res.message),
+          switchMap(address => {
+            if (address) {
+              const getFullAddressURL =
+                RELAY_GET_FULL_ADDRESS_ENDPOINT + address;
+              return this.http
+                .get<any>(getFullAddressURL, { headers })
+                .pipe(map(res => res.data));
+            }
+            return of({});
+          }),
+        );
       }),
     );
   }

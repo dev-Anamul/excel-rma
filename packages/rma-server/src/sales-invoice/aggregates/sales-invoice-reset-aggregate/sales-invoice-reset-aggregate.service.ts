@@ -103,28 +103,28 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
         ) {
           return from(salesInvoice.delivery_note_items).pipe(
             concatMap(item => {
-             return this.createStockLedgerPayload(
-               {
-                 warehouse: salesInvoice.delivery_warehouse,
-                 deliveryNoteItem: item,
-               },
-               req.token,
-               serverSettings,
-               salesInvoice
-               ).pipe(
+              return this.createStockLedgerPayload(
+                {
+                  warehouse: salesInvoice.delivery_warehouse,
+                  deliveryNoteItem: item,
+                },
+                req.token,
+                serverSettings,
+                salesInvoice,
+              ).pipe(
                 switchMap((response: StockLedger) => {
-                 //  return from(this.stockLedgerService.create(response));
-                 return from(this.stockLedgerService.deleteOne(
-                   {
-                     voucher_no: salesInvoice.name
-                   }
-                 ))
+                  //  return from(this.stockLedgerService.create(response));
+                  return from(
+                    this.stockLedgerService.deleteOne({
+                      voucher_no: salesInvoice.name,
+                    }),
+                  );
                 }),
-                );
-              }),
+              );
+            }),
             toArray(),
-            );
-          }
+          );
+        }
         return of(true);
       }),
     );
@@ -134,7 +134,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
     payload: { warehouse: string; deliveryNoteItem },
     token,
     settings: ServerSettings,
-    SalesInvoice
+    SalesInvoice,
   ) {
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
@@ -152,8 +152,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
-        stockPayload.voucher_no =
-          SalesInvoice.name;
+        stockPayload.voucher_no = SalesInvoice.name;
         stockPayload.voucher_detail_no = '';
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;

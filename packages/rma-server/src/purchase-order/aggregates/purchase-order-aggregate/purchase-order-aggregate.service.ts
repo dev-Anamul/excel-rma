@@ -145,21 +145,21 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
   ) {
     return from(purchaseOrder.items).pipe(
       concatMap((item: PurchaseOrderItemDto) => {
-          return this.createStockLedgerPayload(
+        return this.createStockLedgerPayload(
           {
             pr_no: purchaseOrder.purchase_invoice_name,
             purchaseReciept: item,
           },
           token,
           settings,
-            ).pipe(
+        ).pipe(
           switchMap((response: StockLedger) => {
             // return from(this.stockLedgerService.create(response));
-            return from(this.stockLedgerService.deleteOne(
-              {
-                voucher_no: purchaseOrder.purchase_invoice_name
-              }
-            ))
+            return from(
+              this.stockLedgerService.deleteOne({
+                voucher_no: purchaseOrder.purchase_invoice_name,
+              }),
+            );
           }),
         );
       }),
@@ -223,11 +223,18 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
       }),
     );
   }
-  //function for calculate valuation
-  calculateValuationRate(preQty,incomingQty,incomingRate,preValuation,totalQty){
-    var result = ((preQty*preValuation)+(incomingQty*incomingRate))/totalQty
-    result = Math.round(result)
-    return result
+  // function for calculate valuation
+  calculateValuationRate(
+    preQty,
+    incomingQty,
+    incomingRate,
+    preValuation,
+    totalQty,
+  ) {
+    let result =
+      (preQty * preValuation + incomingQty * incomingRate) / totalQty;
+    result = Math.round(result);
+    return result;
   }
 
   cancelERPNextDocs(docs: { [key: string]: string[] }, req, settings) {

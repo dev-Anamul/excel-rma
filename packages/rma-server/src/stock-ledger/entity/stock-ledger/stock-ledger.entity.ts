@@ -73,7 +73,7 @@ export class StockLedger extends BaseEntity {
 
   @Column()
   balance_value: number;
-  
+
   @Column()
   balance_qty: number;
 
@@ -127,5 +127,4 @@ export class StockLedger extends BaseEntity {
 
   @Column()
   transfer_in_id: string;
-
 }

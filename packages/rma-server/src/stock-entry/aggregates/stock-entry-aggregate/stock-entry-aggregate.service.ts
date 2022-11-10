@@ -425,15 +425,15 @@ export class StockEntryAggregateService {
                 's_warehouse',
               ).pipe(
                 switchMap(() => {
-                    return this.createTransferStockEntryLedger(
-                      stockEntry,
-                      req.token,
-                      serverSettings,
-                      't_warehouse',
-                    );
-                   }),
+                  return this.createTransferStockEntryLedger(
+                    stockEntry,
+                    req.token,
+                    serverSettings,
+                    't_warehouse',
                   );
-                }
+                }),
+              );
+            }
             return this.createTransferStockEntryLedger(
               stockEntry,
               req.token,
@@ -449,25 +449,25 @@ export class StockEntryAggregateService {
     payload: StockEntry,
     token,
     settings,
-    warehouse_type?
+    warehouse_type?,
   ) {
     return from(payload.items).pipe(
       concatMap((item: StockEntryItem) => {
-       return this.createStockLedgerPayload(
-         item,
-         token,
-         settings,
-         warehouse_type,
-       ).pipe(
-         switchMap((response: StockLedger) => {
-          //  return from(this.stockLedgerService.create(response));
-          return from(this.stockLedgerService.deleteOne(
-            {
-            voucher_no: payload.stock_id
-            }
-          ))
-         }),
-       );
+        return this.createStockLedgerPayload(
+          item,
+          token,
+          settings,
+          warehouse_type,
+        ).pipe(
+          switchMap((response: StockLedger) => {
+            //  return from(this.stockLedgerService.create(response));
+            return from(
+              this.stockLedgerService.deleteOne({
+                voucher_no: payload.stock_id,
+              }),
+            );
+          }),
+        );
       }),
     );
   }
@@ -478,7 +478,6 @@ export class StockEntryAggregateService {
     settings: ServerSettings,
     warehouse_type?: string,
   ) {
-    
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();

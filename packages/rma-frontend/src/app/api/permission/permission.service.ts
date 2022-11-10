@@ -111,7 +111,8 @@ export class PermissionManager {
       BACKDATE_PERMISSION_FOR_DAYS,
       backdated_permissions_for_days,
     ),
-      (settingPermissions.backdated_permissions_for_days = backdated_permissions_for_days);
+      (settingPermissions.backdated_permissions_for_days =
+        backdated_permissions_for_days);
   }
 }
 

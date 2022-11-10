@@ -7,7 +7,11 @@ import { Observable, of } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';
 import { ValidateInputSelected } from 'src/app/common/pipes/validators';
 import { SalesService } from '../../sales-ui/services/sales.service';
-import { STOCK_LEDGER_CSV_FILE, STOCK_LEDGER_REPORT_HEADERS, WAREHOUSES } from '../../constants/app-string';
+import {
+  STOCK_LEDGER_CSV_FILE,
+  STOCK_LEDGER_REPORT_HEADERS,
+  WAREHOUSES,
+} from '../../constants/app-string';
 // import { StockEntryService } from '../services/stock-entry/stock-entry.service';
 // import { RELAY_LIST_PROJECT_ENDPOINT } from 'src/app/constants/url-strings';
 import { StockLedgerDataSource } from './stock-ledger-datasource';
@@ -22,15 +26,15 @@ import { StockEntryService } from '../services/stock-entry/stock-entry.service';
 export class StockLedgerReportComponent implements OnInit {
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
-  dateSearch:any
-  stockLedgerForm: FormGroup
+  dateSearch: any;
+  stockLedgerForm: FormGroup;
   validateInput: any = ValidateInputSelected;
   filteredStockAvailabilityList: Observable<any>;
   filteredWarehouseList: Observable<any[]>;
   filteredItemGroupList: Observable<any>;
   filteredItemBrandList: Observable<any>;
   filteredProjectList: Observable<any[]>;
-  VoucherType= []
+  VoucherType = [];
   filters: any = [];
   countFilter: any = {};
   dataSource: StockLedgerDataSource;
@@ -52,7 +56,6 @@ export class StockLedgerReportComponent implements OnInit {
     'outgoing_rate',
     'valuation_rate',
     'balance_value',
-
   ];
 
   get f() {
@@ -68,17 +71,23 @@ export class StockLedgerReportComponent implements OnInit {
 
   ngOnInit() {
     this.createFormGroup();
-    this.dateSearch = ''
+    this.dateSearch = '';
 
     this.dataSource = new StockLedgerDataSource(this.salesService);
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter, this.dateSearch,);
+    this.dataSource.loadItems(
+      0,
+      30,
+      this.filters,
+      this.countFilter,
+      this.dateSearch,
+    );
 
-    this.stockEntryService.getVoucherTypeList().subscribe(res=>{
+    this.stockEntryService.getVoucherTypeList().subscribe(res => {
       res.forEach(voucher => {
-        this.VoucherType.push(voucher)
+        this.VoucherType.push(voucher);
       });
-      this.VoucherType.push("All Vouchers")
-    })
+      this.VoucherType.push('All Vouchers');
+    });
 
     this.filteredStockAvailabilityList = this.stockLedgerForm
       .get('item_name')
@@ -90,13 +99,13 @@ export class StockLedgerReportComponent implements OnInit {
       );
 
     this.filteredWarehouseList = this.stockLedgerForm
-    .get('warehouse')
-    .valueChanges.pipe(
-      startWith(''),
-      switchMap(value => {
-        return this.salesService.getStore().getItemAsync(WAREHOUSES, value);
-      }),
-    );
+      .get('warehouse')
+      .valueChanges.pipe(
+        startWith(''),
+        switchMap(value => {
+          return this.salesService.getStore().getItemAsync(WAREHOUSES, value);
+        }),
+      );
 
     this.filteredItemGroupList = this.stockLedgerForm
       .get('excel_item_group')
@@ -111,16 +120,16 @@ export class StockLedgerReportComponent implements OnInit {
       );
 
     this.filteredItemBrandList = this.stockLedgerForm
-    .get('excel_item_brand')
-    .valueChanges.pipe(
-      startWith(''),
-      switchMap(value => {
-        return this.salesService.getItemBrandList(value);
-      }),
-      switchMap(data => {
-        return of(data);
-      }),
-    ); 
+      .get('excel_item_brand')
+      .valueChanges.pipe(
+        startWith(''),
+        switchMap(value => {
+          return this.salesService.getItemBrandList(value);
+        }),
+        switchMap(data => {
+          return of(data);
+        }),
+      );
   }
 
   navigateBack() {
@@ -157,7 +166,6 @@ export class StockLedgerReportComponent implements OnInit {
       return option.item_name;
     }
   }
-
 
   getItemGroupOption(option) {
     if (option) {
@@ -206,7 +214,7 @@ export class StockLedgerReportComponent implements OnInit {
     }
 
     if (this.f.voucher_type.value) {
-      if(this.f.voucher_type.value != "All Vouchers"){
+      if (this.f.voucher_type.value !== 'All Vouchers') {
         this.filters.push([
           'voucher_type',
           'like',
@@ -236,8 +244,13 @@ export class StockLedgerReportComponent implements OnInit {
       this.countFilter.warehouse = ['like', `${this.f.warehouse.value}`];
     }
 
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter, this.dateSearch);
-
+    this.dataSource.loadItems(
+      0,
+      30,
+      this.filters,
+      this.countFilter,
+      this.dateSearch,
+    );
   }
   getUpdate(event) {
     this.dataSource.loadItems(
@@ -262,27 +275,25 @@ export class StockLedgerReportComponent implements OnInit {
   serializeStockAvailabilityObject(data: any) {
     const serializedArray: any = [];
     data.forEach(element => {
-        const obj1: any = {
-          modified: element.modified,
-          item_name: element.item.item_name,
-          item_code: element.item.item_code,
-          item_group: element.item.item_group?element.item.item_group:'',
-          brand: element.item.brand?element.item.brand:'',
-          voucher: element.voucher_no,
-          voucher_type: element.voucher_type,
-          stock_uom: element.item.stock_uom?element.item.stock_uom:'',
-          warehouse: element.warehouse,
-          actual_qty: element.actual_qty,
-          balance_qty: element.balance_qty?element.balance_qty:0,
-          incoming_rate: element.incoming_rate,
-          outgoing_rate: element.outgoing_rate,
-          valuation_rate: element.valuation_rate,
-          balance_value: element.balance_value?element.balance_value:0
-        };
-        serializedArray.push(obj1);
+      const obj1: any = {
+        modified: element.modified,
+        item_name: element.item.item_name,
+        item_code: element.item.item_code,
+        item_group: element.item.item_group ? element.item.item_group : '',
+        brand: element.item.brand ? element.item.brand : '',
+        voucher: element.voucher_no,
+        voucher_type: element.voucher_type,
+        stock_uom: element.item.stock_uom ? element.item.stock_uom : '',
+        warehouse: element.warehouse,
+        actual_qty: element.actual_qty,
+        balance_qty: element.balance_qty ? element.balance_qty : 0,
+        incoming_rate: element.incoming_rate,
+        outgoing_rate: element.outgoing_rate,
+        valuation_rate: element.valuation_rate,
+        balance_value: element.balance_value ? element.balance_value : 0,
+      };
+      serializedArray.push(obj1);
     });
     return serializedArray;
   }
-
-
 }
