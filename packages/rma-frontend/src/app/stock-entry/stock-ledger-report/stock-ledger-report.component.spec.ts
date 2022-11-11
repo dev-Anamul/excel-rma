@@ -46,8 +46,8 @@ describe('StockLedgerReportComponent', () => {
         {
           provide: StockEntryService,
           useValue: {
-            getVoucherTypeList: (...args) => of([])
-          }
+            getVoucherTypeList: (...args) => of([]),
+          },
         },
         {
           provide: CsvJsonService,
