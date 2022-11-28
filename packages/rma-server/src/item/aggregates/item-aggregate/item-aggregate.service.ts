@@ -62,8 +62,8 @@ export class ItemAggregateService extends AggregateRoot {
     return this.itemService.list(offset, limit, sort, filterQuery);
   }
 
-  async getBrandList() {
-    return this.itemService.distinct();
+  getBrandList(limit: number, search: string) {
+    return this.itemService.listBrands(limit || 10, search);
   }
 
   async setMinPrice(uuid: string, minimumPrice: number) {

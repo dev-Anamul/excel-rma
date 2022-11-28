@@ -74,9 +74,8 @@ export class WarrantyPage implements OnInit {
   filteredCustomerList: Observable<any[]>;
   filteredProductList: Observable<any[]>;
   filteredTerritoryList: Observable<any[]>;
+  filteredBrandList: Observable<any[]>;
   bulkFlag: boolean = false;
-  filteredBrandList: any;
-  filteredBrand: any = [];
   sortQuery: any = {};
   territoryList;
   claim_status: string = CLAIM_STATUS.ALL;
@@ -148,15 +147,13 @@ export class WarrantyPage implements OnInit {
           return this.warrantyService.getCustomerList(value);
         }),
       );
-    this.warrantyService.getBrandList().subscribe(data => {
-      this.filteredBrandList = data;
-    });
-    this.warrantyForm.get('brand').valueChanges.subscribe(newValue => {
-      this.warrantyService.getBrandList().subscribe(data => {
-        this.filteredBrand = data;
-        this.filteredBrandList = this.filterBrand(newValue);
-      });
-    });
+
+    this.filteredBrandList = this.warrantyForm.get('brand').valueChanges.pipe(
+      startWith(''),
+      switchMap(value => {
+        return this.warrantyService.getBrandList(value);
+      }),
+    );
 
     this.filteredProductList = this.warrantyForm
       .get('product')
@@ -177,14 +174,6 @@ export class WarrantyPage implements OnInit {
             .getItemAsync('territory', value);
         }),
       );
-  }
-
-  filterBrand(name) {
-    if (this.filteredBrand) {
-      return this.filteredBrand.filter(
-        value => value.toLowerCase().indexOf(name.toLowerCase()) !== -1,
-      );
-    }
   }
 
   createFormGroup() {
@@ -366,10 +355,6 @@ export class WarrantyPage implements OnInit {
 
   getCustomerOption(option) {
     return option.customer_name;
-  }
-
-  getBrandOption(option) {
-    return option;
   }
 
   getProductOption(option) {
