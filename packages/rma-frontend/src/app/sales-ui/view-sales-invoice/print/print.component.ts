@@ -136,8 +136,9 @@ export class PrintComponent implements OnInit {
             salesInvoice: SalesInvoice;
           }) => {
             response.data = Object.values(response.data);
-            const aggregatedDeliveryNotes =
-              this.salesService.getAggregatedDocument(response.data);
+            const aggregatedDeliveryNotes = this.salesService.getAggregatedDocument(
+              response.data,
+            );
             aggregatedDeliveryNotes.sales_person =
               response?.salesInvoice?.sales_team[0]?.sales_person;
             aggregatedDeliveryNotes.created_by =
