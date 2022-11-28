@@ -71,12 +71,27 @@
             <ion-item
               button
               *ngIf="loggedIn"
+              [routerLink]="['/warranty/add-warranty-claim']"
+              lines="none"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{exact: true}"
+            >
+              <ion-icon slot="start" name="add"></ion-icon>
+              <ion-label>Add Warranty Claim</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
+            <ion-item
+              button
+              *ngIf="loggedIn"
               routerLink="/warranty"
               lines="none"
               routerLinkActive="active"
+              [routerLinkActiveOptions]="{exact: true}"
             >
               <ion-icon slot="start" name="repeat"></ion-icon>
-              <ion-label>Warranty</ion-label>
+              <ion-label>Warranty Claims List</ion-label>
             </ion-item>
           </ion-menu-toggle>
 
