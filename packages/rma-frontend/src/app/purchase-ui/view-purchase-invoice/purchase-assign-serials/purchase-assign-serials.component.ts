@@ -518,9 +518,7 @@ export class PurchaseAssignSerialsComponent implements OnInit {
         date = new Date(
           date.setMonth(date.getMonth() + purchaseWarrantyMonths),
         );
-        return await (
-          await this.timeService.getDateAndTime(date)
-        ).date;
+        return await (await this.timeService.getDateAndTime(date)).date;
       } catch (err) {
         this.getMessage(`Error occurred while settings warranty date: ${err}`);
       }

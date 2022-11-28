@@ -53,11 +53,8 @@ export class CsvJsonService {
   }
 
   validateHeaders(licenseHeaders: string[]) {
-    const notFound = _.differenceWith(
-      licenseHeaders,
-      FILE_HEADERS,
-      _.isEqual,
-    ).length;
+    const notFound = _.differenceWith(licenseHeaders, FILE_HEADERS, _.isEqual)
+      .length;
     if (notFound) {
       this.snackBar.open(
         `Invalid header,expected ${FILE_HEADERS.join(
@@ -381,7 +378,7 @@ export const FILE_HEADERS = ['item_name', 'serial_no'];
 @Component({
   selector: 'select-dump-headers-dialog',
   templateUrl: 'select-dump-headers-dialog.html',
-  styles: ['./select-dump-headers-dialog.scss'],
+  styleUrls: ['./select-dump-headers-dialog.scss'],
 })
 export class SelectDumpHeadersDialog {
   keys = [];

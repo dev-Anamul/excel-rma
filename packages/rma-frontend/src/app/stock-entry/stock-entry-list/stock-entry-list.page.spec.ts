@@ -23,45 +23,47 @@ describe('StockEntryListPage', () => {
   let component: StockEntryListPage;
   let fixture: ComponentFixture<StockEntryListPage>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [StockEntryListPage, MockCurrencyFormatPipe],
-      imports: [
-        MaterialModule,
-        HttpClientTestingModule,
-        FormsModule,
-        ReactiveFormsModule,
-        NoopAnimationsModule,
-        RouterTestingModule.withRoutes([]),
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
-        {
-          provide: Location,
-          useValue: {},
-        },
-        {
-          provide: StockEntryService,
-          useValue: {
-            getWarehouseList: (...args) => of([{}]),
-            getPurchaseInvoiceList: (...args) => of([{}]),
-            getStore: () => ({
-              getItem: (...args) => Promise.resolve('Item'),
-              getItems: (...args) => Promise.resolve({}),
-            }),
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [StockEntryListPage, MockCurrencyFormatPipe],
+        imports: [
+          MaterialModule,
+          HttpClientTestingModule,
+          FormsModule,
+          ReactiveFormsModule,
+          NoopAnimationsModule,
+          RouterTestingModule.withRoutes([]),
+        ],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+        providers: [
+          {
+            provide: Location,
+            useValue: {},
           },
-        },
-        {
-          provide: SalesService,
-          useValue: {
-            getStore: () => ({
-              getItemAsync: (...args) => of([{}]),
-            }),
+          {
+            provide: StockEntryService,
+            useValue: {
+              getWarehouseList: (...args) => of([{}]),
+              getPurchaseInvoiceList: (...args) => of([{}]),
+              getStore: () => ({
+                getItem: (...args) => Promise.resolve('Item'),
+                getItems: (...args) => Promise.resolve({}),
+              }),
+            },
           },
-        },
-      ],
-    }).compileComponents();
-  }));
+          {
+            provide: SalesService,
+            useValue: {
+              getStore: () => ({
+                getItemAsync: (...args) => of([{}]),
+              }),
+            },
+          },
+        ],
+      }).compileComponents();
+    }),
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(StockEntryListPage);

@@ -111,8 +111,7 @@ export class MaterialTransferComponent implements OnInit {
   };
   accounts: Observable<any[]>;
   uuid: string;
-  materialTransferDataSource: MaterialTransferDataSource =
-    new MaterialTransferDataSource();
+  materialTransferDataSource: MaterialTransferDataSource = new MaterialTransferDataSource();
   fromRangeUpdate = new Subject<string>();
   toRangeUpdate = new Subject<string>();
   territoryList: Observable<any[]>;
@@ -254,43 +253,41 @@ export class MaterialTransferComponent implements OnInit {
       }),
     );
 
-    this.filteredWarehouseList1 =
-      this.warehouseState.s_warehouse.valueChanges.pipe(
-        startWith(''),
-        debounceTime(300),
-        switchMap(value => {
-          return this.salesService
-            .getStore()
-            .getItemAsync(WAREHOUSES, value)
-            .pipe(this.popWarehouse);
-        }),
-        switchMap(data => {
-          if (data?.length) {
-            if (!this.initial.s_warehouse) {
-              this.materialTransferDataSource.data().length
-                ? null
-                : this.warehouseState.s_warehouse.setValue(data[0]);
-              this.initial.s_warehouse++;
-            }
-            return of(data);
+    this.filteredWarehouseList1 = this.warehouseState.s_warehouse.valueChanges.pipe(
+      startWith(''),
+      debounceTime(300),
+      switchMap(value => {
+        return this.salesService
+          .getStore()
+          .getItemAsync(WAREHOUSES, value)
+          .pipe(this.popWarehouse);
+      }),
+      switchMap(data => {
+        if (data?.length) {
+          if (!this.initial.s_warehouse) {
+            this.materialTransferDataSource.data().length
+              ? null
+              : this.warehouseState.s_warehouse.setValue(data[0]);
+            this.initial.s_warehouse++;
           }
-          return of([]);
-        }),
-        this.CATCH_ERROR,
-      );
+          return of(data);
+        }
+        return of([]);
+      }),
+      this.CATCH_ERROR,
+    );
 
-    this.filteredWarehouseList2 =
-      this.warehouseState.t_warehouse.valueChanges.pipe(
-        startWith(''),
-        debounceTime(300),
-        switchMap(value => {
-          const filter = `[["name","like","%${value}%"],["is_group","=",0]]`;
-          return this.salesService
-            .getWarehouseList(value, filter, true)
-            .pipe(this.popWarehouse);
-        }),
-        this.CATCH_ERROR,
-      );
+    this.filteredWarehouseList2 = this.warehouseState.t_warehouse.valueChanges.pipe(
+      startWith(''),
+      debounceTime(300),
+      switchMap(value => {
+        const filter = `[["name","like","%${value}%"],["is_group","=",0]]`;
+        return this.salesService
+          .getWarehouseList(value, filter, true)
+          .pipe(this.popWarehouse);
+      }),
+      this.CATCH_ERROR,
+    );
 
     this.territoryList = this.form.get('territory').valueChanges.pipe(
       startWith(''),
@@ -711,9 +708,7 @@ export class MaterialTransferComponent implements OnInit {
     if (warrantyInMonths) {
       try {
         date = new Date(date.setMonth(date.getMonth() + warrantyInMonths));
-        return await (
-          await this.timeService.getDateAndTime(date)
-        ).date;
+        return await (await this.timeService.getDateAndTime(date)).date;
       } catch (err) {
         this.getMessage(`Error occurred while settings warranty date: ${err}`);
       }
@@ -1168,8 +1163,9 @@ export class MaterialTransferComponent implements OnInit {
       .pipe(
         switchMap((data: any) => {
           data = Object.values(data);
-          const aggregatedDeliveryNotes =
-            this.salesService.getAggregatedDocument(data);
+          const aggregatedDeliveryNotes = this.salesService.getAggregatedDocument(
+            data,
+          );
           const warehouses: {
             [ket: string]: string;
           } = this.getPrintWarehouse();
