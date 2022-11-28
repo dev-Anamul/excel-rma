@@ -53,8 +53,11 @@ export class CsvJsonService {
   }
 
   validateHeaders(licenseHeaders: string[]) {
-    const notFound = _.differenceWith(licenseHeaders, FILE_HEADERS, _.isEqual)
-      .length;
+    const notFound = _.differenceWith(
+      licenseHeaders,
+      FILE_HEADERS,
+      _.isEqual,
+    ).length;
     if (notFound) {
       this.snackBar.open(
         `Invalid header,expected ${FILE_HEADERS.join(

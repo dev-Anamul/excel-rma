@@ -110,9 +110,15 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
                 },
                 req.token,
                 serverSettings,
+                salesInvoice,
               ).pipe(
                 switchMap((response: StockLedger) => {
-                  return from(this.stockLedgerService.create(response));
+                  //  return from(this.stockLedgerService.create(response));
+                  return from(
+                    this.stockLedgerService.deleteOne({
+                      voucher_no: salesInvoice.name,
+                    }),
+                  );
                 }),
               );
             }),
@@ -128,6 +134,7 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
     payload: { warehouse: string; deliveryNoteItem },
     token,
     settings: ServerSettings,
+    SalesInvoice,
   ) {
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
@@ -139,15 +146,14 @@ export class SalesInvoiceResetAggregateService extends AggregateRoot {
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = payload.deliveryNoteItem.qty;
-        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+        stockPayload.incoming_rate = payload.deliveryNoteItem.rate;
+        stockPayload.valuation_rate = 0;
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
-        stockPayload.voucher_no =
-          payload.deliveryNoteItem.against_sales_invoice;
+        stockPayload.voucher_no = SalesInvoice.name;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =

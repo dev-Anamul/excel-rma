@@ -111,7 +111,7 @@ export const DELIVERED_SERIALS_BY = {
 export const NON_SERIAL_ITEM = 'Non serial Item';
 
 export const STOCK_AVAILABILITY_CSV_FILE = 'stock_availability.csv';
-
+export const STOCK_LEDGER_CSV_FILE = 'ledger_report.csv';
 export const STOCK_AVAILABILITY_DOWNLOAD_HEADERS = [
   'item_name',
   'item_code',
@@ -119,4 +119,21 @@ export const STOCK_AVAILABILITY_DOWNLOAD_HEADERS = [
   'brand',
   'warehouse',
   'stockAvailability',
+];
+export const STOCK_LEDGER_REPORT_HEADERS = [
+  'posting_date',
+  'item_name',
+  'item_code',
+  'item_group',
+  'voucher_no',
+  'voucher_type',
+  'brand',
+  'warehouse',
+  'stock_uom',
+  'actual_qty',
+  'balance_qty',
+  'incoming_rate',
+  'outgoing_rate',
+  'valuation_rate',
+  'balance_value',
 ];

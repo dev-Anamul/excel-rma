@@ -346,16 +346,82 @@ export class PurchaseReceiptSyncService {
       concatMap(receipt => {
         return from(receipt.items).pipe(
           concatMap(item => {
-            return this.createStockLedgerPayload(
-              {
-                pr_no: receipt.purchase_invoice_name,
-                purchaseReceipt: item,
+            // fetch available stock
+            const filter_query = [
+              ['item_code', 'like', `${item.item_code}`],
+              ['warehouse', 'like', `${item.warehouse}`],
+              ['actual_qty', '!=', 0],
+            ];
+
+            const filter_Obj: any = {};
+            filter_query.forEach(element => {
+              if (element[0] === 'item_code') {
+                filter_Obj['item.item_code'] = element[2];
+              }
+              if (element[0] === 'warehouse') {
+                filter_Obj['_id.warehouse'] = element[2];
+              }
+              if (element[1] === '!=') {
+                filter_Obj.stockAvailability = { $gt: element[2] };
+              }
+            });
+            const obj: any = {
+              _id: {
+                warehouse: '$warehouse',
+                item_code: '$item_code',
               },
-              token,
-              settings,
-            ).pipe(
-              switchMap((response: StockLedger) => {
-                return from(this.stockLedgerService.create(response));
+              stockAvailability: {
+                $sum: '$actual_qty',
+              },
+            };
+            const $group: any = obj;
+            const where: any = [];
+            where.push({ $group });
+            const $lookup: any = {
+              from: 'item',
+              localField: '_id.item_code',
+              foreignField: 'item_code',
+              as: 'item',
+            };
+            where.push({ $lookup });
+            const $unwind: any = '$item';
+            where.push({ $unwind });
+            const $match: any = filter_Obj;
+            where.push({ $match });
+
+            return this.stockLedgerService.asyncAggregate(where).pipe(
+              switchMap(data => {
+                // fetch pre valuation rate of item for recent perchase into particular warehouse
+                const where = [];
+                const ledger_filter_obj = {
+                  item_code: `${item.item_code}`,
+                  warehouse: `${item.warehouse}`,
+                  actual_qty: { $gt: 0 },
+                };
+                const $match: any = ledger_filter_obj;
+                where.push({ $match });
+                const $sort: any = {
+                  modified: -1,
+                };
+                where.push({ $sort });
+                return this.stockLedgerService.asyncAggregate(where).pipe(
+                  switchMap((latest_stock_ledger: StockLedger) => {
+                    return this.createStockLedgerPayload(
+                      {
+                        pr_no: receipt.purchase_invoice_name,
+                        purchaseReceipt: item,
+                      },
+                      token,
+                      settings,
+                      data,
+                      latest_stock_ledger,
+                    ).pipe(
+                      switchMap((response: StockLedger) => {
+                        return from(this.stockLedgerService.create(response));
+                      }),
+                    );
+                  }),
+                );
               }),
             );
           }),
@@ -370,7 +436,26 @@ export class PurchaseReceiptSyncService {
     payload: { pr_no: string; purchaseReceipt: PurchaseReceiptItemDto },
     token,
     settings: ServerSettings,
+    data,
+    latest_stock_ledger,
   ) {
+    let pre_valuation_rate;
+    let available_stock;
+    let pre_incoming_rate;
+    if (latest_stock_ledger && latest_stock_ledger.length > 0) {
+      pre_valuation_rate = latest_stock_ledger[0].valuation_rate;
+      pre_incoming_rate = latest_stock_ledger[0].incoming_rate;
+    } else {
+      pre_valuation_rate = payload.purchaseReceipt.rate;
+      pre_incoming_rate = payload.purchaseReceipt.rate;
+    }
+    if (data && data.length > 0) {
+      available_stock = data[0].stockAvailability;
+    } else {
+      available_stock = 0;
+    }
+    const new_quantity = payload.purchaseReceipt.qty + available_stock;
+
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -381,7 +466,25 @@ export class PurchaseReceiptSyncService {
         stockPayload.warehouse = payload.purchaseReceipt.warehouse;
         stockPayload.item_code = payload.purchaseReceipt.item_code;
         stockPayload.actual_qty = payload.purchaseReceipt.qty;
-        stockPayload.valuation_rate = payload.purchaseReceipt.rate;
+        stockPayload.incoming_rate = payload.purchaseReceipt.rate;
+
+        if (pre_incoming_rate !== stockPayload.incoming_rate) {
+          stockPayload.valuation_rate = parseFloat(
+            this.calculateValuationRate(
+              available_stock,
+              stockPayload.actual_qty,
+              stockPayload.incoming_rate,
+              pre_valuation_rate,
+              new_quantity,
+            ),
+          );
+        } else {
+          stockPayload.valuation_rate = pre_valuation_rate;
+        }
+        stockPayload.balance_qty = new_quantity;
+        stockPayload.balance_value = parseFloat(
+          (stockPayload.balance_qty * stockPayload.valuation_rate).toFixed(2),
+        );
         stockPayload.batch_no = '';
         stockPayload.stock_uom = payload.purchaseReceipt.stock_uom;
         stockPayload.posting_date = date;
@@ -389,7 +492,6 @@ export class PurchaseReceiptSyncService {
         stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
         stockPayload.voucher_no = payload.pr_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = payload.purchaseReceipt.rate;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
@@ -401,6 +503,18 @@ export class PurchaseReceiptSyncService {
         return of(stockPayload);
       }),
     );
+  }
+  // function for calculate valuation
+  calculateValuationRate(
+    preQty,
+    incomingQty,
+    incomingRate,
+    preValuation,
+    totalQty,
+  ) {
+    const result =
+      (preQty * preValuation + incomingQty * incomingRate) / totalQty;
+    return result.toFixed(2);
   }
 
   updateInvoiceDeliveredState(docName, fullName, parent) {

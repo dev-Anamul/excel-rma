@@ -331,44 +331,122 @@ export class DeliveryNoteJobService {
             : item.serial_no),
         );
       }
-      items.push({
-        item_code: item.item_code,
-        item_name: item.item_name,
-        description: item.description,
-        deliveredBy: token.fullName,
-        deliveredByEmail: token.email,
-        qty: item.qty,
-        rate: item.rate,
-        amount: item.amount,
-        serial_no: item.serial_no,
-        expense_account: item.expense_account,
-        cost_center: item.cost_center,
-        delivery_note: response.name,
+      const filter_obj = {
+        item_code: `${item.item_code}`,
+        warehouse: `${payload.set_warehouse}`,
+      };
+      const $match: any = filter_obj;
+      const where: any = [];
+      where.push({ $match });
+      const $sort: any = {
+        modified: -1,
+      };
+      where.push({ $sort });
+      this.stockLedgerService.asyncAggregate(where).subscribe(ledger => {
+        items.push({
+          item_code: item.item_code,
+          item_name: item.item_name,
+          description: item.description,
+          deliveredBy: token.fullName,
+          deliveredByEmail: token.email,
+          qty: item.qty,
+          rate: ledger[0].valuation_rate,
+          amount: ledger[0].valuation_rate,
+          serial_no: item.serial_no,
+          expense_account: item.expense_account,
+          cost_center: item.cost_center,
+          delivery_note: response.name,
+        });
+        this.salesInvoiceService
+          .updateOne(
+            { name: sales_invoice_name },
+            {
+              $push: {
+                delivery_note_items: { $each: items },
+                delivery_note_names: response.name,
+              },
+            },
+          )
+          .then(success => {})
+          .catch(error => {});
       });
     });
 
-    this.salesInvoiceService
-      .updateOne(
-        { name: sales_invoice_name },
-        {
-          $push: {
-            delivery_note_items: { $each: items },
-            delivery_note_names: response.name,
-          },
-        },
-      )
-      .then(success => {})
-      .catch(error => {});
-
     from(payload.items).forEach((item: DeliveryNoteItemDto) => {
-      this.createStockLedgerPayload(
-        { warehouse: payload.set_warehouse, deliveryNoteItem: item },
-        token,
-        settings,
-      )
+      // fetch latest incoming item's ledger report
+      const filter_obj = {
+        item_code: `${item.item_code}`,
+        warehouse: `${payload.set_warehouse}`,
+        actual_qty: { $gt: 0 },
+      };
+      const $match: any = filter_obj;
+      const where: any = [];
+      where.push({ $match });
+      const $sort: any = {
+        modified: -1,
+      };
+      where.push({ $sort });
+      return this.stockLedgerService
+        .asyncAggregate(where)
         .pipe(
-          switchMap((response: StockLedger) => {
-            return from(this.stockLedgerService.create(response));
+          switchMap((latest_ledger: StockLedger) => {
+            // fetch available stock
+            const filter_query = [
+              ['item_code', 'like', `${item.item_code}`],
+              ['warehouse', 'like', `${payload.set_warehouse}`],
+              ['actual_qty', '!=', 0],
+            ];
+
+            const filter_Obj: any = {};
+            filter_query.forEach(element => {
+              if (element[0] === 'item_code') {
+                filter_Obj['item.item_code'] = element[2];
+              }
+              if (element[0] === 'warehouse') {
+                filter_Obj['_id.warehouse'] = element[2];
+              }
+              if (element[1] === '!=') {
+                filter_Obj.stockAvailability = { $gt: element[2] };
+              }
+            });
+            const obj: any = {
+              _id: {
+                warehouse: '$warehouse',
+                item_code: '$item_code',
+              },
+              stockAvailability: {
+                $sum: '$actual_qty',
+              },
+            };
+            const $group: any = obj;
+            const where: any = [];
+            where.push({ $group });
+            const $lookup: any = {
+              from: 'item',
+              localField: '_id.item_code',
+              foreignField: 'item_code',
+              as: 'item',
+            };
+            where.push({ $lookup });
+            const $unwind: any = '$item';
+            where.push({ $unwind });
+            const $match: any = filter_Obj;
+            where.push({ $match });
+            return this.stockLedgerService.asyncAggregate(where).pipe(
+              switchMap(data => {
+                return this.createStockLedgerPayload(
+                  { warehouse: payload.set_warehouse, deliveryNoteItem: item },
+                  token,
+                  settings,
+                  latest_ledger,
+                  data,
+                ).pipe(
+                  switchMap((response: StockLedger) => {
+                    return from(this.stockLedgerService.create(response));
+                  }),
+                );
+              }),
+            );
           }),
         )
         .subscribe();
@@ -381,7 +459,16 @@ export class DeliveryNoteJobService {
     payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
     token,
     settings: ServerSettings,
+    latest_ledger,
+    data,
   ) {
+    const available_stock = data[0].stockAvailability
+      ? data[0].stockAvailability
+      : 0;
+    const current_valuation = latest_ledger[0].valuation_rate
+      ? latest_ledger[0].valuation_rate
+      : 0;
+
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -392,7 +479,11 @@ export class DeliveryNoteJobService {
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
-        stockPayload.valuation_rate = payload.deliveryNoteItem.rate;
+        stockPayload.balance_qty = available_stock - -stockPayload.actual_qty;
+        stockPayload.valuation_rate = current_valuation;
+        stockPayload.balance_value = parseFloat(
+          (stockPayload.balance_qty * stockPayload.valuation_rate).toFixed(2),
+        );
         stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
@@ -401,7 +492,7 @@ export class DeliveryNoteJobService {
           payload.deliveryNoteItem.against_sales_invoice;
         stockPayload.voucher_detail_no = '';
         stockPayload.incoming_rate = 0;
-        stockPayload.outgoing_rate = 0;
+        stockPayload.outgoing_rate = payload.deliveryNoteItem.rate;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
           stockPayload.qty_after_transaction * stockPayload.valuation_rate;

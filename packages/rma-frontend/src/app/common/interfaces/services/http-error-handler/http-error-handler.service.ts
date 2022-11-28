@@ -14,10 +14,10 @@ export type HandleError = <T>(
 export class HttpErrorHandler {
   constructor(private messageService: MessageService) {}
 
-  createHandleError = (serviceName = '') => <T>(
-    operation = 'operation',
-    result = {} as T,
-  ) => this.handleError(serviceName, operation, result); // tslint:disable-line
+  createHandleError =
+    (serviceName = '') =>
+    <T>(operation = 'operation', result = {} as T) =>
+      this.handleError(serviceName, operation, result); // tslint:disable-line
 
   handleError<T>(serviceName = '', operation = 'operation', result = {} as T) {
     return (error: HttpErrorResponse): Observable<T> => {

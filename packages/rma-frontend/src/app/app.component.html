@@ -181,6 +181,23 @@
                 </ion-icon>
                 <ion-label>Stock Availability</ion-label>
               </ion-item>
+
+              <ion-item
+                button
+                *ngIf="loggedIn && permissionState?.stock_entry?.read"
+                lines="none"
+                routerLink="/stock-ledger"
+                routerLinkActive="active"
+              >
+                <ion-icon
+                  slot="start"
+                  *ngIf="loggedIn && permissionState?.stock_history?.read"
+                  name="trending-up-outline"
+                >
+                </ion-icon>
+                <ion-label>Stock Ledger</ion-label>
+              </ion-item>
+
             </ion-list>
           </ion-menu-toggle>
 

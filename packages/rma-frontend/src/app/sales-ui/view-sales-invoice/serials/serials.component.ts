@@ -415,7 +415,9 @@ export class SerialsComponent implements OnInit {
     if (salesWarrantyMonths) {
       try {
         date = new Date(date.setMonth(date.getMonth() + salesWarrantyMonths));
-        return await (await this.timeService.getDateAndTime(date)).date;
+        return await (
+          await this.timeService.getDateAndTime(date)
+        ).date;
       } catch (err) {
         this.getMessage(`Error occurred while settings warranty date: ${err}`);
       }
@@ -547,9 +549,8 @@ export class SerialsComponent implements OnInit {
       item_hash[serial.item_code].amount =
         item_hash[serial.item_code].qty * item_hash[serial.item_code].rate;
       item_hash[serial.item_code].serial_no.push(...existing_serials);
-      item_hash[
-        serial.item_code
-      ].against_sales_invoice = this.salesInvoiceDetails.name;
+      item_hash[serial.item_code].against_sales_invoice =
+        this.salesInvoiceDetails.name;
     });
 
     Object.keys(item_hash).forEach(key => {
@@ -633,9 +634,8 @@ export class SerialsComponent implements OnInit {
                         if (value.item_code === element.item_code) {
                           if (value.has_serial_no === 0) {
                             if (!element.excel_serials) {
-                              return (element.excel_serials = value.serial_no.join(
-                                '',
-                              ));
+                              return (element.excel_serials =
+                                value.serial_no.join(''));
                             }
                           } else {
                             if (this.validSerials) {
@@ -653,9 +653,8 @@ export class SerialsComponent implements OnInit {
                                     value.serial_no.join(', '));
                                 }
                               } else {
-                                return (element.excel_serials = value.serial_no.join(
-                                  ', ',
-                                ));
+                                return (element.excel_serials =
+                                  value.serial_no.join(', '));
                               }
                             }
                           }
@@ -674,9 +673,8 @@ export class SerialsComponent implements OnInit {
                   if (value.item_code === element.item_code) {
                     if (value.has_serial_no === 0) {
                       if (!element.excel_serials) {
-                        return (element.excel_serials = value.serial_no.join(
-                          '',
-                        ));
+                        return (element.excel_serials =
+                          value.serial_no.join(''));
                       }
                     } else {
                       if (this.validSerials) {
@@ -694,9 +692,8 @@ export class SerialsComponent implements OnInit {
                               value.serial_no.join(', '));
                           }
                         } else {
-                          return (element.excel_serials = value.serial_no.join(
-                            ', ',
-                          ));
+                          return (element.excel_serials =
+                            value.serial_no.join(', '));
                         }
                       }
                     }

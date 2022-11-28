@@ -153,8 +153,13 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
           token,
           settings,
         ).pipe(
-          switchMap((stockLedgerPayload: StockLedger) => {
-            return from(this.stockLedgerService.create(stockLedgerPayload));
+          switchMap((response: StockLedger) => {
+            // return from(this.stockLedgerService.create(response));
+            return from(
+              this.stockLedgerService.deleteOne({
+                voucher_no: purchaseOrder.purchase_invoice_name,
+              }),
+            );
           }),
         );
       }),
@@ -197,7 +202,8 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         stockPayload.warehouse = payload.purchaseReciept.warehouse;
         stockPayload.item_code = payload.purchaseReciept.item_code;
         stockPayload.actual_qty = -payload.purchaseReciept.qty;
-        stockPayload.valuation_rate = payload.purchaseReciept.rate;
+        stockPayload.incoming_rate = payload.purchaseReciept.rate;
+        stockPayload.valuation_rate = 0;
         stockPayload.batch_no = '';
         stockPayload.stock_uom = payload.purchaseReciept.stock_uom;
         stockPayload.posting_date = date;
@@ -205,7 +211,6 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         stockPayload.voucher_type = PURCHASE_RECEIPT_DOCTYPE_NAME;
         stockPayload.voucher_no = payload.pr_no;
         stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = payload.purchaseReciept.rate;
         stockPayload.outgoing_rate = 0;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
@@ -217,6 +222,19 @@ export class PurchaseOrderAggregateService extends AggregateRoot {
         return of(stockPayload);
       }),
     );
+  }
+  // function for calculate valuation
+  calculateValuationRate(
+    preQty,
+    incomingQty,
+    incomingRate,
+    preValuation,
+    totalQty,
+  ) {
+    let result =
+      (preQty * preValuation + incomingQty * incomingRate) / totalQty;
+    result = Math.round(result);
+    return result;
   }
 
   cancelERPNextDocs(docs: { [key: string]: string[] }, req, settings) {

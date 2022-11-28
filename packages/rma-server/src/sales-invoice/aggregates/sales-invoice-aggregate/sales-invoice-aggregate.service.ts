@@ -46,6 +46,7 @@ import {
   INVOICE_DELIVERY_STATUS,
   CANCELED_STATUS,
   REJECTED_STATUS,
+  RETURN_DELIVERY_NOTE,
 } from '../../../constants/app-strings';
 import { ACCEPT } from '../../../constants/app-strings';
 import { APP_WWW_FORM_URLENCODED } from '../../../constants/app-strings';
@@ -785,22 +786,103 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       .pipe(
         switchMap((fiscalYear: string) => {
           return from(items).pipe(
-            map((item: SalesReturnItemDto) =>
-              this.createStockLedgerPayload(
-                {
-                  saleReturnName: sales_return_name,
-                  salesInvoice: sales_invoice as SalesInvoiceDto,
-                  returnItem: item,
+            concatMap(item => {
+              // query for fetching available stock
+              const filter_query = [
+                ['item_code', 'like', `${item.item_code}`],
+                ['warehouse', 'like', `${warehouse}`],
+                ['actual_qty', '!=', 0],
+              ];
+
+              const filter_Obj: any = {};
+              filter_query.forEach(element => {
+                if (element[0] === 'item_code') {
+                  filter_Obj['item.item_code'] = element[2];
+                }
+                if (element[0] === 'warehouse') {
+                  filter_Obj['_id.warehouse'] = element[2];
+                }
+                if (element[1] === '!=') {
+                  filter_Obj.stockAvailability = { $gt: element[2] };
+                }
+              });
+              const obj: any = {
+                _id: {
+                  warehouse: '$warehouse',
+                  item_code: '$item_code',
                 },
-                token,
-                fiscalYear,
-                settings.timeZone,
-                settings.defaultCompany,
-              ),
-            ),
-            tap(stockLedger =>
-              from(this.stockLedgerService.create(stockLedger)),
-            ),
+                stockAvailability: {
+                  $sum: '$actual_qty',
+                },
+              };
+              const $group: any = obj;
+              const where: any = [];
+              where.push({ $group });
+              const $lookup: any = {
+                from: 'item',
+                localField: '_id.item_code',
+                foreignField: 'item_code',
+                as: 'item',
+              };
+              where.push({ $lookup });
+              const $unwind: any = '$item';
+              where.push({ $unwind });
+              const $match: any = filter_Obj;
+              where.push({ $match });
+              return this.stockLedgerService.asyncAggregate(where).pipe(
+                switchMap(data => {
+                  // fetch latest incoming ledger report
+                  const where = [];
+                  const ledger_filter_obj = {
+                    item_code: `${item.item_code}`,
+                    warehouse: `${warehouse}`,
+                    actual_qty: { $gt: 0 },
+                  };
+                  const $match: any = ledger_filter_obj;
+                  where.push({ $match });
+                  const $sort: any = {
+                    modified: -1,
+                  };
+                  where.push({ $sort });
+                  return this.stockLedgerService.asyncAggregate(where).pipe(
+                    switchMap((latest_stock_ledger: StockLedger) => {
+                      const filter_obj = {
+                        voucher_no: `${sales_invoice.name}`,
+                        item_code: `${item.item_code}`,
+                      };
+                      const $match: any = filter_obj;
+                      const where: any = [];
+                      where.push({ $match });
+                      return this.stockLedgerService.asyncAggregate(where).pipe(
+                        switchMap((created_invoice_ledger: StockLedger) => {
+                          return this.createStockLedgerPayload(
+                            {
+                              saleReturnName: sales_return_name,
+                              salesInvoice: sales_invoice as SalesInvoiceDto,
+                              returnItem: item,
+                            },
+                            token,
+                            fiscalYear,
+                            settings.timeZone,
+                            settings.defaultCompany,
+                            data,
+                            latest_stock_ledger,
+                            created_invoice_ledger,
+                          ).pipe(
+                            switchMap((response: StockLedger) => {
+                              return from(
+                                this.stockLedgerService.create(response),
+                              );
+                            }),
+                          );
+                        }),
+                      );
+                    }),
+                  );
+                }),
+              );
+            }),
+            toArray(),
           );
         }),
       )
@@ -842,7 +924,27 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     fiscalYear: string,
     timeZone: any,
     defaultCompany: string,
+    data,
+    latest_stock_ledger,
+    created_invoice_ledger,
   ) {
+    let current_valuation_rate;
+    let available_stock;
+    let pre_incoming_rate;
+    if (latest_stock_ledger && latest_stock_ledger.length > 0) {
+      current_valuation_rate = latest_stock_ledger[0].valuation_rate;
+      pre_incoming_rate = latest_stock_ledger[0].incoming_rate;
+    } else {
+      current_valuation_rate = payload.returnItem.rate;
+      pre_incoming_rate = payload.returnItem.rate;
+    }
+    if (data && data.length > 0) {
+      available_stock = data[0].stockAvailability;
+    } else {
+      available_stock = 0;
+    }
+    const new_quantity = -payload.returnItem.qty + available_stock;
+
     const date = new DateTime(timeZone).toJSDate();
     const stockPayload = new StockLedger();
     stockPayload.name = uuidv4();
@@ -850,14 +952,32 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     stockPayload.modified_by = token.email;
     stockPayload.item_code = payload.returnItem.item_code;
     stockPayload.actual_qty = -payload.returnItem.qty;
-    stockPayload.valuation_rate = payload.returnItem.rate;
+    stockPayload.incoming_rate = created_invoice_ledger[0].valuation_rate;
+
+    if (pre_incoming_rate !== stockPayload.incoming_rate) {
+      stockPayload.valuation_rate = parseFloat(
+        this.calculateValuationRate(
+          available_stock,
+          stockPayload.actual_qty,
+          stockPayload.incoming_rate,
+          current_valuation_rate,
+          new_quantity,
+        ),
+      );
+    } else {
+      stockPayload.valuation_rate = current_valuation_rate;
+    }
     stockPayload.batch_no = '';
+    stockPayload.balance_qty = new_quantity;
+    stockPayload.balance_value = parseFloat(
+      (stockPayload.balance_qty * stockPayload.valuation_rate).toFixed(2),
+    );
     stockPayload.posting_date = date;
     stockPayload.posting_time = date;
     // stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
     stockPayload.voucher_no = payload.saleReturnName;
     stockPayload.voucher_detail_no = '';
-    stockPayload.incoming_rate = 0;
+    stockPayload.voucher_type = RETURN_DELIVERY_NOTE;
     stockPayload.outgoing_rate = 0;
     stockPayload.qty_after_transaction = stockPayload.actual_qty;
     stockPayload.warehouse = payload.salesInvoice.delivery_warehouse;
@@ -868,7 +988,19 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
     stockPayload.company = defaultCompany;
     stockPayload.fiscal_year = fiscalYear;
 
-    return stockPayload;
+    return of(stockPayload);
+  }
+
+  calculateValuationRate(
+    preQty,
+    incomingQty,
+    incomingRate,
+    preValuation,
+    totalQty,
+  ) {
+    const result =
+      (preQty * preValuation + incomingQty * incomingRate) / totalQty;
+    return result.toFixed(2);
   }
 
   updateOutstandingAmount(invoice_name: string) {
