@@ -79,8 +79,8 @@ export class ItemController {
 
   @Get('v1/brand_list')
   @UseGuards(TokenGuard)
-  async getBrand() {
-    return await this.aggregate.getBrandList();
+  async getBrand(@Query('limit') limit = 10, @Query('search') search = '') {
+    return this.aggregate.getBrandList(limit, search);
   }
 
   @Get('v1/list')

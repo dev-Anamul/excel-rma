@@ -163,15 +163,17 @@ export class WarrantyService {
     );
   }
 
-  getBrandList() {
+  getBrandList(search: string) {
     const url = LIST_BRAND_ENDPOINT;
+    const params = new HttpParams().set('search', search);
     return this.getHeaders().pipe(
       switchMap(headers => {
         return this.http.get<APIResponse>(url, {
           headers,
+          params,
         });
       }),
-      map(res => res),
+      map(res => res[0]?.brands),
     );
   }
 

@@ -143,11 +143,10 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #brand="matAutocomplete"
-                  [displayWith]="getBrandOption"
                   (optionSelected)="setFilter()"
                 >
                   <mat-option
-                    *ngFor="let option of filteredBrandList"
+                    *ngFor="let option of filteredBrandList | async"
                     [value]="option"
                   >
                     {{option}}

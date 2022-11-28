@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import { Item } from './item.entity';
 import { PARSE_REGEX } from '../../../constants/app-strings';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Injectable()
 export class ItemService {
@@ -62,10 +64,31 @@ export class ItemService {
       offset: skip,
     };
   }
-  async distinct() {
-    return await this.itemRepository.distinct('brand', {
-      brand: { $ne: null },
-    });
+
+  asyncAggregate(query) {
+    return of(this.itemRepository.aggregate(query)).pipe(
+      switchMap((aggregateData: any) => {
+        return aggregateData.toArray();
+      }),
+    );
+  }
+
+  listBrands(limit: number, search: string) {
+    return this.asyncAggregate([
+      { $match: { brand: { $regex: search, $options: 'i' } } },
+      {
+        $group: { _id: '$brand' },
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $group: {
+          _id: 1,
+          brands: { $addToSet: '$_id' },
+        },
+      },
+    ]);
   }
 
   async deleteOne(query, options?) {
