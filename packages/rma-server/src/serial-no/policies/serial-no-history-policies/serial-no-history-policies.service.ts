@@ -13,7 +13,7 @@ export class SerialNoHistoryPoliciesService {
 
   validateLatestEventWithParent(
     parent_document: string,
-    serial_no: string[],
+    serial_no: string[] | string,
   ): Observable<OverlappingEventInterface[]> {
     return this.serialNoHistoryService
       .asyncAggregate([

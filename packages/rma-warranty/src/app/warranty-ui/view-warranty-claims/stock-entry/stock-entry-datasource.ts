@@ -59,8 +59,6 @@ export class StockEntryListDataSource extends DataSource<ListingData> {
         catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
       )
-      .subscribe(items => {
-        this.itemSubject.next(items);
-      });
+      .subscribe(items => this.itemSubject.next(items));
   }
 }

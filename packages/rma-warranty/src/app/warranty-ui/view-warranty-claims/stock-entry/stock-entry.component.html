@@ -89,6 +89,14 @@
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
 
+        <ng-container matColumnDef="serial_no">
+          <mat-header-cell *matHeaderCellDef>Serial No</mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row?.items[0]?.serial_no }}
+          </mat-cell>
+          <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+        </ng-container>
+
         <ng-container matColumnDef="date">
           <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
           <mat-cell *matCellDef="let row">

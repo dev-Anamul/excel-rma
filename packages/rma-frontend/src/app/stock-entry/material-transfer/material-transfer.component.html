@@ -20,7 +20,7 @@
 <ion-content class="page-background">
   <form [formGroup]="form">
     <ion-card>
-      <ion-card-header>
+      <ion-card-header *ngIf="uuid">
         <ion-row class="align">
           <ion-col>
             <ion-card-title>
