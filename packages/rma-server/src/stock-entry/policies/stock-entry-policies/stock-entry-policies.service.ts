@@ -476,14 +476,13 @@ export class StockEntryPoliciesService {
     );
   }
 
-  validateCancelWarrantyStockEntry(parent_document: string, serial_no) {
-    if (serial_no.toUpperCase() !== NON_SERIAL_ITEM.length) {
+  validateCancelWarrantyStockEntry(parent_document: string, serial_no: string) {
+    if (serial_no.toUpperCase() !== NON_SERIAL_ITEM) {
       return this.serialNoHistoryPolicyService
         .validateLatestEventWithParent(parent_document, serial_no)
         .pipe(
           switchMap(response => {
-            let message = `Found ${response.length} Events, please cancel Following events for serials
-      `;
+            let message = `Found ${response.length} Events, please cancel Following events for serials `;
             response.forEach(value =>
               value
                 ? (message += `${value._id} : ${value.serials
@@ -491,6 +490,9 @@ export class StockEntryPoliciesService {
                     .join(', ')}`)
                 : null,
             );
+            if (response && response.length) {
+              return throwError(message);
+            }
             return of(true);
           }),
         );

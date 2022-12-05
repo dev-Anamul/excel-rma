@@ -34,6 +34,7 @@ export class StockEntryComponent implements OnInit {
     'stock_voucher_number',
     'claim_no',
     'type',
+    'serial_no',
     'stock_entry_type',
     'date',
     'description',
