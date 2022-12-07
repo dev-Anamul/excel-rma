@@ -275,6 +275,7 @@ export class WarrantyPage implements OnInit {
     }
     if (this.claim_status) query.claim_status = this.claim_status;
 
+    this.paginator.firstPage();
     this.dataSource.loadItems(
       this.sortQuery,
       this.paginator.pageIndex,
