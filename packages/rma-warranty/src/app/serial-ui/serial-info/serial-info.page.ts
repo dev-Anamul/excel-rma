@@ -61,27 +61,33 @@ export class SerialInfoPage implements OnInit {
     if (this.activatedRoute.snapshot.paramMap.keys.length > 1) {
       this.loadSerialFromParamMap();
     } else {
-      this.fetchSerialData();
+      this.fetchSerialData(this.serialNo);
     }
   }
 
-  fetchSerialData() {
-    this.serialSearchService.getSerialData(this.serialNo).subscribe({
-      error: error => {
+  get f() {
+    return this.serialInfoForm.controls;
+  }
+
+  fetchSerialData(serial: string) {
+    this.serialNo = serial;
+    this.serialHistoryDataSource = new SerialHistoryDataSource(
+      this.serialSearchService,
+    );
+    this.serialSearchService.getSerialData(serial).subscribe({
+      error: () => {
         this.snackBar.open(SERIAL_FETCH_ERROR, CLOSE, { duration: DURATION });
       },
       next: res => {
-        this.serialInfoForm.controls.customer_code.setValue(res.customer);
-        this.serialInfoForm.controls.serial_no.setValue(res.serial_no);
-        this.serialInfoForm.controls.item_code.setValue(res.item_code);
-        this.serialInfoForm.controls.item_name.setValue(res.item_name);
-        this.serialInfoForm.controls.warehouse.setValue(res.warehouse);
-        this.serialInfoForm.controls.purchase_document_no.setValue(
-          res.purchase_document_no,
-        );
-        this.serialInfoForm.controls.delivery_note.setValue(res.delivery_note);
-        this.serialInfoForm.controls.customer.setValue(res.customer_name);
-        this.serialInfoForm.controls.supplier.setValue(res.supplier);
+        this.f.customer_code.setValue(res.customer);
+        this.f.serial_no.setValue(res.serial_no);
+        this.f.item_code.setValue(res.item_code);
+        this.f.item_name.setValue(res.item_name);
+        this.f.warehouse.setValue(res.warehouse);
+        this.f.purchase_document_no.setValue(res.purchase_document_no);
+        this.f.delivery_note.setValue(res.delivery_note);
+        this.f.customer.setValue(res.customer_name);
+        this.f.supplier.setValue(res.supplier);
         this.setViewUrls();
       },
     });
@@ -103,44 +109,34 @@ export class SerialInfoPage implements OnInit {
       )
       .subscribe({
         next: authServerUrl => {
-          this.viewPRUrl = this.serialInfoForm.controls.purchase_document_no
-            .value
-            ? `${authServerUrl}/desk#Form/Purchase%20Receipt/${this.serialInfoForm.controls.purchase_document_no.value}`
+          this.viewPRUrl = this.f.purchase_document_no.value
+            ? `${authServerUrl}/desk#Form/Purchase%20Receipt/${this.f.purchase_document_no.value}`
             : null;
-          this.viewDNUrl = this.serialInfoForm.controls.delivery_note.value
-            ? `${authServerUrl}/desk#Form/Delivery%20Note/${this.serialInfoForm.controls.delivery_note.value}`
+          this.viewDNUrl = this.f.delivery_note.value
+            ? `${authServerUrl}/desk#Form/Delivery%20Note/${this.f.delivery_note.value}`
             : null;
-          this.viewCustomerUrl = this.serialInfoForm.controls.customer_code
-            .value
-            ? `${authServerUrl}/desk#Form/Customer/${this.serialInfoForm.controls.customer_code.value}`
+          this.viewCustomerUrl = this.f.customer_code.value
+            ? `${authServerUrl}/desk#Form/Customer/${this.f.customer_code.value}`
             : null;
-          this.viewSupplierUrl = this.serialInfoForm.controls.supplier.value
-            ? `${authServerUrl}/desk#Form/Supplier/${this.serialInfoForm.controls.supplier.value}`
+          this.viewSupplierUrl = this.f.supplier.value
+            ? `${authServerUrl}/desk#Form/Supplier/${this.f.supplier.value}`
             : null;
         },
-        error: error => {},
+        error: () => {},
       });
   }
 
   loadSerialFromParamMap() {
     const paramMap = this.activatedRoute.snapshot.paramMap;
-    this.serialInfoForm.controls.customer_code.setValue(
-      paramMap.get('customer'),
-    );
-    this.serialInfoForm.controls.serial_no.setValue(paramMap.get('serial_no'));
-    this.serialInfoForm.controls.item_code.setValue(paramMap.get('item_code'));
-    this.serialInfoForm.controls.item_name.setValue(paramMap.get('item_name'));
-    this.serialInfoForm.controls.warehouse.setValue(paramMap.get('warehouse'));
-    this.serialInfoForm.controls.purchase_document_no.setValue(
-      paramMap.get('purchase_document_no'),
-    );
-    this.serialInfoForm.controls.delivery_note.setValue(
-      paramMap.get('delivery_note'),
-    );
-    this.serialInfoForm.controls.customer.setValue(
-      paramMap.get('customer_name'),
-    );
-    this.serialInfoForm.controls.supplier.setValue(paramMap.get('supplier'));
+    this.f.customer_code.setValue(paramMap.get('customer'));
+    this.f.serial_no.setValue(paramMap.get('serial_no'));
+    this.f.item_code.setValue(paramMap.get('item_code'));
+    this.f.item_name.setValue(paramMap.get('item_name'));
+    this.f.warehouse.setValue(paramMap.get('warehouse'));
+    this.f.purchase_document_no.setValue(paramMap.get('purchase_document_no'));
+    this.f.delivery_note.setValue(paramMap.get('delivery_note'));
+    this.f.customer.setValue(paramMap.get('customer_name'));
+    this.f.supplier.setValue(paramMap.get('supplier'));
     this.setViewUrls();
     this.location.replaceState(`/serial-info/${paramMap.get('serial_no')}`);
   }

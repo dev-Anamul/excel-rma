@@ -8,6 +8,7 @@ import { SerialInfoPageRoutingModule } from './serial-info-routing.module';
 
 import { SerialInfoPage } from './serial-info.page';
 import { MaterialModule } from '../../material/material.module';
+import { KeyDownDetectorDirective } from '../../warranty-ui/shared-warranty-modules/service-invoices/add-service-invoice/on-key-down-directive';
 
 @NgModule({
   imports: [
@@ -18,6 +19,6 @@ import { MaterialModule } from '../../material/material.module';
     SerialInfoPageRoutingModule,
     ReactiveFormsModule,
   ],
-  declarations: [SerialInfoPage],
+  declarations: [SerialInfoPage, KeyDownDetectorDirective],
 })
 export class SerialInfoPageModule {}

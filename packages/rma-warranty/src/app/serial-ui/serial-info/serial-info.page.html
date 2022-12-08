@@ -12,22 +12,34 @@
 <ion-content>
   <ion-card>
     <ion-card-header>
-      <ion-card-title color="tertiary">Serial Details</ion-card-title>
+      <ion-card-title color="tertiary"> {{serialNo}} </ion-card-title>
     </ion-card-header>
+
     <ion-card-content>
       <ion-grid class="ion-no-padding">
         <form [formGroup]="serialInfoForm">
           <ion-row>
             <ion-col>
               <ion-item lines="none">
-                <ion-label position="floating">Serial Number</ion-label>
+                <ion-label position="floating"> Serial Number </ion-label>
                 <ion-input
                   placeholder="Serial Number"
-                  readonly="true"
                   type="string"
                   formControlName="serial_no"
-                ></ion-input>
+                  (keyup.enter)="fetchSerialData(this.f.serial_no.value)"
+                >
+                </ion-input>
+                <ion-buttons
+                  style="margin: auto"
+                  slot="end"
+                  *ngIf="this.f.serial_no.dirty"
+                >
+                  <ion-button (click)="fetchSerialData(this.f.serial_no.value)">
+                    <ion-icon name="search-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
               </ion-item>
+
               <ion-item lines="none">
                 <ion-label position="floating">Item Name</ion-label>
                 <ion-input
@@ -35,8 +47,10 @@
                   readonly="true"
                   type="string"
                   formControlName="item_name"
-                ></ion-input>
+                >
+                </ion-input>
               </ion-item>
+
               <ion-item lines="none">
                 <ion-label position="floating">Item Code</ion-label>
                 <ion-input
@@ -44,8 +58,10 @@
                   readonly="true"
                   type="string"
                   formControlName="item_code"
-                ></ion-input>
+                >
+                </ion-input>
               </ion-item>
+
               <ion-item lines="none">
                 <ion-label position="floating">Warehouse</ion-label>
                 <ion-input
@@ -53,9 +69,11 @@
                   readonly="true"
                   type="string"
                   formControlName="warehouse"
-                ></ion-input>
+                >
+                </ion-input>
               </ion-item>
             </ion-col>
+
             <ion-col>
               <ion-item lines="none" (click)="viewSupplier()">
                 <ion-label position="floating">Supplier</ion-label>
@@ -64,8 +82,10 @@
                   readonly="true"
                   type="string"
                   formControlName="supplier"
-                ></ion-input>
+                >
+                </ion-input>
               </ion-item>
+
               <ion-item lines="none" (click)="viewPurchaseReceipt()">
                 <ion-label position="floating">Purchase Receipt</ion-label>
                 <ion-input
@@ -73,8 +93,10 @@
                   readonly="true"
                   type="string"
                   formControlName="purchase_document_no"
-                ></ion-input>
+                >
+                </ion-input>
               </ion-item>
+
               <ion-item lines="none" (click)="viewCustomer()">
                 <ion-label position="floating">Customer</ion-label>
                 <ion-input
@@ -82,8 +104,10 @@
                   readonly="true"
                   type="string"
                   formControlName="customer"
-                ></ion-input>
+                >
+                </ion-input>
               </ion-item>
+
               <ion-item lines="none" (click)="viewDeliveryNote()">
                 <ion-label position="floating">Delivery Note</ion-label>
                 <ion-input
@@ -91,7 +115,8 @@
                   readonly="true"
                   type="string"
                   formControlName="delivery_note"
-                ></ion-input>
+                >
+                </ion-input>
               </ion-item>
             </ion-col>
           </ion-row>
@@ -99,6 +124,7 @@
       </ion-grid>
     </ion-card-content>
   </ion-card>
+
   <ion-card>
     <ion-card-header>
       <ion-row class="align">
@@ -107,6 +133,7 @@
             <ion-card-title color="tertiary">Serial History</ion-card-title>
           </ion-card-title>
         </ion-col>
+
         <ion-col class="ion-text-right">
           <ion-button
             class="ion-text-right"
@@ -118,6 +145,7 @@
         </ion-col>
       </ion-row>
     </ion-card-header>
+
     <table
       mat-table
       style="width: 100%; overflow: auto"
