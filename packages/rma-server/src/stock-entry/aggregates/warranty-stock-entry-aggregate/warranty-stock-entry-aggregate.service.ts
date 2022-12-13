@@ -51,8 +51,7 @@ export class WarrantyStockEntryAggregateService {
     const warrantyPayload: any = {};
     let deliveryNotesList: any[] = [];
     let settingState = {} as ServerSettings;
-    let deliveredStockId: string;
-    let returnedStockId: string;
+    let stockId: string;
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);
@@ -80,20 +79,8 @@ export class WarrantyStockEntryAggregateService {
               settings.find(x => x.settings).settings,
             ).pipe(
               map((res: any) => {
-                res.subscribe((data: any) => {
-                  if (
-                    deliveryNote.stock_entry_type ===
-                    STOCK_ENTRY_STATUS.delivered
-                  ) {
-                    deliveredStockId = data.ops[0].stock_id;
-                  } else if (
-                    deliveryNote.stock_entry_type ===
-                    STOCK_ENTRY_STATUS.returned
-                  ) {
-                    returnedStockId = data.ops[0].stock_id;
-                  }
-                  return data.ops[0];
-                });
+                stockId = res.ops[0].stock_id;
+                return res.ops[0];
               }),
               switchMap(() => {
                 return this.updateProgressState(deliveryNote);
@@ -136,8 +123,7 @@ export class WarrantyStockEntryAggregateService {
           concatMap(deliveryNote => {
             return this.createSerialNoHistory(
               deliveryNote,
-              deliveredStockId,
-              returnedStockId,
+              stockId,
               settingState,
               req,
             );
@@ -163,8 +149,7 @@ export class WarrantyStockEntryAggregateService {
               deliveryNote,
               req.token,
               settingState,
-              deliveredStockId,
-              returnedStockId,
+              stockId,
             );
           }),
         );
@@ -245,13 +230,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createStockLedger(
-    payload,
-    token,
-    settings: ServerSettings,
-    deliveredStockId,
-    returnedStockId,
-  ) {
+  createStockLedger(payload, token, settings: ServerSettings, stockId) {
     if (payload.action === CANCEL_WARRANTY_STOCK_ENTRY) {
       return from(
         this.stockLedgerService.deleteOne({
@@ -263,8 +242,7 @@ export class WarrantyStockEntryAggregateService {
         payload,
         token,
         settings,
-        deliveredStockId,
-        returnedStockId,
+        stockId,
       ).pipe(
         switchMap((stockLedgers: StockLedger[]) => {
           return from(stockLedgers).pipe(
@@ -277,13 +255,7 @@ export class WarrantyStockEntryAggregateService {
     }
   }
 
-  createStockLedgerPayload(
-    res,
-    token,
-    settings: ServerSettings,
-    deliveredStockId,
-    returnedStockId,
-  ) {
+  createStockLedgerPayload(res, token, settings: ServerSettings, stockId) {
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -435,7 +407,7 @@ export class WarrantyStockEntryAggregateService {
                               stockPayload.valuation_rate = current_valuation_rate;
                             }
                             stockPayload.actual_qty = item.qty;
-                            stockPayload.voucher_no = returnedStockId;
+                            stockPayload.voucher_no = stockId;
                             stockPayload.batch_no = '';
                           }
                           stockPayload.warehouse = item.s_warehouse
@@ -491,7 +463,7 @@ export class WarrantyStockEntryAggregateService {
                         stockPayload.incoming_rate = 0;
                       } else {
                         stockPayload.actual_qty = -item.qty;
-                        stockPayload.voucher_no = deliveredStockId;
+                        stockPayload.voucher_no = stockId;
                         stockPayload.batch_no = '';
                         stockPayload.incoming_rate = 0;
                       }
@@ -554,15 +526,15 @@ export class WarrantyStockEntryAggregateService {
     req: any,
     settings: ServerSettings,
   ) {
-    const stockEntry: any = this.setStockEntryDefaults(
+    const stockEntry: StockEntry = this.setStockEntryDefaults(
       deliveryNote,
       req,
       settings,
     );
     stockEntry.items[0].serial_no = deliveryNote.items[0].serial_no;
-    return this.getAssignStockId(stockEntry).pipe(
-      map((res: StockEntry) => {
-        return from(this.stockEntryService.create(res));
+    return this.getAssignStockId(stockEntry, settings).pipe(
+      switchMap((stockEntryPayload: StockEntry) => {
+        return from(this.stockEntryService.create(stockEntryPayload));
       }),
     );
   }
@@ -603,8 +575,7 @@ export class WarrantyStockEntryAggregateService {
 
   createSerialNoHistory(
     deliveryNote: any,
-    deliveredStockId: string,
-    returnedStockId: string,
+    stockId: string,
     settings: ServerSettings,
     req: any,
   ) {
@@ -618,11 +589,7 @@ export class WarrantyStockEntryAggregateService {
     serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
     serialHistory.document_no = deliveryNote.stock_voucher_number;
 
-    if (deliveryNote.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
-      serialHistory.readable_document_no = deliveredStockId;
-    } else if (deliveryNote.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-      serialHistory.readable_document_no = returnedStockId;
-    }
+    serialHistory.readable_document_no = stockId;
 
     serialHistory.document_type = WARRANTY_CLAIM_DOCTYPE;
     serialHistory.eventDate = new DateTime(settings.timeZone);
@@ -988,13 +955,7 @@ export class WarrantyStockEntryAggregateService {
         }),
         switchMap(settings => {
           stockEntry.action = CANCEL_WARRANTY_STOCK_ENTRY;
-          return this.createStockLedger(
-            stockEntry,
-            req.token,
-            settings,
-            null,
-            null,
-          );
+          return this.createStockLedger(stockEntry, req.token, settings, null);
         }),
       );
   }
@@ -1123,45 +1084,37 @@ export class WarrantyStockEntryAggregateService {
   }
 
   // assigning stock id function
-  getAssignStockId(stockPayload: StockEntry) {
-    return this.settingService.find().pipe(
-      switchMap(serverSettings => {
-        const date = new DateTime(serverSettings.timeZone).year;
-        let $match: any;
-        if (stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-          $match = {
-            stock_entry_type: STOCK_ENTRY_STATUS.returned,
-          };
-        } else if (
-          stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.delivered
-        ) {
-          $match = {
-            stock_entry_type: STOCK_ENTRY_STATUS.delivered,
-          };
-        }
-        const $sort: any = {
-          createdAt: -1,
-        };
-        const $limit: any = 1;
-        return this.stockEntryService
-          .asyncAggregate([{ $match }, { $sort }, { $limit }])
-          .pipe(
-            map((result: any) => {
-              const myArray = result[0].stock_id.split('-');
-              const incrementor = Number(myArray[2]) + 1;
-              if (
-                stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.returned
-              ) {
-                stockPayload.stock_id = `WSDR-${date}-${incrementor}`;
-              } else if (
-                stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.delivered
-              ) {
-                stockPayload.stock_id = `WSD-${date}-${incrementor}`;
-              }
-              return stockPayload;
-            }),
-          );
-      }),
-    );
+  getAssignStockId(stockPayload: StockEntry, serverSettings: ServerSettings) {
+    const date = new DateTime(serverSettings.timeZone).year;
+    let $match: any;
+    if (stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+      $match = {
+        stock_entry_type: STOCK_ENTRY_STATUS.returned,
+      };
+    } else if (stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
+      $match = {
+        stock_entry_type: STOCK_ENTRY_STATUS.delivered,
+      };
+    }
+    const $sort: any = {
+      createdAt: -1,
+    };
+    const $limit: any = 1;
+    return this.stockEntryService
+      .asyncAggregate([{ $match }, { $sort }, { $limit }])
+      .pipe(
+        map((result: any) => {
+          const myArray = result[0].stock_id.split('-');
+          const incrementor = Number(myArray[2]) + 1;
+          if (stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
+            stockPayload.stock_id = `WSDR-${date}-${incrementor}`;
+          } else if (
+            stockPayload.stock_entry_type === STOCK_ENTRY_STATUS.delivered
+          ) {
+            stockPayload.stock_id = `WSD-${date}-${incrementor}`;
+          }
+          return stockPayload;
+        }),
+      );
   }
 }
