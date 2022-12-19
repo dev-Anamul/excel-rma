@@ -118,11 +118,8 @@ export class StockEntryController {
   @Post('v1/cancel_warranty_stock_entry')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  removeWarrantyStock(@Body() stockVoucherNumber: any, @Req() req) {
-    return this.warrantyStockAggregate.removeStockEntry(
-      stockVoucherNumber,
-      req,
-    );
+  removeWarrantyStock(@Body() uuid: string, @Req() req) {
+    return this.warrantyStockAggregate.removeStockEntry(uuid, req);
   }
 
   @Get('v1/get_delivered_serials')

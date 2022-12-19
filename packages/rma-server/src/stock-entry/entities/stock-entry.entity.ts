@@ -103,4 +103,14 @@ export class StockEntryItem {
   warranty_date?: string;
   transferWarehouse: string;
   serial_no: string[];
+  warranty?: stockEntryWarranty;
+  delivery_note?: string;
+  sales_invoice_name?: string;
+}
+
+export class stockEntryWarranty {
+  salesWarrantyDate?: string;
+  soldOn?: string;
+  purchaseWarrantyDate?: string;
+  purchasedOn?: string;
 }
