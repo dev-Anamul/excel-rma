@@ -10,8 +10,8 @@ import { AddServiceInvoicePage } from './add-service-invoice.page';
 import { AppCommonModule } from '../../../../common/app-common.module';
 import { RouterModule, Routes } from '@angular/router';
 import { MaterialModule } from '../../../../material/material.module';
-import { KeyDownDetectorDirective } from './on-key-down-directive';
 import { InlineEditComponent } from './inline-edit/inline-edit.component';
+import { SharedModule } from '../../shared.module';
 
 const routes: Routes = [
   {
@@ -29,13 +29,8 @@ const routes: Routes = [
     FormsModule,
     IonicModule,
     AddServiceInvoicePageRoutingModule,
+    SharedModule,
   ],
-  declarations: [
-    InlineEditComponent,
-    AddServiceInvoicePage,
-    KeyDownDetectorDirective,
-  ],
-
-  exports: [KeyDownDetectorDirective],
+  declarations: [InlineEditComponent, AddServiceInvoicePage],
 })
 export class AddServiceInvoicePageModule {}
