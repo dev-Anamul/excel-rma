@@ -142,7 +142,7 @@ export class StockEntryComponent implements OnInit {
     });
     await loading.present();
     this.stockEntryService.finalizeEntry(this.warrantyClaimUuid).subscribe({
-      next: res => {
+      next: () => {
         loading.dismiss();
         this.dataSource.loadItems(undefined, undefined, undefined, {
           warrantyClaimUuid: this.warrantyClaimUuid,
