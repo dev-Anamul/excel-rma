@@ -8,7 +8,7 @@ import { SerialInfoPageRoutingModule } from './serial-info-routing.module';
 
 import { SerialInfoPage } from './serial-info.page';
 import { MaterialModule } from '../../material/material.module';
-import { KeyDownDetectorDirective } from '../../warranty-ui/shared-warranty-modules/service-invoices/add-service-invoice/on-key-down-directive';
+import { SharedModule } from '../../warranty-ui/shared-warranty-modules/shared.module';
 
 @NgModule({
   imports: [
@@ -18,7 +18,8 @@ import { KeyDownDetectorDirective } from '../../warranty-ui/shared-warranty-modu
     IonicModule,
     SerialInfoPageRoutingModule,
     ReactiveFormsModule,
+    SharedModule,
   ],
-  declarations: [SerialInfoPage, KeyDownDetectorDirective],
+  declarations: [SerialInfoPage],
 })
 export class SerialInfoPageModule {}

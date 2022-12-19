@@ -8,9 +8,14 @@ import { AppCommonModule } from '../../common/app-common.module';
 import { MaterialModule } from '../../material/material.module';
 import { RouterModule } from '@angular/router';
 import { PrintSettingDialog } from './print-setting-dialog/print-setting-dialog';
+import { KeyDownDetectorDirective } from './service-invoices/add-service-invoice/on-key-down-directive';
 
 @NgModule({
-  declarations: [ServiceInvoicesComponent, PrintSettingDialog],
+  declarations: [
+    ServiceInvoicesComponent,
+    PrintSettingDialog,
+    KeyDownDetectorDirective,
+  ],
   imports: [
     CommonModule,
     FormsModule,
@@ -21,6 +26,10 @@ import { PrintSettingDialog } from './print-setting-dialog/print-setting-dialog'
     AppCommonModule,
     RouterModule,
   ],
-  exports: [ServiceInvoicesComponent, PrintSettingDialog],
+  exports: [
+    ServiceInvoicesComponent,
+    PrintSettingDialog,
+    KeyDownDetectorDirective,
+  ],
 })
 export class SharedModule {}
