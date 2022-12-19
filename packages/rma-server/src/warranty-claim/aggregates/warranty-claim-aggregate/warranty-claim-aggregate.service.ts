@@ -734,7 +734,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                 ) {
                   return from(
                     this.serialNoService.updateOne(
-                      { serial_no: eachEntry.items.find(x => x).excel_serials },
+                      { serial_no: eachEntry.items.find(x => x).serial_no },
                       {
                         $unset: { claim_no: 1, 'warranty.soldOn': 1 },
                       },
@@ -743,7 +743,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
                 } else {
                   return from(
                     this.serialNoService.updateOne(
-                      { serial_no: eachEntry.items.find(x => x).excel_serials },
+                      { serial_no: eachEntry.items.find(x => x).serial_no },
                       [
                         {
                           $set: {

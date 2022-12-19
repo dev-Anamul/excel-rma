@@ -550,17 +550,17 @@ export class AddWarrantyClaimPage implements OnInit {
     if (option) return option.problem_name;
   }
 
-  checkSerial(serialNo) {
-    return this.addWarrantyService.getSerial(serialNo).pipe(
+  checkSerial(serial_no: string) {
+    return this.addWarrantyService.getSerial(serial_no).pipe(
       switchMap((res: SerialNoDetails) => {
         if (res.claim_no) {
           this.presentSnackBar(
-            `Claim already exists serial no ${res.serial_no}`,
+            `Claim already exists for serial no ${res.serial_no}`,
           );
           return of(false);
         }
         if (!res.customer) {
-          this.presentSnackBar('Serial not sold linked to customer.');
+          this.presentSnackBar('Serial not sold/linked to customer.');
           return of(false);
         }
         if (
