@@ -115,7 +115,7 @@ export class StockEntryComponent implements OnInit {
       message: 'Reverting Stock Entry...!',
     });
     await loading.present();
-    this.stockEntryService.removeStockEntry(row).subscribe({
+    this.stockEntryService.removeStockEntry(row.uuid).subscribe({
       next: () => {
         loading.dismiss();
         this.presentSnackBar('Stock Entry Cancelled Successfully');

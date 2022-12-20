@@ -477,7 +477,7 @@ export class StockEntryPoliciesService {
   }
 
   validateCancelWarrantyStockEntry(parent_document: string, serial_no: string) {
-    if (serial_no.toUpperCase() !== NON_SERIAL_ITEM) {
+    if (serial_no !== NON_SERIAL_ITEM) {
       return this.serialNoHistoryPolicyService
         .validateLatestEventWithParent(parent_document, serial_no)
         .pipe(

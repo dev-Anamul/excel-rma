@@ -47,11 +47,11 @@ export class StockEntryService {
     );
   }
 
-  removeStockEntry(stockVoucherNumber: any) {
+  removeStockEntry(uuid: string) {
     const URL = `${CANCEL_STOCK_ENTRY_ENDPOINT}`;
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.post(URL, stockVoucherNumber, { headers });
+        return this.http.post(URL, { uuid }, { headers });
       }),
     );
   }

@@ -231,28 +231,20 @@ export class WarrantyStockEntryAggregateService {
   }
 
   createStockLedger(payload, token, settings: ServerSettings, stockId) {
-    if (payload.action === CANCEL_WARRANTY_STOCK_ENTRY) {
-      return from(
-        this.stockLedgerService.deleteOne({
-          voucher_no: payload.stock_id,
-        }),
-      );
-    } else {
-      return this.createStockLedgerPayload(
-        payload,
-        token,
-        settings,
-        stockId,
-      ).pipe(
-        switchMap((stockLedgers: StockLedger[]) => {
-          return from(stockLedgers).pipe(
-            switchMap(stockLedger => {
-              return from(this.stockLedgerService.create(stockLedger));
-            }),
-          );
-        }),
-      );
-    }
+    return this.createStockLedgerPayload(
+      payload,
+      token,
+      settings,
+      stockId,
+    ).pipe(
+      switchMap((stockLedgers: StockLedger[]) => {
+        return from(stockLedgers).pipe(
+          switchMap(stockLedger => {
+            return from(this.stockLedgerService.create(stockLedger));
+          }),
+        );
+      }),
+    );
   }
 
   createStockLedgerPayload(res, token, settings: ServerSettings, stockId) {
@@ -737,67 +729,42 @@ export class WarrantyStockEntryAggregateService {
     return stockEntry;
   }
 
-  removeStockEntry(stockEntry: WarrantyStockEntryDto, req) {
-    let array_Value;
-    // Condition for checking if array comes as a string convert it into array so the code will only work on array
-    if (typeof stockEntry.items[0]?.serial_no === 'string') {
-      array_Value = stockEntry.items[0].serial_no;
-    } else {
-      array_Value = stockEntry.items[0]?.serial_no[0];
-    }
-    return this.stockEntryPoliciesService
-      .validateCancelWarrantyStockEntry(
-        stockEntry.warrantyClaimUuid,
-        array_Value,
-      )
-      .pipe(
-        switchMap(() => {
-          // Both ERPNEXT and Mongo having different spelling case so we didn't remove previous work and adding up new condition for mongo
-          if (array_Value !== NON_SERIAL_ITEM) {
-            if (array_Value === 'Non serial Item') {
-              this.stockEntryService.deleteOne({
-                uuid: stockEntry.uuid,
-              });
-              this.warrantyService.updateOne(
-                { uuid: stockEntry.warrantyClaimUuid },
-                {
-                  $unset: {
-                    damage_product: '',
-                    damage_warehouse: '',
-                    damaged_serial: '',
-                  },
-                },
-              );
-            } else {
+  removeStockEntry(uuid: string, req) {
+    return from(this.stockEntryService.findOne(uuid)).pipe(
+      switchMap(stockEntry => {
+        return this.stockEntryPoliciesService
+          .validateCancelWarrantyStockEntry(
+            stockEntry.warrantyClaimUuid,
+            this.getSerialString(stockEntry.items.find(x => x).serial_no),
+          )
+          .pipe(
+            switchMap(() => {
               if (
-                stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered
+                this.getSerialString(
+                  stockEntry.items.find(x => x).serial_no,
+                ) === NON_SERIAL_ITEM
               ) {
-                // Condition for checking if array comes as a string convert it into array so the code will only work on array
-                if (typeof stockEntry.items[0]?.serial_no == 'string') {
-                  const array_Update = [];
-                  array_Update.push(stockEntry.items[0]?.serial_no);
+                this.stockEntryService.deleteOne({
+                  uuid: stockEntry.uuid,
+                });
+                this.warrantyService.updateOne(
+                  { uuid: stockEntry.warrantyClaimUuid },
+                  {
+                    $unset: {
+                      damage_product: '',
+                      damage_warehouse: '',
+                      damaged_serial: '',
+                    },
+                  },
+                );
+              } else {
+                if (
+                  stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered
+                ) {
                   return from(
-                    this.serialService.updateMany(
+                    this.serialService.updateOne(
                       {
-                        serial_no: { $in: array_Update },
-                      },
-                      {
-                        $unset: {
-                          customer: undefined,
-                          'warranty.salesWarrantyDate': undefined,
-                          'warranty.soldOn': undefined,
-                          delivery_note: undefined,
-                          sales_invoice_name: undefined,
-                          sales_return_name: undefined,
-                        },
-                      },
-                    ),
-                  );
-                } else {
-                  return from(
-                    this.serialService.updateMany(
-                      {
-                        serial_no: { $in: stockEntry.items[0]?.serial_no },
+                        serial_no: stockEntry.items.find(x => x)?.serial_no,
                       },
                       {
                         $unset: {
@@ -812,27 +779,29 @@ export class WarrantyStockEntryAggregateService {
                     ),
                   );
                 }
-              }
-              if (stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.returned) {
-                return this.resetCancelledSerialItem(
-                  stockEntry.stock_voucher_number,
-                );
-              }
+                if (
+                  stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.returned
+                ) {
+                  return this.resetCancelledSerialItem(stockEntry);
+                }
 
+                return of(true);
+              }
               return of(true);
-            }
-          }
-          return of(true);
-        }),
-        switchMap(() => {
-          // DELETE SERIAL HISTORY OF WSD
-          if (stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
-            this.warrantyService
-              .findOne({
-                uuid: stockEntry.warrantyClaimUuid,
-              })
-              .then(payload => {
-                payload.progress_state.forEach(state => {
+            }),
+            switchMap(() => {
+              return from(
+                this.warrantyService.findOne({
+                  uuid: stockEntry.warrantyClaimUuid,
+                }),
+              );
+            }),
+            switchMap(warranty => {
+              // DELETE SERIAL HISTORY OF WSD
+              if (
+                stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered
+              ) {
+                warranty.progress_state.forEach(state => {
                   state.items.forEach(element => {
                     if (
                       element.stock_entry_type === STOCK_ENTRY_STATUS.delivered
@@ -843,30 +812,24 @@ export class WarrantyStockEntryAggregateService {
                     }
                   });
                 });
-              });
-            return from(
-              this.warrantyService.updateOne(
-                { uuid: stockEntry.warrantyClaimUuid },
-                {
-                  $unset: {
-                    replace_warehouse: '',
-                    replace_product: '',
-                    replace_serial: '',
-                  },
-                },
-              ),
-            );
-          }
-          // DELETE SERIAL HISTORY OF WSDR
-          else if (
-            stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.returned
-          ) {
-            this.warrantyService
-              .findOne({
-                uuid: stockEntry.warrantyClaimUuid,
-              })
-              .then(payload => {
-                payload.progress_state.forEach(state => {
+                return from(
+                  this.warrantyService.updateOne(
+                    { uuid: stockEntry.warrantyClaimUuid },
+                    {
+                      $unset: {
+                        replace_warehouse: '',
+                        replace_product: '',
+                        replace_serial: '',
+                      },
+                    },
+                  ),
+                );
+              }
+              // DELETE SERIAL HISTORY OF WSDR
+              else if (
+                stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.returned
+              ) {
+                warranty.progress_state.forEach(state => {
                   state.items.forEach(element => {
                     if (
                       element.stock_entry_type === STOCK_ENTRY_STATUS.returned
@@ -877,87 +840,60 @@ export class WarrantyStockEntryAggregateService {
                     }
                   });
                 });
-              });
-          }
-          return of([]);
-        }),
-        switchMap(() => {
-          return from(
-            this.stockEntryService.deleteOne({
-              uuid: stockEntry.uuid,
+              }
+              return of([]);
+            }),
+            switchMap(() => {
+              return from(
+                this.stockEntryService.deleteOne({
+                  uuid: stockEntry.uuid,
+                }),
+              );
+            }),
+            switchMap(() => {
+              return this.revertStatusHistory(stockEntry.warrantyClaimUuid);
+            }),
+            switchMap(() => {
+              return from(
+                this.warrantyService.updateOne(
+                  { uuid: stockEntry.warrantyClaimUuid },
+                  {
+                    $pull: {
+                      progress_state: {
+                        stock_voucher_number: stockEntry.stock_voucher_number,
+                      },
+                    },
+                  },
+                ),
+              );
+            }),
+            switchMap(() => {
+              if (
+                stockEntry.items.some(
+                  item =>
+                    (Object.keys(item).includes('excel_serials') &&
+                      item.excel_serials !== NON_SERIAL_ITEM) ||
+                    this.getSerialString(item.serial_no) !== NON_SERIAL_ITEM,
+                )
+              ) {
+                return from(
+                  this.serialNoHistoryService.deleteOne({
+                    document_no: stockEntry.stock_voucher_number,
+                  }),
+                );
+              }
+              return of(true);
+            }),
+            switchMap(() => {
+              return from(
+                this.stockLedgerService.deleteOne({
+                  voucher_no: stockEntry.stock_id,
+                }),
+              );
             }),
           );
-        }),
-        switchMap(() => {
-          return this.revertStatusHistory(stockEntry.warrantyClaimUuid);
-        }),
-        switchMap(() => {
-          return from(
-            this.warrantyService.updateOne(
-              { uuid: stockEntry.warrantyClaimUuid },
-              {
-                $pull: {
-                  progress_state: {
-                    stock_voucher_number: stockEntry.stock_voucher_number,
-                  },
-                },
-              },
-            ),
-          );
-        }),
-        switchMap(() => {
-          let flagValue;
-          stockEntry.items.find(item => {
-            flagValue = Object.keys(item).includes('excel_serials');
-          });
-          if (!flagValue) {
-            if (
-              stockEntry.items.find(item => {
-                if (typeof item.serial_no == 'object') {
-                  if (item.serial_no[0].toUpperCase() === NON_SERIAL_ITEM) {
-                    return undefined;
-                  }
-                  return item.serial_no;
-                } else {
-                  if (item.serial_no === 'Non Serial Item') {
-                    return undefined;
-                  }
-                  return item.serial_no;
-                }
-              })
-            ) {
-              return from(
-                this.serialNoHistoryService.deleteOne({
-                  document_no: stockEntry.stock_voucher_number,
-                }),
-              );
-            }
-          } else {
-            if (
-              stockEntry.items.find(item => {
-                if (item.excel_serials.toUpperCase() === NON_SERIAL_ITEM) {
-                  return undefined;
-                }
-                return item.excel_serials;
-              })
-            ) {
-              return from(
-                this.serialNoHistoryService.deleteOne({
-                  document_no: stockEntry.stock_voucher_number,
-                }),
-              );
-            }
-          }
-          return of(true);
-        }),
-        switchMap(() => {
-          return this.settingService.find();
-        }),
-        switchMap(settings => {
-          stockEntry.action = CANCEL_WARRANTY_STOCK_ENTRY;
-          return this.createStockLedger(stockEntry, req.token, settings, null);
-        }),
-      );
+      }),
+    );
   }
 
   revertStatusHistory(uuid: string) {
@@ -980,105 +916,52 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  resetCancelledSerialItem(stock_voucher_number: string) {
-    let stockEntryObject;
-    return from(this.stockEntryService.findOne({ stock_voucher_number })).pipe(
-      switchMap((stockEntry: any) => {
-        stockEntryObject = stockEntry;
-        return from(
-          this.warrantyService.findOne({
-            uuid: stockEntry.warrantyClaimUuid,
-            claim_type: WARRANTY_TYPE.THIRD_PARTY,
-          }),
-        );
+  resetCancelledSerialItem(stockEntry: StockEntry) {
+    const stockEntryObject = stockEntry;
+    return from(
+      this.warrantyService.findOne({
+        uuid: stockEntry.warrantyClaimUuid,
+        claim_type: WARRANTY_TYPE.THIRD_PARTY,
       }),
+    ).pipe(
       switchMap(warranty => {
         if (!warranty) {
-          // Condition for checking if array comes as a string convert it into array so the code will only work on array
-          if (typeof stockEntryObject.items[0]?.serial_no === 'string') {
-            const array_Update = [];
-            array_Update.push(stockEntryObject.items[0]?.serial_no);
-            return from(
-              this.serialService.updateMany(
-                {
-                  serial_no: { $in: array_Update },
-                },
-                {
-                  $set: {
-                    customer: stockEntryObject.items[0].customer,
-                    warehouse: stockEntryObject.items[0].warehouse,
-                    'warranty.salesWarrantyDate':
-                      stockEntryObject.items[0].warranty.salesWarrantyDate,
-                    'warranty.soldOn':
-                      stockEntryObject.items[0].warranty.soldOn,
-                    sales_invoice_name:
-                      stockEntryObject.items[0].sales_invoice_name,
-                    delivery_note: stockEntryObject.items[0].delivery_note,
-                  },
-                },
-              ),
-            );
-          } else {
-            return from(
-              this.serialService.updateMany(
-                {
-                  serial_no: { $in: stockEntryObject.items[0]?.serial_no },
-                },
-                {
-                  $set: {
-                    customer: stockEntryObject.items[0].customer,
-                    warehouse: stockEntryObject.items[0].warehouse,
-                    'warranty.salesWarrantyDate':
-                      stockEntryObject.items[0].warranty.salesWarrantyDate,
-                    'warranty.soldOn':
-                      stockEntryObject.items[0].warranty.soldOn,
-                    sales_invoice_name:
-                      stockEntryObject.items[0].sales_invoice_name,
-                    delivery_note: stockEntryObject.items[0].delivery_note,
-                  },
-                },
-              ),
-            );
-          }
-        }
-        // Condition for checking if array comes as a string convert it into array so the code will only work on array
-        if (typeof stockEntryObject.items[0]?.serial_no === 'string') {
-          const array_Update = [];
-          array_Update.push(stockEntryObject.items[0]?.serial_no);
           return from(
             this.serialService.updateOne(
               {
-                serial_no: { $in: array_Update },
+                serial_no: stockEntry.items.find(x => x).serial_no,
               },
               {
                 $set: {
-                  'warranty.salesWarrantyDate': warranty.received_on,
-                  'warranty.soldOn': warranty.received_on,
-                },
-                $unset: {
-                  delivery_note: '',
-                },
-              },
-            ),
-          );
-        } else {
-          return from(
-            this.serialService.updateOne(
-              {
-                serial_no: { $in: stockEntryObject.items[0]?.serial_no },
-              },
-              {
-                $set: {
-                  'warranty.salesWarrantyDate': warranty.received_on,
-                  'warranty.soldOn': warranty.received_on,
-                },
-                $unset: {
-                  delivery_note: '',
+                  customer: stockEntryObject.customer,
+                  warehouse: stockEntryObject.items[0].warehouse,
+                  'warranty.salesWarrantyDate':
+                    stockEntryObject.items[0].warranty?.salesWarrantyDate,
+                  'warranty.soldOn': stockEntryObject.items[0].warranty?.soldOn,
+                  sales_invoice_name:
+                    stockEntryObject.items[0].sales_invoice_name,
+                  delivery_note: stockEntryObject.items[0].delivery_note,
                 },
               },
             ),
           );
         }
+        return from(
+          this.serialService.updateOne(
+            {
+              serial_no: stockEntryObject.items.find(x => x)?.serial_no,
+            },
+            {
+              $set: {
+                'warranty.salesWarrantyDate': warranty.received_on,
+                'warranty.soldOn': warranty.received_on,
+              },
+              $unset: {
+                delivery_note: '',
+              },
+            },
+          ),
+        );
       }),
     );
   }
@@ -1116,5 +999,12 @@ export class WarrantyStockEntryAggregateService {
           return stockPayload;
         }),
       );
+  }
+
+  getSerialString(serials): string {
+    if (typeof serials === 'object') {
+      return serials[0];
+    }
+    return serials;
   }
 }
