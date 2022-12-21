@@ -5,7 +5,7 @@
         <ion-toolbar>
           <ion-title>Menu</ion-title>
           <ion-button slot="end" (click)="login()" size="small" fill="clear">
-            <ion-icon name="refresh">Refresh Session</ion-icon>
+            <ion-icon name="refresh-outline">Refresh Session</ion-icon>
           </ion-button>
           <ion-text class="ion-margin-end" slot="end" color="primary">
             <ng-container *ngIf="counter > 0">
@@ -48,7 +48,7 @@
               lines="none"
               routerLinkActive="active"
             >
-              <ion-icon slot="start" name="log-in"></ion-icon>
+              <ion-icon slot="start" name="log-in-outline"></ion-icon>
               <ion-label>Login</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -62,7 +62,7 @@
               lines="none"
               routerLinkActive="active"
             >
-              <ion-icon slot="start" name="home"></ion-icon>
+              <ion-icon slot="start" name="home-outline"></ion-icon>
               <ion-label>Home</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -76,7 +76,7 @@
               routerLinkActive="active"
               [routerLinkActiveOptions]="{exact: true}"
             >
-              <ion-icon slot="start" name="add"></ion-icon>
+              <ion-icon slot="start" name="add-outline"></ion-icon>
               <ion-label>Add Warranty Claim</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -90,7 +90,7 @@
               routerLinkActive="active"
               [routerLinkActiveOptions]="{exact: true}"
             >
-              <ion-icon slot="start" name="repeat"></ion-icon>
+              <ion-icon slot="start" name="repeat-outline"></ion-icon>
               <ion-label>Warranty Claims List</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -103,7 +103,7 @@
               lines="none"
               routerLinkActive="active"
             >
-              <ion-icon slot="start" name="receipt"></ion-icon>
+              <ion-icon slot="start" name="receipt-outline"></ion-icon>
               <ion-label>Service Invoice</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -129,7 +129,7 @@
               lines="none"
               routerLinkActive="active"
             >
-              <ion-icon slot="start" name="barcode"></ion-icon>
+              <ion-icon slot="start" name="barcode-outline"></ion-icon>
               <ion-label>Serial Search</ion-label>
             </ion-item>
           </ion-menu-toggle>
@@ -156,7 +156,7 @@
             class="clickable"
             lines="none"
           >
-            <ion-icon slot="start" name="log-out"></ion-icon>
+            <ion-icon slot="start" name="log-out-outline"></ion-icon>
             <ion-label>Logout</ion-label>
           </ion-item>
         </ion-list>

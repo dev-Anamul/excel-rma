@@ -20,7 +20,7 @@
         <form [formGroup]="serialInfoForm">
           <ion-row>
             <ion-col>
-              <ion-item lines="none">
+              <ion-item>
                 <ion-label position="floating"> Serial Number </ion-label>
                 <ion-input
                   placeholder="Serial Number"
@@ -29,11 +29,7 @@
                   (keyup.enter)="fetchSerialData(this.f.serial_no.value)"
                 >
                 </ion-input>
-                <ion-buttons
-                  style="margin: auto"
-                  slot="end"
-                  *ngIf="this.f.serial_no.dirty"
-                >
+                <ion-buttons style="margin: auto" slot="end">
                   <ion-button (click)="fetchSerialData(this.f.serial_no.value)">
                     <ion-icon name="search-outline"></ion-icon>
                   </ion-button>

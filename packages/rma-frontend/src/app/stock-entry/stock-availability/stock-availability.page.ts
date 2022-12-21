@@ -63,7 +63,7 @@ export class StockAvailabilityPage implements OnInit {
       this.countFilter.actual_qty = ['!=', 0];
     }
     this.dataSource = new StockAvailabilityDataSource(this.salesService);
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
+    this.dataSource.loadItems(0, 30, this.filters);
 
     this.filteredStockAvailabilityList = this.stockAvailabilityForm
       .get('itemName')
@@ -148,12 +148,7 @@ export class StockAvailabilityPage implements OnInit {
   }
 
   getUpdate(event) {
-    this.dataSource.loadItems(
-      event.pageIndex,
-      event.pageSize,
-      this.filters,
-      this.countFilter,
-    );
+    this.dataSource.loadItems(event.pageIndex, event.pageSize, this.filters);
   }
 
   setFilter() {
@@ -209,7 +204,7 @@ export class StockAvailabilityPage implements OnInit {
       this.countFilter.actual_qty = ['==', 0];
     }
 
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
+    this.dataSource.loadItems(0, 30, this.filters);
   }
 
   navigateBack() {

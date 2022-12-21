@@ -72,7 +72,10 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
     }
   }
 
-  addWarrantyClaim(warrantyClaimPayload: WarrantyClaimDto, clientHttpRequest) {
+  addWarrantyClaim(
+    warrantyClaimPayload: WarrantyClaimDto,
+    clientHttpRequest: any,
+  ) {
     warrantyClaimPayload.status_history = [];
     warrantyClaimPayload.status_history.push({
       status: clientHttpRequest.token.fullName,
@@ -357,7 +360,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
         return of(true);
       }),
       catchError(() => {
-        let count;
+        let count: number;
         return from(this.warrantyClaimService.find({ parent: bulk.uuid })).pipe(
           switchMap(subClaimCount => {
             count = subClaimCount.length;

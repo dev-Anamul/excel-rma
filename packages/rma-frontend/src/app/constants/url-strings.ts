@@ -90,7 +90,6 @@ export const UPDATE_CREDIT_LIMIT_RMA_CUSTOMER_ENDPOINT =
 export const UPDATE_CUSTOMER_CREDIT_LIMIT_ENDPOINT =
   '/api/command/user/api/resource/Customer%20Credit%20Limit';
 export const CUSTOMER_ENDPOINT = '/api/command/user/api/resource/Customer';
-// export const STOCK_AVAILABILITY_ENDPOINT = '/api/command/user/api/resource/Bin';
 export const STOCK_AVAILABILITY_COUNT_ENDPOINT =
   '/api/stock_ledger/v1/list_count';
 export const STOCK_AVAILABILITY_ENDPOINT = '/api/stock_ledger/v1/list';

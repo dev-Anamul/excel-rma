@@ -51,7 +51,7 @@ export class WarrantyStockEntryAggregateService {
     const warrantyPayload: any = {};
     let deliveryNotesList: any[] = [];
     let settingState = {} as ServerSettings;
-    let stockId: string;
+    let stockId: string[] = [];
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);
@@ -70,7 +70,7 @@ export class WarrantyStockEntryAggregateService {
       toArray(),
       switchMap(settings => {
         return from(deliveryNotes).pipe(
-          concatMap(deliveryNote => {
+          concatMap((deliveryNote, index) => {
             deliveryNote.status = undefined;
             deliveryNote.stock_voucher_number = uuidv4();
             return this.makeStockEntry(
@@ -79,7 +79,7 @@ export class WarrantyStockEntryAggregateService {
               settings.find(x => x.settings).settings,
             ).pipe(
               map((res: any) => {
-                stockId = res.ops[0].stock_id;
+                stockId[index] = res.ops[0].stock_id;
                 return res.ops[0];
               }),
               switchMap(() => {
@@ -120,10 +120,10 @@ export class WarrantyStockEntryAggregateService {
       }),
       switchMap(() => {
         return from(deliveryNotesList).pipe(
-          concatMap(deliveryNote => {
+          concatMap((deliveryNote, index) => {
             return this.createSerialNoHistory(
               deliveryNote,
-              stockId,
+              stockId[index],
               settingState,
               req,
             );
@@ -501,6 +501,7 @@ export class WarrantyStockEntryAggregateService {
       }),
     );
   }
+
   calculateValuationRate(
     preQty,
     incomingQty,
@@ -744,6 +745,7 @@ export class WarrantyStockEntryAggregateService {
                   stockEntry.items.find(x => x).serial_no,
                 ) === NON_SERIAL_ITEM
               ) {
+                // for NON SERIAL ITEM
                 this.stockEntryService.deleteOne({
                   uuid: stockEntry.uuid,
                 });
@@ -758,6 +760,7 @@ export class WarrantyStockEntryAggregateService {
                   },
                 );
               } else {
+                // for SERIAL ITEM
                 if (
                   stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered
                 ) {
@@ -784,7 +787,6 @@ export class WarrantyStockEntryAggregateService {
                 ) {
                   return this.resetCancelledSerialItem(stockEntry);
                 }
-
                 return of(true);
               }
               return of(true);
@@ -917,7 +919,6 @@ export class WarrantyStockEntryAggregateService {
   }
 
   resetCancelledSerialItem(stockEntry: StockEntry) {
-    const stockEntryObject = stockEntry;
     return from(
       this.warrantyService.findOne({
         uuid: stockEntry.warrantyClaimUuid,
@@ -933,14 +934,13 @@ export class WarrantyStockEntryAggregateService {
               },
               {
                 $set: {
-                  customer: stockEntryObject.customer,
-                  warehouse: stockEntryObject.items[0].warehouse,
+                  customer: stockEntry.customer,
+                  warehouse: stockEntry.items[0].warehouse,
                   'warranty.salesWarrantyDate':
-                    stockEntryObject.items[0].warranty?.salesWarrantyDate,
-                  'warranty.soldOn': stockEntryObject.items[0].warranty?.soldOn,
-                  sales_invoice_name:
-                    stockEntryObject.items[0].sales_invoice_name,
-                  delivery_note: stockEntryObject.items[0].delivery_note,
+                    stockEntry.items[0].warranty?.salesWarrantyDate,
+                  'warranty.soldOn': stockEntry.items[0].warranty?.soldOn,
+                  sales_invoice_name: stockEntry.items[0].sales_invoice_name,
+                  delivery_note: stockEntry.items[0].delivery_note,
                 },
               },
             ),
@@ -949,7 +949,7 @@ export class WarrantyStockEntryAggregateService {
         return from(
           this.serialService.updateOne(
             {
-              serial_no: stockEntryObject.items.find(x => x)?.serial_no,
+              serial_no: stockEntry.items.find(x => x)?.serial_no,
             },
             {
               $set: {

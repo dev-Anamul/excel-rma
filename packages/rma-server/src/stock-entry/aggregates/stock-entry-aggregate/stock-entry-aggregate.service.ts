@@ -43,7 +43,6 @@ import { getUserPermissions } from '../../../constants/agenda-job';
 import { StockEntrySyncService } from '../../../stock-entry/schedular/stock-entry-sync/stock-entry-sync.service';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.entity';
-// import { DRAFT_STATUS } from 'dist/constants/app-strings';
 
 @Injectable()
 export class StockEntryAggregateService {
