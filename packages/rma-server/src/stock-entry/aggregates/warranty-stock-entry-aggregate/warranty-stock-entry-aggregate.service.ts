@@ -51,7 +51,7 @@ export class WarrantyStockEntryAggregateService {
     const warrantyPayload: any = {};
     let deliveryNotesList: any[] = [];
     let settingState = {} as ServerSettings;
-    let stockId: string[] = [];
+    const stockId: string[] = [];
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);

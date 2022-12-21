@@ -18,7 +18,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
   async getVoucherTypeList() {
     return this.stockLedgerService.distinct();
   }
-  
+
   getStockSummaryList(query: {
     limit: number;
     offset: number;
