@@ -18,6 +18,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
   async getVoucherTypeList() {
     return this.stockLedgerService.distinct();
   }
+
   getStockSummaryList(query: {
     limit: number;
     offset: number;
@@ -165,27 +166,24 @@ export class StockLedgerAggregateService extends AggregateRoot {
         },
       };
       const $group: any = obj;
-      const where: any = [];
-      where.push({ $group });
       const $lookup: any = {
         from: 'item',
         localField: '_id.item_code',
         foreignField: 'item_code',
         as: 'item',
       };
-      where.push({ $lookup });
-      const $unwind: any = '$item';
-      where.push({ $unwind });
-      const $match: any = filter_Obj;
-      where.push({ $match });
       const $sort: any = {
         '_id.item_code': -1,
       };
-      where.push({ $sort });
-      const $limit: any = limit;
-      const $skip: any = offset;
-      where.push({ $skip });
-      where.push({ $limit });
+      const where: any = [
+        { $group },
+        { $lookup },
+        { $unwind: '$item' },
+        { $match: filter_Obj },
+        { $sort },
+        { $skip: offset },
+        { $limit: limit },
+      ];
       return this.stockLedgerService.asyncAggregate(where);
     } else {
       const obj: any = {
@@ -198,8 +196,6 @@ export class StockLedgerAggregateService extends AggregateRoot {
         },
       };
       const $group: any = obj;
-      const where: any = [];
-      where.push({ $group });
       const $limit: any = limit;
       const $skip: any = offset;
       const $lookup: any = {
@@ -208,15 +204,18 @@ export class StockLedgerAggregateService extends AggregateRoot {
         foreignField: 'item_code',
         as: 'item',
       };
-      where.push({ $lookup });
       const $unwind: any = '$item';
-      where.push({ $unwind });
       const $sort: any = {
         '_id.item_code': -1,
       };
-      where.push({ $sort });
-      where.push({ $skip });
-      where.push({ $limit });
+      const where: any = [
+        { $group },
+        { $lookup },
+        { $unwind },
+        { $sort },
+        { $skip },
+        { $limit },
+      ];
       return this.stockLedgerService.asyncAggregate(where);
     }
   }

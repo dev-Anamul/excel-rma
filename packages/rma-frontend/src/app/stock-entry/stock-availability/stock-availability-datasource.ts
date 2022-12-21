@@ -41,7 +41,7 @@ export class StockAvailabilityDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(pageIndex = 0, pageSize = 30, filters = [], countFilter = []) {
+  loadItems(pageIndex = 0, pageSize = 30, filters = []) {
     this.loadingSubject.next(true);
     this.salesService
       .relayStockAvailabilityList(pageIndex, pageSize, filters)

@@ -32,10 +32,10 @@ export class StockEntryComponent implements OnInit {
   showAddButton: boolean = true;
   displayedColumns = [
     'stock_voucher_number',
-    'claim_no',
     'type',
     'serial_no',
     'stock_entry_type',
+    'warehouse',
     'date',
     'description',
     'completed_by',

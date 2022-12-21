@@ -73,7 +73,7 @@ export class SerialSearchPage implements OnInit {
   );
 
   constructor(
-    private location: Location,
+    private readonly location: Location,
     private readonly serialSearchService: SerialSearchService,
     private readonly route: ActivatedRoute,
     private readonly serialService: SerialsService,

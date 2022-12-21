@@ -20,9 +20,7 @@
   <ion-card>
     <ion-card-header>
       <ion-card-title>
-        <ion-text color="primary">
-          Stock Availability
-        </ion-text>
+        <ion-text color="primary"> Stock Availability </ion-text>
       </ion-card-title>
     </ion-card-header>
     <ion-card-content class="ion-no-padding">
@@ -87,7 +85,6 @@
           </ion-row>
 
           <ion-row>
-
             <ion-col>
               <mat-form-field class="mat-input-wrapper">
                 <input
@@ -112,7 +109,8 @@
                 </mat-autocomplete>
                 <mat-error *ngIf="f.excel_item_group.hasError('falseValse')">
                   You should select a value from dropdown only.
-                  <strong>'{{f.excel_item_group.value}}'</strong> is not allowed.
+                  <strong>'{{f.excel_item_group.value}}'</strong> is not
+                  allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>
@@ -141,29 +139,35 @@
                 </mat-autocomplete>
                 <mat-error *ngIf="f.excel_item_brand.hasError('falseValse')">
                   You should select a value from dropdown only.
-                  <strong>'{{f.excel_item_brand.value}}'</strong> is not allowed.
+                  <strong>'{{f.excel_item_brand.value}}'</strong> is not
+                  allowed.
                 </mat-error>
               </mat-form-field>
-                <mat-checkbox 
-                  (change)=setFilter();
-                  formControlName="actual_qty">
-                  Show Zero Stock
-                </mat-checkbox>
+
+              <mat-checkbox (change)="setFilter()" formControlName="actual_qty">
+                Show Zero Stock
+              </mat-checkbox>
+
+              <ion-button (click)="setFilter()">
+                <ion-icon slot="icon-only" name="refresh"></ion-icon>
+              </ion-button>
+
               <ion-button
-              color="tertiary"
-              (click)="clearFilters()"
-              fill="outline"
-            >
-              Clear
-            </ion-button>
-            <ion-button
-            color="tertiary"
-            [disabled]="!dataSource.length"
-            (click)="downloadServiceInvoices()"
-            fill="outline"
-          >
-            Download CSV
-          </ion-button>
+                color="tertiary"
+                (click)="clearFilters()"
+                fill="outline"
+              >
+                Clear
+              </ion-button>
+
+              <ion-button
+                color="tertiary"
+                [disabled]="!dataSource.length"
+                (click)="downloadServiceInvoices()"
+                fill="outline"
+              >
+                Download CSV
+              </ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -203,7 +207,9 @@
 
           <ng-container matColumnDef="actual_qty">
             <mat-header-cell *matHeaderCellDef>Actual quantity</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.stockAvailability }}</mat-cell>
+            <mat-cell *matCellDef="let row">
+              {{ row.stockAvailability }}
+            </mat-cell>
           </ng-container>
 
           <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">

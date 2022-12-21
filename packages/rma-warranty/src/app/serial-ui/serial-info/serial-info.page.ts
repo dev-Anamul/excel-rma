@@ -7,7 +7,7 @@ import { forkJoin, from, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
 import { SERIAL_FETCH_ERROR } from '../../constants/messages';
-import { CLOSE, DURATION } from '../../constants/app-string';
+import { CLOSE } from '../../constants/app-string';
 import { SerialSearchService } from '../serial-search/serial-search.service';
 import { AUTH_SERVER_URL } from '../../constants/storage';
 import { SerialHistoryDataSource } from './serial-info-datasource';
@@ -75,9 +75,6 @@ export class SerialInfoPage implements OnInit {
       this.serialSearchService,
     );
     this.serialSearchService.getSerialData(serial).subscribe({
-      error: () => {
-        this.snackBar.open(SERIAL_FETCH_ERROR, CLOSE, { duration: DURATION });
-      },
       next: res => {
         this.f.customer_code.setValue(res.customer);
         this.f.serial_no.setValue(res.serial_no);
@@ -89,6 +86,10 @@ export class SerialInfoPage implements OnInit {
         this.f.customer.setValue(res.customer_name);
         this.f.supplier.setValue(res.supplier);
         this.setViewUrls();
+      },
+      error: () => {
+        this.ngOnInit();
+        this.snackBar.open(serial + ' ' + SERIAL_FETCH_ERROR, CLOSE);
       },
     });
   }

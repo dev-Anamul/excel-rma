@@ -65,14 +65,6 @@
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
 
-        <ng-container matColumnDef="claim_no">
-          <mat-header-cell *matHeaderCellDef>Claim No</mat-header-cell>
-          <mat-cell *matCellDef="let row">
-            {{ warrantyObject?.claim_no }}
-          </mat-cell>
-          <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-        </ng-container>
-
         <ng-container matColumnDef="type">
           <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
           <mat-cell *matCellDef="let row">
@@ -85,6 +77,14 @@
           <mat-header-cell *matHeaderCellDef>Stock Entry Type</mat-header-cell>
           <mat-cell *matCellDef="let row">
             {{ row.stock_entry_type }}
+          </mat-cell>
+          <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="warehouse">
+          <mat-header-cell *matHeaderCellDef>Warehouse</mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row?.items[0]?.s_warehouse }}
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>
         </ng-container>
