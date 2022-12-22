@@ -23,8 +23,8 @@ import {} from '../error-log/error-logs-invoice.module';
     ...CustomerQueryManager,
     ...CustomerEventManager,
     ...CustomerCommandManager,
-    // Disconnected Credit Limit Cron Job Scheduler temporarily 
-    // ...CustomerSchedulers, 
+    // Disconnected Credit Limit Cron Job Scheduler temporarily
+    // ...CustomerSchedulers,
     CustomerPoliciesService,
   ],
   exports: [CustomerEntitiesModule, ...CustomerAggregatesManager],
