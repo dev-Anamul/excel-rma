@@ -8,7 +8,7 @@ import { CustomerController } from './controllers/customer/customer.controller';
 import { CustomerPoliciesService } from './policies/customer-policies/customer-policies.service';
 import { CustomerWebhookController } from './controllers/customer-webhook/customer-webhook.controller';
 import { TerritoryController } from './controllers/territory/territory.controller';
-import { CustomerSchedulers } from './schedulers';
+// import { CustomerSchedulers } from './schedulers';
 import {} from '../error-log/error-logs-invoice.module';
 
 @Module({
@@ -23,7 +23,8 @@ import {} from '../error-log/error-logs-invoice.module';
     ...CustomerQueryManager,
     ...CustomerEventManager,
     ...CustomerCommandManager,
-    ...CustomerSchedulers,
+    // Disconnected Credit Limit Cron Job Scheduler temporarily
+    // ...CustomerSchedulers,
     CustomerPoliciesService,
   ],
   exports: [CustomerEntitiesModule, ...CustomerAggregatesManager],
