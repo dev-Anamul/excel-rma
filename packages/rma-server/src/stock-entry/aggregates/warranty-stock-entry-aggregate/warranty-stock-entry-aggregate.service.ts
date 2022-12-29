@@ -308,7 +308,7 @@ export class WarrantyStockEntryAggregateService {
                   let pre_incoming_rate;
                   let incoming_rate;
 
-                  // fetch created invoive
+                  // fetch created invoice
                   const where = [];
                   const ledger_filter_obj = {
                     voucher_no: `${item.sales_invoice_name}`,
@@ -317,7 +317,7 @@ export class WarrantyStockEntryAggregateService {
                   where.push({ $match });
                   return this.stockLedgerService.asyncAggregate(where).pipe(
                     switchMap((created_sales_invoice: StockLedger) => {
-                      // fetch current valuation of wrehouse
+                      // fetch current valuation of warehouse
                       const where = [];
                       const ledger_filter_obj = {
                         item_code: `${item.item_code}`,
@@ -334,7 +334,7 @@ export class WarrantyStockEntryAggregateService {
                         switchMap(latest_stock_ledger => {
                           const stockPayload = new StockLedger();
 
-                          // treated as sold from our warehoue
+                          // treated as sold from our warehouse
                           if (Object.keys(created_sales_invoice).length > 0) {
                             incoming_rate = created_sales_invoice[0]
                               .valuation_rate
@@ -873,8 +873,6 @@ export class WarrantyStockEntryAggregateService {
               if (
                 stockEntry.items.some(
                   item =>
-                    (Object.keys(item).includes('excel_serials') &&
-                      item.excel_serials !== NON_SERIAL_ITEM) ||
                     this.getSerialString(item.serial_no) !== NON_SERIAL_ITEM,
                 )
               ) {
@@ -947,20 +945,32 @@ export class WarrantyStockEntryAggregateService {
           );
         }
         return from(
-          this.serialService.updateOne(
-            {
-              serial_no: stockEntry.items.find(x => x)?.serial_no,
-            },
-            {
-              $set: {
-                'warranty.salesWarrantyDate': warranty.received_on,
-                'warranty.soldOn': warranty.received_on,
-              },
-              $unset: {
-                delivery_note: '',
-              },
-            },
+          this.serialNoHistoryService.list(
+            0,
+            1,
+            stockEntry.items.find(x => x)?.serial_no,
+            { $natural: -1 },
           ),
+        ).pipe(
+          switchMap(lastSerialEvent => {
+            return from(
+              this.serialService.updateOne(
+                {
+                  serial_no: stockEntry.items.find(x => x)?.serial_no,
+                },
+                {
+                  $set: {
+                    'warranty.salesWarrantyDate': warranty.received_on,
+                    'warranty.soldOn': warranty.received_on,
+                    warehouse: lastSerialEvent.docs[0].transaction_to,
+                  },
+                  $unset: {
+                    delivery_note: '',
+                  },
+                },
+              ),
+            );
+          }),
         );
       }),
     );
