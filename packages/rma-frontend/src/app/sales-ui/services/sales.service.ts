@@ -532,6 +532,7 @@ export class SalesService {
       }),
     );
   }
+
   getStockBalance(item_code: string, warehouse: string) {
     const url = GET_STOCK_BALANCE_ENDPOINT;
     const params = new HttpParams()

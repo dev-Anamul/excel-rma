@@ -32,15 +32,8 @@ export class SerialNoHistoryService {
 
   async list(skip, take, search, sort) {
     const nameExp = new RegExp(search, 'i');
-    const columns = this.serialNoRepository.manager.connection
-      .getMetadata(SerialNoHistory)
-      .ownColumns.map(column => column.propertyName);
+    const $or = [{ serial_no: nameExp }];
 
-    const $or = columns.map(field => {
-      const filter = {};
-      filter[field] = nameExp;
-      return filter;
-    });
     const $and: any[] = [{ $or }];
 
     const where: { $and: any } = { $and };
