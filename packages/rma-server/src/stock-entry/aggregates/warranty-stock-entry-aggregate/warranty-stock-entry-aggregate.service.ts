@@ -288,7 +288,7 @@ export class WarrantyStockEntryAggregateService {
               ])
               .pipe(
                 switchMap(data => {
-                  let available_stock = data[0]?.stockAvailability
+                  const available_stock = data[0]?.stockAvailability
                     ? data[0].stockAvailability
                     : 0;
 
