@@ -11,7 +11,6 @@ import {
   STOCK_ENTRY_STATUS,
   VERDICT,
   WARRANTY_CLAIM_DOCTYPE,
-  WARRANTY_TYPE,
 } from '../../../constants/app-strings';
 import { v4 as uuidv4 } from 'uuid';
 import { DateTime } from 'luxon';
@@ -429,7 +428,7 @@ export class WarrantyStockEntryAggregateService {
                   }
                   // Delivered
                   if (res.stock_entry_type === STOCK_ENTRY_STATUS.delivered) {
-                    // fetch current valuation of wrehouse
+                    // fetch current valuation of warehouse
                     return this.stockLedgerService
                       .asyncAggregate([
                         {
@@ -925,7 +924,6 @@ export class WarrantyStockEntryAggregateService {
     return from(
       this.warrantyService.findOne({
         uuid: stockEntry.warrantyClaimUuid,
-        claim_type: WARRANTY_TYPE.THIRD_PARTY,
       }),
     ).pipe(
       switchMap(warranty => {
