@@ -4,6 +4,7 @@ import { from, throwError, of, forkJoin } from 'rxjs';
 import {
   CANCEL_WARRANTY_STOCK_ENTRY,
   DELIVERY_STATUS,
+  DOC_NAMES,
   INVALID_PROGRESS_STATE,
   INVALID_STOCK_ENTRY_STATUS,
   NON_SERIAL_ITEM,
@@ -966,9 +967,11 @@ export class WarrantyStockEntryAggregateService {
                     'warranty.salesWarrantyDate': warranty.received_on,
                     'warranty.soldOn': warranty.received_on,
                     warehouse: lastSerialEvent.docs[0].transaction_to,
-                  },
-                  $unset: {
-                    delivery_note: '',
+                    delivery_note:
+                      lastSerialEvent.docs[0].eventType ===
+                      DOC_NAMES.DELIVERY_NOTE
+                        ? lastSerialEvent.docs[0].document_no
+                        : '',
                   },
                 },
               ),
