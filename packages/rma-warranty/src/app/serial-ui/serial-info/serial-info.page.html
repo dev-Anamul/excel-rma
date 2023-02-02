@@ -161,7 +161,7 @@
       <ng-container matColumnDef="document_no">
         <th mat-header-cell *matHeaderCellDef>Doc No</th>
         <td mat-cell *matCellDef="let element">
-          {{element.readable_document_no}}
+          {{element.readable_document_no || element.document_no}}
         </td>
       </ng-container>
 
@@ -182,7 +182,9 @@
 
       <ng-container matColumnDef="parent_document">
         <th mat-header-cell *matHeaderCellDef>Parent Doc</th>
-        <td mat-cell *matCellDef="let element">{{element.naming_series}}</td>
+        <td mat-cell *matCellDef="let element">
+          {{element.naming_series || element.parent_document}}
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="created_on">
