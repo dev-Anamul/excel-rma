@@ -2,7 +2,6 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { StockEntryService } from '../../entities/stock-entry.service';
 import { from, throwError, of, forkJoin } from 'rxjs';
 import {
-  CANCEL_WARRANTY_STOCK_ENTRY,
   DELIVERY_STATUS,
   DOC_NAMES,
   INVALID_PROGRESS_STATE,
@@ -144,12 +143,12 @@ export class WarrantyStockEntryAggregateService {
       }),
       switchMap(() => {
         return from(deliveryNotes).pipe(
-          concatMap(deliveryNote => {
+          concatMap((deliveryNote, index) => {
             return this.createStockLedger(
               deliveryNote,
               req.token,
               settingState,
-              stockId,
+              stockId[index],
             );
           }),
         );
@@ -249,7 +248,7 @@ export class WarrantyStockEntryAggregateService {
 
   createStockLedgerPayload(res, token, settings: ServerSettings, stockId) {
     return this.settingService.getFiscalYear(settings).pipe(
-      switchMap(fiscalYear => {
+      switchMap((fiscalYear: string) => {
         const date = new DateTime(settings.timeZone).toJSDate();
         return from(res.items).pipe(
           concatMap((item: any) => {
@@ -329,7 +328,6 @@ export class WarrantyStockEntryAggregateService {
                             .pipe(
                               switchMap(latest_stock_ledger => {
                                 const stockPayload = new StockLedger();
-
                                 // treated as sold from our warehouse
                                 if (
                                   Object.keys(created_sales_invoice).length > 0
@@ -365,44 +363,29 @@ export class WarrantyStockEntryAggregateService {
                                     : 0;
                                 }
                                 new_quantity = available_stock + item.qty;
-
                                 stockPayload.name = uuidv4();
                                 stockPayload.modified = date;
                                 stockPayload.modified_by = token.email;
-                                // ledger will not be made on cancellation we can remove cancellation work
+                                stockPayload.actual_qty = 1;
                                 if (
-                                  res.action === CANCEL_WARRANTY_STOCK_ENTRY
+                                  pre_incoming_rate !==
+                                  stockPayload.incoming_rate
                                 ) {
-                                  stockPayload.voucher_no = res.stock_id;
-                                  if (item.qty < 0) {
-                                    item.qty = -item.qty;
-                                  }
-                                  stockPayload.actual_qty = -item.qty;
-                                  stockPayload.valuation_rate =
-                                    stockPayload.incoming_rate;
-                                  stockPayload.batch_no = '';
+                                  stockPayload.valuation_rate = parseFloat(
+                                    this.calculateValuationRate(
+                                      available_stock,
+                                      stockPayload.actual_qty,
+                                      stockPayload.incoming_rate,
+                                      current_valuation_rate,
+                                      new_quantity,
+                                    ),
+                                  );
                                 } else {
-                                  stockPayload.actual_qty = 1;
-                                  if (
-                                    pre_incoming_rate !==
-                                    stockPayload.incoming_rate
-                                  ) {
-                                    stockPayload.valuation_rate = parseFloat(
-                                      this.calculateValuationRate(
-                                        available_stock,
-                                        stockPayload.actual_qty,
-                                        stockPayload.incoming_rate,
-                                        current_valuation_rate,
-                                        new_quantity,
-                                      ),
-                                    );
-                                  } else {
-                                    stockPayload.valuation_rate = current_valuation_rate;
-                                  }
-                                  stockPayload.actual_qty = item.qty;
-                                  stockPayload.voucher_no = stockId;
-                                  stockPayload.batch_no = '';
+                                  stockPayload.valuation_rate = current_valuation_rate;
                                 }
+                                stockPayload.actual_qty = item.qty;
+                                stockPayload.voucher_no = stockId;
+                                stockPayload.batch_no = '';
                                 stockPayload.warehouse = item?.s_warehouse
                                   ? item.s_warehouse
                                   : item.warehouse;
@@ -451,18 +434,10 @@ export class WarrantyStockEntryAggregateService {
                           stockPayload.name = uuidv4();
                           stockPayload.modified = date;
                           stockPayload.modified_by = token.email;
-                          // ledger will not be made on cancellation we can remove cancellation work
-                          if (res.action === CANCEL_WARRANTY_STOCK_ENTRY) {
-                            stockPayload.voucher_no = res.stock_id;
-                            stockPayload.actual_qty = item.qty;
-                            stockPayload.batch_no = '';
-                            stockPayload.incoming_rate = 0;
-                          } else {
-                            stockPayload.actual_qty = -item.qty;
-                            stockPayload.voucher_no = stockId;
-                            stockPayload.batch_no = '';
-                            stockPayload.incoming_rate = 0;
-                          }
+                          stockPayload.actual_qty = -item.qty;
+                          stockPayload.voucher_no = stockId;
+                          stockPayload.batch_no = '';
+                          stockPayload.incoming_rate = 0;
                           stockPayload.warehouse = item?.s_warehouse
                             ? item.s_warehouse
                             : item.warehouse;
