@@ -30,14 +30,6 @@ export class SerialHistoryDataSource extends DataSource<SerialHistory> {
       .getSerialHistory(serial_no)
       .pipe(
         map((res: SerialHistory[]) => {
-          res.forEach(r => {
-            if (r.naming_series === undefined) {
-              r.naming_series = r.parent_document;
-            }
-            if (r.readable_document_no === undefined) {
-              r.readable_document_no = r.document_no;
-            }
-          });
           return res;
         }),
         catchError(() => of([])),

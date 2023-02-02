@@ -924,14 +924,12 @@ export class WarrantyStockEntryAggregateService {
           );
         }
         return from(
-          this.serialNoHistoryService.list(
-            0,
-            1,
-            stockEntry.items.find(x => x)?.serial_no,
-            { $natural: -1 },
-          ),
+          this.serialNoHistoryService.find({
+            where: { serial_no: stockEntry.items.find(x => x)?.serial_no },
+            order: { created_on: 1 },
+          }),
         ).pipe(
-          switchMap(lastSerialEvent => {
+          switchMap(serialHistory => {
             return from(
               this.serialService.updateOne(
                 {
@@ -941,12 +939,15 @@ export class WarrantyStockEntryAggregateService {
                   $set: {
                     'warranty.salesWarrantyDate': warranty.received_on,
                     'warranty.soldOn': warranty.received_on,
-                    warehouse: lastSerialEvent.docs[0].transaction_to,
-                    delivery_note:
-                      lastSerialEvent.docs[0].eventType ===
-                      DOC_NAMES.DELIVERY_NOTE
-                        ? lastSerialEvent.docs[0].document_no
-                        : '',
+                    warehouse:
+                      serialHistory[serialHistory.length - 1].transaction_to,
+                    delivery_note: serialHistory.find(
+                      x => x.eventType === DOC_NAMES.DELIVERY_NOTE,
+                    )
+                      ? serialHistory.find(
+                          x => x.eventType === DOC_NAMES.DELIVERY_NOTE,
+                        ).document_no
+                      : '',
                   },
                 },
               ),
