@@ -942,10 +942,10 @@ export class WarrantyStockEntryAggregateService {
                     warehouse:
                       serialHistory[serialHistory.length - 1].transaction_to,
                     delivery_note: serialHistory.find(
-                      x => x.eventType === DOC_NAMES.DELIVERY_NOTE,
+                      x => x.document_type === DOC_NAMES.DELIVERY_NOTE,
                     )
                       ? serialHistory.find(
-                          x => x.eventType === DOC_NAMES.DELIVERY_NOTE,
+                          x => x.document_type === DOC_NAMES.DELIVERY_NOTE,
                         ).document_no
                       : '',
                   },
