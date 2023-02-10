@@ -14,6 +14,7 @@ import { StockEntryService } from './services/stock-entry/stock-entry.service';
 import { STORAGE_TOKEN } from '../../../api/storage/storage.service';
 import { of } from 'rxjs';
 import { AddServiceInvoiceService } from '../../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
+import { AppService } from 'src/app/app.service';
 
 describe('StockEntryComponent', () => {
   let component: StockEntryComponent;
@@ -33,6 +34,12 @@ describe('StockEntryComponent', () => {
         RouterTestingModule.withRoutes([]),
       ],
       providers: [
+        {
+          provide: AppService,
+          useValue: {
+            getStorage: (...args) => of({}),
+          },
+        },
         {
           provide: StockEntryService,
           useValue: {
