@@ -147,6 +147,8 @@ export class PurchaseOrder {
   created_on: Date;
   @Column()
   created_by: string;
+  @Column()
+  update_stock: boolean;
   constructor() {
     this.uuid = uuidv4();
   }

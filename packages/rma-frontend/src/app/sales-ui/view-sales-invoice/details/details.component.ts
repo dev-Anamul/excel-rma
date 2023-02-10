@@ -236,7 +236,7 @@ export class DetailsComponent implements OnInit {
     const dialog = this.dialog.open(ConfirmationDialog, {
       data: {
         event: `
-      <h3>Reseting Invoice will cancel linked:</h3>
+      <h3>Resetting Invoice will cancel linked:</h3>
       <li> Sales Invoice
       <li> Delivery Note's
       <li> Sales Return's
@@ -258,7 +258,7 @@ export class DetailsComponent implements OnInit {
     }
 
     const loading = await this.loadingController.create({
-      message: 'Reseting Invoice...!',
+      message: 'Resetting Invoice...!',
     });
     await loading.present();
     this.salesService
@@ -304,7 +304,7 @@ export class SalesInvoiceDetails {
   set_posting_time?: number;
   contact_person?: string;
   territory?: string;
-  update_stock?: number;
+  update_stock?: boolean;
   total_qty?: number;
   base_total?: number;
   base_net_total?: number;

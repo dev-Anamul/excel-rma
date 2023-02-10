@@ -28,6 +28,7 @@ import {
   BEARER_TOKEN_PREFIX,
   BACKDATE_PERMISSION,
   BACKDATE_PERMISSION_FOR_DAYS,
+  UPDATE_SALES_INVOICE_STOCK,
 } from '../../constants/storage';
 import {
   DRAFT,
@@ -77,6 +78,7 @@ export class AddSalesInvoicePage implements OnInit {
   };
   allowBackDatedInvoices: boolean;
   allowBackDatedInvoicesForDays: number;
+  updateStock: boolean;
   minPostingDate: Date;
   address = {} as any;
   displayedColumns = ['item', 'stock', 'quantity', 'rate', 'total', 'delete'];
@@ -105,6 +107,7 @@ export class AddSalesInvoicePage implements OnInit {
   ngOnInit() {
     this.createFormGroup();
     this.checkBackDatedInvoices();
+    this.checkUpdateStock();
 
     this.dataSource = new ItemsDataSource();
     this.salesInvoice = {} as SalesInvoice;
@@ -251,6 +254,12 @@ export class AddSalesInvoicePage implements OnInit {
           new Date().getDate() - this.allowBackDatedInvoicesForDays,
         );
       }
+    });
+  }
+
+  checkUpdateStock() {
+    this.storageService.getItem(UPDATE_SALES_INVOICE_STOCK).then(res => {
+      this.updateStock = res;
     });
   }
 
@@ -446,7 +455,7 @@ export class AddSalesInvoicePage implements OnInit {
       salesInvoiceDetails.territory = this.salesInvoiceForm.get(
         'territory',
       ).value;
-      salesInvoiceDetails.update_stock = 0;
+      salesInvoiceDetails.update_stock = this.updateStock;
       salesInvoiceDetails.total_qty = 0;
       salesInvoiceDetails.total = 0;
       salesInvoiceDetails.contact_email = this.salesInvoiceForm.get(
@@ -542,7 +551,7 @@ export class AddSalesInvoicePage implements OnInit {
       salesInvoiceDetails.due_date = this.getParsedDate(
         this.salesInvoiceForm.get('dueDate').value,
       );
-      salesInvoiceDetails.update_stock = 0;
+      salesInvoiceDetails.update_stock = this.updateStock;
       salesInvoiceDetails.total_qty = 0;
       salesInvoiceDetails.total = 0;
       salesInvoiceDetails.customer = this.salesInvoiceForm.get(

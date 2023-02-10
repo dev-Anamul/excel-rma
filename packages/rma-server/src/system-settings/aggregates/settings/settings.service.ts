@@ -517,6 +517,10 @@ export class SettingsService extends AggregateRoot {
                             time_zone: systemSettings.time_zone,
                             transferWarehouse: settings.transferWarehouse,
                             brand: settings.brand,
+                            update_sales_invoice_stock:
+                              settings.updateSalesInvoiceStock,
+                            update_purchase_invoice_stock:
+                              settings.updatePurchaseInvoiceStock,
                             backdated_permissions: settings.backdatedInvoices,
                             backdated_permissions_for_days:
                               settings.backdatedInvoicesForDays,

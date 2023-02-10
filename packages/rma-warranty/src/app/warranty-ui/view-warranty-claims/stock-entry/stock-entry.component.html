@@ -91,7 +91,10 @@
 
         <ng-container matColumnDef="serial_no">
           <mat-header-cell *matHeaderCellDef>Serial No</mat-header-cell>
-          <mat-cell *matCellDef="let row">
+          <mat-cell
+            *matCellDef="let row"
+            (click)="openSerialInfo(row.items[0].serial_no)"
+          >
             {{ row?.items[0]?.serial_no }}
           </mat-cell>
           <mat-footer-cell *matFooterCellDef></mat-footer-cell>

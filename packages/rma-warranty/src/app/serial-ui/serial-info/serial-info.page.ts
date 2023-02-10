@@ -158,12 +158,6 @@ export class SerialInfoPage implements OnInit {
     }
   }
 
-  viewDeliveryNote() {
-    if (this.viewDNUrl) {
-      window.open(this.viewDNUrl, '_blank');
-    }
-  }
-
   viewPurchaseReceipt() {
     if (this.viewPRUrl) {
       window.open(this.viewPRUrl, '_blank');
