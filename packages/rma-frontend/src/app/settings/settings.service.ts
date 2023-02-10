@@ -18,6 +18,8 @@ import {
   BEARER_TOKEN_PREFIX,
   ACCESS_TOKEN,
   DEFAULT_COMPANY,
+  UPDATE_SALES_INVOICE_STOCK,
+  UPDATE_PURCHASE_INVOICE_STOCK,
 } from '../constants/storage';
 import { from, forkJoin } from 'rxjs';
 import { StorageService } from '../api/storage/storage.service';
@@ -136,6 +138,8 @@ export class SettingsService {
     footerWidth: string,
     backdatedInvoices: boolean,
     backdatedInvoicesForDays: number,
+    updateSalesInvoiceStock: boolean,
+    updatePurchaseInvoiceStock: boolean,
     brand: { [key: string]: any },
   ) {
     return this.getHeaders().pipe(
@@ -166,6 +170,8 @@ export class SettingsService {
             footerWidth,
             backdatedInvoices,
             backdatedInvoicesForDays,
+            updateSalesInvoiceStock,
+            updatePurchaseInvoiceStock,
             brand,
           },
           { headers },
@@ -236,6 +242,11 @@ export class SettingsService {
         }
       }
     }
+  }
+
+  setUpdateStock(salesInvoice: boolean, PurchaseInvoice: boolean) {
+    this.storage.setItem(UPDATE_SALES_INVOICE_STOCK, salesInvoice);
+    this.storage.setItem(UPDATE_PURCHASE_INVOICE_STOCK, PurchaseInvoice);
   }
 
   relayWarehousesOperation() {

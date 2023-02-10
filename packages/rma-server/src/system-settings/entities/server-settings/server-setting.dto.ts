@@ -201,4 +201,6 @@ export class ServerSettingsDto {
   brand: BrandSettingsDTO;
   backdatedInvoices: boolean;
   backdatedInvoicesForDays: number;
+  updateSalesInvoiceStock: boolean;
+  updatePurchaseInvoiceStock: boolean;
 }

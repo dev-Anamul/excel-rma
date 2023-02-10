@@ -29,6 +29,8 @@ import {
   BRAND,
   BACKDATE_PERMISSION,
   BACKDATE_PERMISSION_FOR_DAYS,
+  UPDATE_SALES_INVOICE_STOCK,
+  UPDATE_PURCHASE_INVOICE_STOCK,
 } from './constants/storage';
 import { StorageService } from './api/storage/storage.service';
 import {
@@ -124,6 +126,8 @@ export class AppService {
         time_zone: string;
         transferWarehouse: string;
         brand: BrandSettings;
+        update_sales_invoice_stock: boolean;
+        update_purchase_invoice_stock: boolean;
         backdated_permissions: boolean;
         backdated_permissions_for_days: number;
       }) => {
@@ -135,6 +139,18 @@ export class AppService {
           .then(() => this.storage.setItem(COUNTRY, success.country))
           .then(() => this.storage.setItem(TIME_ZONE, success.time_zone))
           .then(() => this.storage.setItem(BRAND, success.brand))
+          .then(() => {
+            this.storage.setItem(
+              UPDATE_SALES_INVOICE_STOCK,
+              success.update_sales_invoice_stock,
+            );
+          })
+          .then(() => {
+            this.storage.setItem(
+              UPDATE_PURCHASE_INVOICE_STOCK,
+              success.update_purchase_invoice_stock,
+            );
+          })
           .then(() => {
             this.storage.setItem(
               BACKDATE_PERMISSION,

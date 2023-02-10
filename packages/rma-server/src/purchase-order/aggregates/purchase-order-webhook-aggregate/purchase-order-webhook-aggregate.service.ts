@@ -55,6 +55,7 @@ export class PurchaseOrderWebhookAggregateService {
         )
           .setZone(settings.timeZone)
           .toJSDate();
+        provider.update_stock = settings.updatePurchaseInvoiceStock;
         return this.getUserDetails(purchaseOrderPayload.owner).pipe(
           switchMap(user => {
             provider.created_by = user.full_name;

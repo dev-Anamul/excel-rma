@@ -52,6 +52,8 @@ export class SettingsPage implements OnInit {
     faviconURL: new FormControl(),
     backdatedInvoices: new FormControl(),
     backdatedInvoicesForDays: new FormControl(),
+    updateSalesInvoiceStock: new FormControl(),
+    updatePurchaseInvoiceStock: new FormControl(),
     posAppURL: new FormControl(),
   });
   validateInput: any = ValidateInputSelected;
@@ -179,6 +181,12 @@ export class SettingsPage implements OnInit {
         this.companySettingsForm
           .get('backdatedInvoicesForDays')
           .setValue(res.backdatedInvoicesForDays);
+        this.companySettingsForm
+          .get('updateSalesInvoiceStock')
+          .setValue(res.updateSalesInvoiceStock);
+        this.companySettingsForm
+          .get('updatePurchaseInvoiceStock')
+          .setValue(res.updatePurchaseInvoiceStock);
         if (res.brand?.faviconURL) {
           this.companySettingsForm
             .get('faviconURL')
@@ -232,6 +240,8 @@ export class SettingsPage implements OnInit {
         this.companySettingsForm.get('footerWidth').value,
         this.companySettingsForm.get('backdatedInvoices').value,
         this.companySettingsForm.get('backdatedInvoicesForDays').value,
+        this.companySettingsForm.get('updateSalesInvoiceStock').value,
+        this.companySettingsForm.get('updatePurchaseInvoiceStock').value,
         {
           faviconURL: this.companySettingsForm.get('faviconURL').value,
         },
@@ -239,6 +249,10 @@ export class SettingsPage implements OnInit {
       .subscribe({
         next: () => {
           this.service.setFavicon(this.f.faviconURL.value);
+          this.service.setUpdateStock(
+            this.f.updateSalesInvoiceStock.value,
+            this.f.updatePurchaseInvoiceStock.value,
+          );
           this.permissionManager.setGlobalPermissions(
             this.f.backdatedInvoices.value,
             this.f.backdatedInvoicesForDays?.value,

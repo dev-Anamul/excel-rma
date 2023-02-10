@@ -27,6 +27,7 @@ export const EXPIRES_IN = 'expires_in';
 export const TEN_MINUTES_IN_MS = 600000;
 export const TWENTY_MINUTES_IN_SECONDS = 1200;
 export const SERIAL_NO = 'serial_no';
+export const SERIAL_INFO = 'serial-info';
 export const AUTHORIZATION = 'Authorization';
 export const WARRANTY_CLAIM = 'warranty-claim';
 export const BEARER_TOKEN_PREFIX = 'Bearer ';

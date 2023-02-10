@@ -115,6 +115,12 @@ export class ServerSettings extends BaseEntity {
   @Column()
   backdatedInvoicesForDays: number;
 
+  @Column()
+  updateSalesInvoiceStock: boolean;
+
+  @Column()
+  updatePurchaseInvoiceStock: boolean;
+
   constructor() {
     super();
     if (!this.uuid) this.uuid = uuidv4();

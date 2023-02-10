@@ -66,4 +66,6 @@ export const DELIVERED_SERIALS_DISPLAYED_COLUMNS = {
 export const BASIC_RATE = 'basic_rate';
 export const BRAND = 'brand';
 export const BACKDATE_PERMISSION = 'backdated_permissions';
+export const UPDATE_SALES_INVOICE_STOCK = 'update_sales_invoice_stock';
+export const UPDATE_PURCHASE_INVOICE_STOCK = 'update_purchase_invoice_stock';
 export const BACKDATE_PERMISSION_FOR_DAYS = 'backdated_permissions_for_days';

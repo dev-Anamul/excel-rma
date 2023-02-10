@@ -15,6 +15,8 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { PERMISSION_STATE } from '../../../constants/permission-roles';
 import { AddServiceInvoiceService } from '../../shared-warranty-modules/service-invoices/add-service-invoice/add-service-invoice.service';
 import { filter } from 'rxjs/operators';
+import { AppService } from '../../../app.service';
+import { APP_URL, SERIAL_INFO } from '../../../constants/storage';
 
 @Component({
   selector: 'stock-entry',
@@ -48,6 +50,7 @@ export class StockEntryComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly addServiceInvoiceService: AddServiceInvoiceService,
     private readonly router: Router,
+    private readonly appService: AppService,
   ) {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -164,6 +167,18 @@ export class StockEntryComponent implements OnInit {
         this.presentSnackBar('Failed to Finalize Stock Entry');
       },
     });
+  }
+
+  openSerialInfo(serial_no: string) {
+    this.appService
+      .getStorage()
+      .getItem(APP_URL)
+      .then(warrantyUrl => {
+        window.open(
+          warrantyUrl + '/' + SERIAL_INFO + '/' + serial_no,
+          '_blank',
+        );
+      });
   }
 
   presentSnackBar(message: string) {
