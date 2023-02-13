@@ -72,7 +72,7 @@ export class SalesInvoice extends BaseEntity {
   delivery_warehouse: string;
 
   @Column()
-  update_stock: number;
+  update_stock: boolean;
 
   @Column()
   total_qty: number;

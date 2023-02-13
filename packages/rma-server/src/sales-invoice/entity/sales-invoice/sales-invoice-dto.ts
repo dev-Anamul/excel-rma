@@ -49,8 +49,8 @@ export class SalesInvoiceDto {
   status: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  update_stock: number;
+  @IsBoolean()
+  update_stock: boolean;
 
   @IsNotEmpty()
   @IsNumber()
