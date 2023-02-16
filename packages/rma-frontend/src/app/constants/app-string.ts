@@ -21,6 +21,7 @@ export const PURCHASE_USER = 'Purchase User';
 export const EXCEL_SALES_MANAGER = 'Excel Sales Manager';
 export const EXCEL_SALES_USER = 'Excel Sales User';
 export const EXCEL_STOCK_PRINT = 'Excel Stock Print';
+export const NEGATIVE_STOCK_ERROR = 'NegativeStockError';
 
 export const SERVICE_INVOICE_STATUS = {
   SUBMITTED: 'Submitted',
