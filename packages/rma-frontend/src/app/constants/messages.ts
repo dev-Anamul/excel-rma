@@ -22,3 +22,5 @@ export const SAME_WAREHOUSE_ERROR =
   'Source and Target warehouse cannot be same';
 export const DUPLICATE_SERIAL = 'Serial Already exists';
 export const STOCK_ENTRY_CREATED = 'stock entry created successfully';
+export const INSUFFICIENT_STOCK_IN_WAREHOUSE =
+  'Insufficient items in warehouse to complete the transaction';

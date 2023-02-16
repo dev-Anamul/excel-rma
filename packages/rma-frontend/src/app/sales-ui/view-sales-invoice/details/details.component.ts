@@ -5,11 +5,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   CLOSE,
   INVOICE_DELIVERY_STATUS,
+  NEGATIVE_STOCK_ERROR,
   REJECTED,
   SALES_INVOICE_STATUS,
   UPDATE_ERROR,
 } from '../../../constants/app-string';
-import { ERROR_FETCHING_SALES_INVOICE } from '../../../constants/messages';
+import {
+  ERROR_FETCHING_SALES_INVOICE,
+  INSUFFICIENT_STOCK_IN_WAREHOUSE,
+} from '../../../constants/messages';
 import { Location } from '@angular/common';
 import { Item } from '../../../common/interfaces/sales.interface';
 import { AUTH_SERVER_URL } from '../../../constants/storage';
@@ -83,10 +87,10 @@ export class DetailsComponent implements OnInit {
     payload.uuid = this.route.snapshot.params.invoiceUuid;
     payload.delivery_status = delivery_status;
     this.salesService.updateDeliveryStatus(payload).subscribe({
-      next: success => {
+      next: () => {
         loading.dismiss();
       },
-      error: err => {
+      error: () => {
         loading.dismiss();
       },
     });
@@ -94,16 +98,14 @@ export class DetailsComponent implements OnInit {
 
   deleteSalesInvoice() {
     return this.salesService.deleteSalesInvoice(this.invoiceUuid).subscribe({
-      next: success => {
-        this.snackBar.open('Sales Invoice deleted.', CLOSE, { duration: 3500 });
+      next: () => {
+        this.presentSnackBar('Sales Invoice deleted.');
         this.router.navigateByUrl('/sales');
         return;
       },
       error: err => {
-        this.snackBar.open(
+        this.presentSnackBar(
           err?.error?.message ? err?.error?.message : UPDATE_ERROR,
-          CLOSE,
-          { duration: 3500 },
         );
       },
     });
@@ -149,12 +151,10 @@ export class DetailsComponent implements OnInit {
           });
       },
       error: err => {
-        this.snackBar.open(
+        this.presentSnackBar(
           err.error.message
             ? err.error.message
             : `${ERROR_FETCHING_SALES_INVOICE}${err.error.error}`,
-          CLOSE,
-          { duration: 4500 },
         );
       },
     });
@@ -178,10 +178,14 @@ export class DetailsComponent implements OnInit {
           let errMessage = err?.error?.message?.split('\\n') || err;
           try {
             errMessage = errMessage[errMessage.length - 2]?.split(':');
-            errMessage = errMessage[1] || errMessage[0] || undefined;
+            if (errMessage[0].split('.')[3] === NEGATIVE_STOCK_ERROR) {
+              errMessage = INSUFFICIENT_STOCK_IN_WAREHOUSE;
+            } else {
+              errMessage = errMessage[1] || errMessage[0] || undefined;
+            }
           } catch {}
           errMessage = errMessage ? errMessage : err?.error?.message || err;
-          this.snackBar.open(errMessage, CLOSE, { duration: 4500 });
+          this.presentSnackBar(errMessage);
         },
       });
   }
@@ -271,10 +275,8 @@ export class DetailsComponent implements OnInit {
         },
         error: err => {
           loading.dismiss();
-          this.snackBar.open(
+          this.presentSnackBar(
             err?.error?.message ? err?.error?.message : UPDATE_ERROR,
-            CLOSE,
-            { duration: 4500 },
           );
         },
       });
@@ -282,6 +284,10 @@ export class DetailsComponent implements OnInit {
 
   getStatusColor(status: string) {
     return { color: this.statusColor[status] };
+  }
+
+  presentSnackBar(message: string) {
+    this.snackBar.open(message, CLOSE);
   }
 }
 

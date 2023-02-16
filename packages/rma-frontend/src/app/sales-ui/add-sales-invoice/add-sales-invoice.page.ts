@@ -33,9 +33,7 @@ import {
 import {
   DRAFT,
   CLOSE,
-  DURATION,
   UPDATE_ERROR,
-  SHORT_DURATION,
   TERRITORY,
   WAREHOUSES,
 } from '../../constants/app-string';
@@ -515,15 +513,11 @@ export class AddSalesInvoicePage implements OnInit {
                 message = UPDATE_ERROR;
               }
             }
-            this.snackbar.open(message, 'Close', {
-              duration: 3000,
-            });
+            this.presentSnackBar(message);
           },
         });
     } else {
-      this.snackbar.open('Error : Duplicate Items added.', CLOSE, {
-        duration: DURATION,
-      });
+      this.presentSnackBar('Error : Duplicate Items added.');
     }
   }
 
@@ -610,15 +604,11 @@ export class AddSalesInvoicePage implements OnInit {
                 message = UPDATE_ERROR;
               }
             }
-            this.snackbar.open(message, 'Close', {
-              duration: DURATION,
-            });
+            this.presentSnackBar(message);
           },
         });
     } else {
-      this.snackbar.open('Error : Duplicate Items added.', 'Close', {
-        duration: DURATION,
-      });
+      this.presentSnackBar('Error : Duplicate Items added.');
     }
   }
 
@@ -746,8 +736,12 @@ export class AddSalesInvoicePage implements OnInit {
             frappeError = (frappeError as { message?: string }).message;
           } catch {}
 
-          this.snackbar.open(frappeError, CLOSE, { duration: SHORT_DURATION });
+          this.presentSnackBar(frappeError);
         },
       });
+  }
+
+  presentSnackBar(message: string) {
+    this.snackbar.open(message, CLOSE);
   }
 }

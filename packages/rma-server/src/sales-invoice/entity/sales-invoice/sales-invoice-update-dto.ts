@@ -78,8 +78,8 @@ export class SalesInvoiceUpdateDto {
   territory: string;
 
   @IsOptional()
-  @IsNumber()
-  update_stock: number;
+  @IsBoolean()
+  update_stock: boolean;
 
   @IsOptional()
   @IsNumber()
