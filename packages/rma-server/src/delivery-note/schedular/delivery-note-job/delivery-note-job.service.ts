@@ -462,7 +462,7 @@ export class DeliveryNoteJobService {
     latest_ledger,
     data,
   ) {
-    const available_stock = data[0].stockAvailability
+    const available_stock = data[0]?.stockAvailability
       ? data[0].stockAvailability
       : 0;
     const current_valuation = latest_ledger[0].valuation_rate
