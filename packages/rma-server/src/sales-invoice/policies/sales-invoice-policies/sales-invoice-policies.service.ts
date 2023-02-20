@@ -82,9 +82,10 @@ export class SalesInvoicePoliciesService {
         );
       }),
       toArray(),
-      switchMap(success => of(true)),
+      switchMap(() => of(true)),
     );
   }
+
   validateItemsTotal(items: ItemDto[]) {
     for (let i = 0; i <= items.length - 1; i++) {
       if (items[i].amount !== items[i].qty * items[i].rate) {
@@ -101,6 +102,7 @@ export class SalesInvoicePoliciesService {
     }
     return of({});
   }
+
   validateCustomer(salesInvoicePayload: {
     customer: string;
     contact_email: string;
@@ -187,6 +189,7 @@ export class SalesInvoicePoliciesService {
       }),
     );
   }
+
   validateQueueState(salesInvoicePayload: { uuid: string }) {
     return from(
       this.salesInvoiceService.findOne({ uuid: salesInvoicePayload.uuid }),
@@ -247,7 +250,7 @@ export class SalesInvoicePoliciesService {
         );
       }),
       toArray(),
-      switchMap(success => of(true)),
+      switchMap(() => of(true)),
     );
   }
 
@@ -277,7 +280,7 @@ export class SalesInvoicePoliciesService {
         return of(true);
       }),
       toArray(),
-      switchMap(success => of(true)),
+      switchMap(() => of(true)),
     );
   }
 

@@ -249,7 +249,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
                 clientHttpRequest,
               );
             }),
-            switchMap(isValid => {
+            switchMap(() => {
               salesInvoice.naming_series = DEFAULT_NAMING_SERIES.sales_invoice;
               return from(
                 this.salesInvoiceService.updateOne(
