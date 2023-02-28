@@ -8,20 +8,29 @@ import { from, of, throwError, forkJoin } from 'rxjs';
 import { switchMap, concatMap } from 'rxjs/operators';
 import { MAX_SERIAL_BODY_COUNT } from '../../../constants/app-strings';
 import { ValidateSerialsDto } from '../../../serial-no/entity/serial-no/serial-no-dto';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
+import { INSUFFICIENT_STOCK_IN_WAREHOUSE } from '../../../constants/messages';
 
 @Injectable()
 export class DeliveryNotePoliciesService {
   constructor(
     private readonly serialNoPoliciesService: SerialNoPoliciesService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   validateDeliveryNote(assignPayload: AssignSerialDto, clientHttpRequest) {
     return forkJoin({
-      validateMaxLimit: this.validateMaxLimit(assignPayload),
-      validateSerials: this.validateSerials(assignPayload),
+      validateMaxLimit: from(this.validateMaxLimit(assignPayload)),
+      validateSerials: from(this.validateSerials(assignPayload)),
     }).pipe(
-      switchMap(valid => {
-        return of(true);
+      switchMap(({ validateMaxLimit, validateSerials }) => {
+        if (validateMaxLimit && validateSerials) {
+          return of(true);
+        } else {
+          return throwError(
+            new BadRequestException(INSUFFICIENT_STOCK_IN_WAREHOUSE),
+          );
+        }
       }),
     );
   }
@@ -45,7 +54,28 @@ export class DeliveryNotePoliciesService {
     return from(assignPayload.items).pipe(
       concatMap(item => {
         if (!item.has_serial_no) {
-          return of(true);
+          // Check stock for non serialized item
+          return this.stockLedgerService
+            .asyncAggregate([
+              {
+                $match: {
+                  item_code: item.item_code,
+                  warehouse: assignPayload.set_warehouse,
+                },
+              },
+              {
+                $group: { _id: '$item_code', total: { $sum: '$actual_qty' } },
+              },
+            ])
+            .pipe(
+              switchMap(data => {
+                if (data[0].total < item.qty) {
+                  return of(false);
+                } else {
+                  return of(true);
+                }
+              }),
+            );
         }
         const serials = new ValidateSerialsDto();
         serials.serials = item.serial_no;
@@ -64,14 +94,15 @@ export class DeliveryNotePoliciesService {
             switchMap((data: ValidateSerialsResponse) => {
               if (data && data.notFoundSerials && data.notFoundSerials.length) {
                 return throwError(
-                  new BadRequestException(`Found ${
-                    data.notFoundSerials.length
-                  } Invalid Serials for
-                                    item: ${item.item_code} at
-                                    warehouse: ${assignPayload.set_warehouse},
-                                    ${data.notFoundSerials
-                                      .splice(0, 50)
-                                      .join(', ')}...`),
+                  new BadRequestException(
+                    `Found ${
+                      data.notFoundSerials.length
+                    } Invalid Serials for item: ${
+                      item.item_code
+                    } at warehouse: ${
+                      assignPayload.set_warehouse
+                    }, ${data.notFoundSerials.splice(0, 50).join(', ')}...`,
+                  ),
                 );
               }
               return of(true);

@@ -147,7 +147,7 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
         next: success => {
           success;
         },
-        error: err => {},
+        error: () => {},
       });
   }
 
@@ -163,17 +163,8 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
           settings,
           sales_invoice_name,
         );
-        // return from(
-        //   this.deliveryNoteJobService.addToQueueNow({
-        //     payload,
-        //     token,
-        //     sales_invoice_name,
-        //     settings,
-        //   }),
-        // );
       }),
-      // retry(3),
-      switchMap(success => {
+      switchMap(() => {
         return of(true);
       }),
     );
@@ -183,7 +174,7 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
     return this.deliveryNotePolicyService
       .validateDeliveryNote(assignPayload, clientHttpRequest)
       .pipe(
-        switchMap(valid => {
+        switchMap(() => {
           return this.settingsService.find().pipe(
             switchMap(settings => {
               if (!settings) {
@@ -196,8 +187,8 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
                   { name: assignPayload.sales_invoice_name },
                   { $set: { delivery_warehouse: assignPayload.set_warehouse } },
                 )
-                .then(success => {})
-                .catch(error => {});
+                .then(() => {})
+                .catch(() => {});
               const deliveryNoteBody = this.mapCreateDeliveryNote(
                 assignPayload,
               );
@@ -209,7 +200,7 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
               );
               return of({});
             }),
-            switchMap((response: any) => {
+            switchMap(() => {
               return this.updateDeliveryNoteState(assignPayload);
             }),
             catchError(err => {

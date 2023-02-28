@@ -318,8 +318,8 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
                   },
                 },
               )
-              .then(success => {})
-              .catch(error => {});
+              .then(() => {})
+              .catch(() => {});
             return throwError(new NotImplementedException());
           }
           const body = this.mapSalesInvoice(salesInvoice);

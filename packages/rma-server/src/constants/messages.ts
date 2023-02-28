@@ -64,3 +64,5 @@ export const CREDIT_LIMIT_ERROR =
   'Credit Limit Mismatch, please check credit limit for the selected Customer';
 export const ITEM_BRAND_NOT_FOUND = 'Item brand not found';
 export const AGENDA_JOBS_CONCURRENCY_MESSAGE = 'Agenda Job concurrency set to ';
+export const INSUFFICIENT_STOCK_IN_WAREHOUSE =
+  'Insufficient items in warehouse to complete the transaction';

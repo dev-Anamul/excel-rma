@@ -296,7 +296,7 @@ export class DeliveryNoteJobService {
               },
             },
           )
-          .then(success => {
+          .then(() => {
             const serialHistory: SerialNoHistoryInterface = {};
             serialHistory.created_by = token.fullName;
             serialHistory.created_on = new DateTime(
@@ -313,13 +313,13 @@ export class DeliveryNoteJobService {
             this.serialNoHistoryService
               .addSerialHistory(serialArray, serialHistory)
               .subscribe({
-                next: done => {},
-                error: err => {},
+                next: () => {},
+                error: () => {},
               });
             return true;
           })
-          .then(updated => {})
-          .catch(err => {});
+          .then(() => {})
+          .catch(() => {});
       }
     });
 
@@ -367,8 +367,8 @@ export class DeliveryNoteJobService {
               },
             },
           )
-          .then(success => {})
-          .catch(error => {});
+          .then(() => {})
+          .catch(() => {});
       });
     });
 
