@@ -168,7 +168,7 @@ export class DetailsComponent implements OnInit {
     this.salesService
       .submitSalesInvoice(this.route.snapshot.params.invoiceUuid)
       .subscribe({
-        next: success => {
+        next: () => {
           loading.dismiss();
           this.siSub.updatedSI(this.route.snapshot.params.invoiceUuid);
           this.getSalesInvoice(this.route.snapshot.params.invoiceUuid);

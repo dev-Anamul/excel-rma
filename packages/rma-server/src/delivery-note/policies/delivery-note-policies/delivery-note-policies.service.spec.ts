@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeliveryNotePoliciesService } from './delivery-note-policies.service';
 import { SerialNoPoliciesService } from '../../../serial-no/policies/serial-no-policies/serial-no-policies.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('DeliveryNotePoliciesService', () => {
   let service: DeliveryNotePoliciesService;
@@ -11,6 +12,10 @@ describe('DeliveryNotePoliciesService', () => {
         DeliveryNotePoliciesService,
         {
           provide: SerialNoPoliciesService,
+          useValue: {},
+        },
+        {
+          provide: StockLedgerService,
           useValue: {},
         },
       ],
