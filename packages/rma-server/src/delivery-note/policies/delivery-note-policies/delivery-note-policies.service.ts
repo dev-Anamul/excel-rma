@@ -9,7 +9,6 @@ import { switchMap, concatMap } from 'rxjs/operators';
 import { MAX_SERIAL_BODY_COUNT } from '../../../constants/app-strings';
 import { ValidateSerialsDto } from '../../../serial-no/entity/serial-no/serial-no-dto';
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
-import { INSUFFICIENT_STOCK_IN_WAREHOUSE } from '../../../constants/messages';
 
 @Injectable()
 export class DeliveryNotePoliciesService {
@@ -21,16 +20,11 @@ export class DeliveryNotePoliciesService {
   validateDeliveryNote(assignPayload: AssignSerialDto, clientHttpRequest) {
     return forkJoin({
       validateMaxLimit: from(this.validateMaxLimit(assignPayload)),
+      validateStock: from(this.validateStock(assignPayload)),
       validateSerials: from(this.validateSerials(assignPayload)),
     }).pipe(
-      switchMap(({ validateMaxLimit, validateSerials }) => {
-        if (validateMaxLimit && validateSerials) {
-          return of(true);
-        } else {
-          return throwError(
-            new BadRequestException(INSUFFICIENT_STOCK_IN_WAREHOUSE),
-          );
-        }
+      switchMap(() => {
+        return of(true);
       }),
     );
   }
@@ -54,28 +48,7 @@ export class DeliveryNotePoliciesService {
     return from(assignPayload.items).pipe(
       concatMap(item => {
         if (!item.has_serial_no) {
-          // Check stock for non serialized item
-          return this.stockLedgerService
-            .asyncAggregate([
-              {
-                $match: {
-                  item_code: item.item_code,
-                  warehouse: assignPayload.set_warehouse,
-                },
-              },
-              {
-                $group: { _id: '$item_code', total: { $sum: '$actual_qty' } },
-              },
-            ])
-            .pipe(
-              switchMap(data => {
-                if (data[0].total < item.qty) {
-                  return of(false);
-                } else {
-                  return of(true);
-                }
-              }),
-            );
+          return of(true);
         }
         const serials = new ValidateSerialsDto();
         serials.serials = item.serial_no;
@@ -106,6 +79,38 @@ export class DeliveryNotePoliciesService {
                 );
               }
               return of(true);
+            }),
+          );
+      }),
+    );
+  }
+
+  validateStock(assignPayload: AssignSerialDto) {
+    return from(assignPayload.items).pipe(
+      concatMap(item => {
+        return this.stockLedgerService
+          .asyncAggregate([
+            {
+              $match: {
+                item_code: item.item_code,
+                warehouse: assignPayload.set_warehouse,
+              },
+            },
+            {
+              $group: { _id: '$item_code', total: { $sum: '$actual_qty' } },
+            },
+          ])
+          .pipe(
+            switchMap(data => {
+              if (data[0].total < item.qty) {
+                return throwError(
+                  new BadRequestException(
+                    `Item ${item.item_name} has ${data[0].total} quantity available in ${assignPayload.set_warehouse}`,
+                  ),
+                );
+              } else {
+                return of(true);
+              }
             }),
           );
       }),
