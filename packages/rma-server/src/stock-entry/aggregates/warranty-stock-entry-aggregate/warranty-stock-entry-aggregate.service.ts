@@ -940,7 +940,8 @@ export class WarrantyStockEntryAggregateService {
                     'warranty.salesWarrantyDate': warranty.received_on,
                     'warranty.soldOn': warranty.received_on,
                     warehouse:
-                      serialHistory[serialHistory.length - 1].transaction_to,
+                      serialHistory[serialHistory.length - 2].transaction_to,
+                    // last entry is the one which is to be deleted so we get the warehouse of the second last entry
                     delivery_note: serialHistory.find(
                       x => x.document_type === DOC_NAMES.DELIVERY_NOTE,
                     )
