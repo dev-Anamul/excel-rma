@@ -48,9 +48,8 @@ export class WarrantyStockEntryAggregateService {
 
   createDeliveryNote(deliveryNotes: WarrantyStockEntryDto[], req: any) {
     const warrantyPayload: any = {};
-    let deliveryNotesList: any[] = [];
+    let deliveryNotesList: WarrantyStockEntryDto[] = [];
     let settingState = {} as ServerSettings;
-    const stockId: string[] = [];
     return from(deliveryNotes).pipe(
       concatMap(singleDeliveryNote => {
         Object.assign(warrantyPayload, singleDeliveryNote);
@@ -69,7 +68,7 @@ export class WarrantyStockEntryAggregateService {
       toArray(),
       switchMap(settings => {
         return from(deliveryNotes).pipe(
-          concatMap((deliveryNote, index) => {
+          concatMap((deliveryNote: WarrantyStockEntryDto) => {
             deliveryNote.status = undefined;
             deliveryNote.stock_voucher_number = uuidv4();
             return this.makeStockEntry(
@@ -78,7 +77,7 @@ export class WarrantyStockEntryAggregateService {
               settings.find(x => x.settings).settings,
             ).pipe(
               map((res: any) => {
-                stockId[index] = res.ops[0].stock_id;
+                deliveryNote.stock_id = res.ops[0].stock_id;
                 return res.ops[0];
               }),
               switchMap(() => {
@@ -105,7 +104,7 @@ export class WarrantyStockEntryAggregateService {
             deliveryNotesList = warranty.progress_state;
             settingState = settings;
             return from(deliveryNotesList).pipe(
-              concatMap(deliveryNote => {
+              concatMap((deliveryNote: WarrantyStockEntryDto) => {
                 return this.updateSerials(
                   deliveryNote,
                   warranty.serial_no,
@@ -119,20 +118,15 @@ export class WarrantyStockEntryAggregateService {
       }),
       switchMap(() => {
         return from(deliveryNotesList).pipe(
-          concatMap((deliveryNote, index) => {
-            return this.createSerialNoHistory(
-              deliveryNote,
-              stockId[index],
-              settingState,
-              req,
-            );
+          concatMap((deliveryNote: WarrantyStockEntryDto) => {
+            return this.createSerialNoHistory(deliveryNote, settingState, req);
           }),
           toArray(),
         );
       }),
       switchMap(() => {
         return from(deliveryNotesList).pipe(
-          concatMap(deliveryNote => {
+          concatMap((deliveryNote: WarrantyStockEntryDto) => {
             return this.syncProgressState(
               warrantyPayload.warrantyClaimUuid,
               deliveryNote,
@@ -143,12 +137,11 @@ export class WarrantyStockEntryAggregateService {
       }),
       switchMap(() => {
         return from(deliveryNotes).pipe(
-          concatMap((deliveryNote, index) => {
+          concatMap((deliveryNote: WarrantyStockEntryDto) => {
             return this.createStockLedger(
               deliveryNote,
               req.token,
               settingState,
-              stockId[index],
             );
           }),
         );
@@ -229,13 +222,12 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createStockLedger(payload, token, settings: ServerSettings, stockId) {
-    return this.createStockLedgerPayload(
-      payload,
-      token,
-      settings,
-      stockId,
-    ).pipe(
+  createStockLedger(
+    payload: WarrantyStockEntryDto,
+    token: any,
+    settings: ServerSettings,
+  ) {
+    return this.createStockLedgerPayload(payload, token, settings).pipe(
       switchMap((stockLedgers: StockLedger[]) => {
         return from(stockLedgers).pipe(
           switchMap(stockLedger => {
@@ -246,7 +238,11 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createStockLedgerPayload(res, token, settings: ServerSettings, stockId) {
+  createStockLedgerPayload(
+    res: WarrantyStockEntryDto,
+    token: any,
+    settings: ServerSettings,
+  ) {
     return this.settingService.getFiscalYear(settings).pipe(
       switchMap((fiscalYear: string) => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -384,7 +380,7 @@ export class WarrantyStockEntryAggregateService {
                                   stockPayload.valuation_rate = current_valuation_rate;
                                 }
                                 stockPayload.actual_qty = item.qty;
-                                stockPayload.voucher_no = stockId;
+                                stockPayload.voucher_no = res.stock_id;
                                 stockPayload.batch_no = '';
                                 stockPayload.warehouse = item?.s_warehouse
                                   ? item.s_warehouse
@@ -435,7 +431,7 @@ export class WarrantyStockEntryAggregateService {
                           stockPayload.modified = date;
                           stockPayload.modified_by = token.email;
                           stockPayload.actual_qty = -item.qty;
-                          stockPayload.voucher_no = stockId;
+                          stockPayload.voucher_no = res.stock_id;
                           stockPayload.batch_no = '';
                           stockPayload.incoming_rate = 0;
                           stockPayload.warehouse = item?.s_warehouse
@@ -546,12 +542,7 @@ export class WarrantyStockEntryAggregateService {
     );
   }
 
-  createSerialNoHistory(
-    deliveryNote: any,
-    stockId: string,
-    settings: ServerSettings,
-    req: any,
-  ) {
+  createSerialNoHistory(deliveryNote: any, settings: ServerSettings, req: any) {
     if (deliveryNote.isSync) {
       return of({});
     }
@@ -562,7 +553,7 @@ export class WarrantyStockEntryAggregateService {
     serialHistory.created_on = new DateTime(settings.timeZone).toJSDate();
     serialHistory.document_no = deliveryNote.stock_voucher_number;
 
-    serialHistory.readable_document_no = stockId;
+    serialHistory.readable_document_no = deliveryNote.stock_id;
 
     serialHistory.document_type = WARRANTY_CLAIM_DOCTYPE;
     serialHistory.eventDate = new DateTime(settings.timeZone);

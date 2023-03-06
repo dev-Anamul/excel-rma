@@ -94,6 +94,10 @@ export class WarrantyStockEntryDto {
   @ValidateNested()
   @Type(() => WarrantyStockEntryItemDto)
   items: WarrantyStockEntryItemDto[];
+
+  @IsOptional()
+  @IsString()
+  stock_id: string;
 }
 
 export class WarrantyStockEntryItemDto {

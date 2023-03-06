@@ -387,7 +387,8 @@ export class WarrantyService {
         concatMap((singleStockEntry: StockEntryDetails) => {
           return of({
             stock_voucher_number: singleStockEntry.stock_voucher_number,
-            serial_no: singleStockEntry.items.find(item => item).excel_serials,
+            serial_no: singleStockEntry.items.find(item => item).serial_no,
+            stock_id: singleStockEntry.stock_id,
             item_name: singleStockEntry.items.find(item => item).item_name,
             warranty_end_date: warrantyDetail.warranty_end_date
               ? warrantyDetail.warranty_end_date.toString().split('T')[0]
@@ -493,7 +494,14 @@ export class WarrantyService {
       claim_type: warrantyDetail.claim_type,
       claim_no: warrantyDetail.claim_no,
       item_name: warrantyDetail.item_name,
-      serial_no: warrantyDetail.serial_no,
+      serial_no: warrantyDetail.progress_state.find(
+        delivery_note =>
+          delivery_note.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED,
+      ).items[0].serial_no,
+      stock_id: warrantyDetail.progress_state.find(
+        delivery_note =>
+          delivery_note.stock_entry_type === STOCK_ENTRY_ITEM_TYPE.RETURNED,
+      ).stock_id,
       third_party_name: warrantyDetail.third_party_name,
       warranty_end_date: warrantyDetail.warranty_end_date
         ? warrantyDetail.warranty_end_date.toString().split('T')[0]

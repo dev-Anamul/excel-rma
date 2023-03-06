@@ -72,6 +72,7 @@ export interface SerialNo {
 }
 
 export interface WarrantyClaimsDetails {
+  stock_id: string;
   warranty_end_date: Date;
   claim_type: string;
   received_on: Date;
@@ -251,6 +252,7 @@ export class StockEntryDetails {
   set_warehouse?: string;
   is_return?: number;
   naming_series?: string;
+  stock_id: string;
 }
 
 export class StockItem {
@@ -262,7 +264,6 @@ export class StockItem {
   qty?: number;
   serial_no?: string;
   has_serial_no?: number;
-  excel_serials?: string;
   warranty?: any;
 }
 
