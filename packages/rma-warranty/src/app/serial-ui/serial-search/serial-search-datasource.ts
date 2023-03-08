@@ -28,6 +28,7 @@ export class SerialSearchDataSource extends DataSource<SerialSearchFields> {
   constructor(private serialSearchService: SerialSearchService) {
     super();
   }
+
   connect(
     collectionViewer: CollectionViewer,
   ): Observable<SerialSearchFields[]> {
@@ -54,7 +55,7 @@ export class SerialSearchDataSource extends DataSource<SerialSearchFields> {
           this.length = res.length;
           return res.docs;
         }),
-        catchError(error => of([])),
+        catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
       )
       .pipe(
