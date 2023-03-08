@@ -299,6 +299,7 @@ export const PermissionRoles = {
       'Branch Sales Creator',
       'General Admin',
     ],
+    read_price: ['Item Price Manager', 'Item Price Viewer', 'General Admin'],
     update: ['Item Price Manager', 'General Admin'],
     delete: ['Item Price Manager', 'General Admin'],
   },

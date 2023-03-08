@@ -60,7 +60,7 @@ export class ItemPricePage implements OnInit {
     private readonly salesService: SalesService,
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog,
-    private route: ActivatedRoute,
+    private readonly route: ActivatedRoute,
     private readonly loadingController: LoadingController,
   ) {}
 

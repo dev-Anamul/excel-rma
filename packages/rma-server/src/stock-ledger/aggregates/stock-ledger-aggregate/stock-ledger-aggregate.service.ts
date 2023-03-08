@@ -156,7 +156,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
       }
     });
     if (Object.entries(filter_Obj).length !== 0) {
-      const obj: any = {
+      const $group: any = {
         _id: {
           warehouse: '$warehouse',
           item_code: '$item_code',
@@ -165,7 +165,6 @@ export class StockLedgerAggregateService extends AggregateRoot {
           $sum: '$actual_qty',
         },
       };
-      const $group: any = obj;
       const $lookup: any = {
         from: 'item',
         localField: '_id.item_code',
