@@ -5,17 +5,15 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Observable, of } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';
-import { ValidateInputSelected } from 'src/app/common/pipes/validators';
+import { ValidateInputSelected } from '../../common/pipes/validators';
 import { SalesService } from '../../sales-ui/services/sales.service';
 import {
   STOCK_LEDGER_CSV_FILE,
   STOCK_LEDGER_REPORT_HEADERS,
   WAREHOUSES,
 } from '../../constants/app-string';
-// import { StockEntryService } from '../services/stock-entry/stock-entry.service';
-// import { RELAY_LIST_PROJECT_ENDPOINT } from 'src/app/constants/url-strings';
 import { StockLedgerDataSource } from './stock-ledger-datasource';
-import { CsvJsonService } from 'src/app/api/csv-json/csv-json.service';
+import { CsvJsonService } from '../../api/csv-json/csv-json.service';
 import { StockEntryService } from '../services/stock-entry/stock-entry.service';
 
 @Component({

@@ -16,6 +16,7 @@ import {
   STOCK_ENTRY_RESET_ENDPOINT,
   GET_STOCK_ENTRY_DELIVERED_SERIALS,
   VOUCHER_TYPE_LIST,
+  LIST_SERIAL_QUANTITY_ENDPOINT,
 } from '../../../constants/url-strings';
 import { MaterialTransferDto } from '../../material-transfer/material-transfer.datasource';
 import { JSON_BODY_MAX_SIZE } from '../../../constants/app-string';
@@ -24,7 +25,10 @@ import { JSON_BODY_MAX_SIZE } from '../../../constants/app-string';
   providedIn: 'root',
 })
 export class StockEntryService {
-  constructor(private http: HttpClient, private storage: StorageService) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly storage: StorageService,
+  ) {}
 
   createMaterialTransfer(body: MaterialTransferDto) {
     return this.getHeaders().pipe(
@@ -110,6 +114,7 @@ export class StockEntryService {
       }),
     );
   }
+
   getHeaders() {
     return from(this.storage.getItem(ACCESS_TOKEN)).pipe(
       map(token => {
@@ -180,6 +185,31 @@ export class StockEntryService {
         return this.http
           .get<any>(url, { params, headers })
           .pipe(map(res => res.data));
+      }),
+    );
+  }
+
+  listSerialQuantity(
+    pageNumber: number = 0,
+    pageSize: number = 30,
+    filter: any,
+    sortOrder: any,
+  ) {
+    try {
+      sortOrder = JSON.stringify(sortOrder);
+    } catch (error) {
+      sortOrder = JSON.stringify({ item_name: 'asc' });
+    }
+    const url = LIST_SERIAL_QUANTITY_ENDPOINT;
+    const params = new HttpParams()
+      .set('limit', pageSize.toString())
+      .set('offset', (pageNumber * pageSize).toString())
+      .set('filter_query', JSON.stringify(filter))
+      .set('sort', sortOrder);
+
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get(url, { params, headers });
       }),
     );
   }

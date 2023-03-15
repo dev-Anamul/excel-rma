@@ -44,7 +44,6 @@ import {
   VALIDATE_RETURN_SERIALS,
   GET_CUSTOMER_ENDPOINT,
   CUSTOMER_ENDPOINT,
-  // GET_DOCTYPE_COUNT_METHOD,
   GET_PRODUCT_BUNDLE_ITEMS,
   REMOVE_SALES_INVOICE_ENDPOINT,
   RELAY_GET_ITEM_GROUP_ENDPOINT,
@@ -876,6 +875,7 @@ export class SalesService {
       }),
     );
   }
+
   customerList() {
     const url = CUSTOMER_ENDPOINT;
     return this.getHeaders().pipe(

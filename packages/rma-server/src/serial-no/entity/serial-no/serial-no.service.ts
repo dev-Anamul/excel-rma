@@ -158,6 +158,86 @@ export class SerialNoService {
   async count(query) {
     return await this.serialNoRepository.count(query);
   }
+
+  async listSerialQuantity(
+    skip: number = 0,
+    take: number = 10,
+    sort: any,
+    filter_query: any,
+  ) {
+    let sortQuery = {};
+    try {
+      sortQuery = JSON.parse(sort);
+    } catch (error) {
+      sortQuery = { item_name: 'asc' };
+    }
+    sortQuery =
+      Object.keys(sortQuery).length === 0 ? { item_name: 'asc' } : sortQuery;
+
+    for (const key of Object.keys(sortQuery)) {
+      sortQuery[key] = sortQuery[key].toUpperCase();
+      if (sortQuery[key] === 'ASC') {
+        sortQuery[key] = 1;
+      }
+      if (sortQuery[key] === 'DESC') {
+        sortQuery[key] = -1;
+      }
+      if (!sortQuery[key]) {
+        delete sortQuery[key];
+      }
+    }
+    const purchaseInvoiceQuery = { purchase_invoice_name: { $ne: null } };
+
+    const $and: any[] = [
+      filter_query ? this.getFilterQuery(filter_query) : {},
+      purchaseInvoiceQuery,
+    ];
+    const results: any = await this.asyncAggregate([
+      { $match: { $and } },
+      {
+        $group: {
+          _id: {
+            warehouse: '$warehouse',
+            item_code: '$item_code',
+            item_name: '$item_name',
+          },
+          total: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          warehouse: '$_id.warehouse',
+          item_code: '$_id.item_code',
+          item_name: '$_id.item_name',
+          total: 1,
+        },
+      },
+      { $sort: sortQuery },
+    ]).toPromise();
+
+    const length = results.length;
+    return {
+      docs: results.splice(skip, take) || [],
+      length: length || 0,
+      offset: skip,
+    };
+  }
+
+  getFilterQuery(query: any) {
+    const keys = Object.keys(query);
+    keys.forEach(key => {
+      if (typeof query[key] === 'string') {
+        query[key] = {
+          $regex: query[key],
+          $options: 'i',
+        };
+      } else {
+        delete query[key];
+      }
+    });
+    return query;
+  }
 }
 
 export class AggregatePaginationResponse {

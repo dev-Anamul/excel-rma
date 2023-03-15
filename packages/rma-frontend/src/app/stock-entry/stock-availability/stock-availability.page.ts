@@ -224,7 +224,7 @@ export class StockAvailabilityPage implements OnInit {
     const result: any = this.serializeStockAvailabilityObject(
       this.dataSource.data,
     );
-    this.csvService.downloadStockAvailabilityCSV(
+    this.csvService.downloadAsCSV(
       result,
       STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
       `${STOCK_AVAILABILITY_CSV_FILE}`,

@@ -209,6 +209,18 @@
 
               <ion-item
                 button
+                *ngIf="loggedIn && isSystemManager"
+                lines="none"
+                routerLink="/serial-quantity"
+                routerLinkActive="active"
+              >
+                <ion-icon slot="start" name="grid-outline">
+                </ion-icon>
+                <ion-label>Serial Quantity</ion-label>
+              </ion-item>
+
+              <ion-item
+                button
                 *ngIf="loggedIn && permissionState?.stock_entry?.read"
                 lines="none"
                 routerLink="/stock-ledger"

@@ -149,7 +149,7 @@ export class CsvJsonService {
         return of(false);
       }),
       toArray(),
-      switchMap(success => {
+      switchMap(() => {
         return of(true);
       }),
       catchError(err => {
@@ -278,47 +278,6 @@ export class CsvJsonService {
   }
 
   async downloadAsCSV(data: any[], fields: string[], filename) {
-    const parsedFields = {};
-    Object.keys(data[0]).forEach(key => {
-      parsedFields[key] = false;
-      if (fields.includes(key)) {
-        parsedFields[key] = true;
-      }
-      if (!['string', 'number'].includes(typeof data[0][key])) {
-        delete parsedFields[key];
-      }
-    });
-
-    const dialogRef = this.dialog.open(SelectDumpHeadersDialog, {
-      width: '250px',
-      data: parsedFields,
-    });
-
-    let selectedFields = await dialogRef.afterClosed().toPromise();
-    if (!selectedFields) {
-      return;
-    }
-    selectedFields = Object.keys(selectedFields).filter(key => {
-      if (selectedFields[key]) {
-        return key;
-      }
-    });
-
-    let csv: any = data.map(function (row) {
-      return selectedFields
-        .map(function (fieldName) {
-          return JSON.stringify(row[fieldName], (key, value) => {
-            return value === null ? '' : value;
-          });
-        })
-        .join(',');
-    });
-    csv.unshift(selectedFields.join(',')); // add header column
-    csv = csv.join('\r\n');
-    return this.downloadFile(csv, filename);
-  }
-
-  async downloadStockAvailabilityCSV(data: any[], fields: string[], filename) {
     const parsedFields = {};
     Object.keys(data[0]).forEach(key => {
       parsedFields[key] = false;
