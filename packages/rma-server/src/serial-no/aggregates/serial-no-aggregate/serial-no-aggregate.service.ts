@@ -68,9 +68,9 @@ export class SerialNoAggregateService extends AggregateRoot {
 
   validateNewSerialNo(serialNoPayload: SerialNoDto, clientHttpRequest) {
     return this.serialNoPolicyService.validateSerial(serialNoPayload).pipe(
-      switchMap(validSerial => {
+      switchMap(() => {
         return this.serialNoPolicyService.validateItem(serialNoPayload).pipe(
-          switchMap(validItems => {
+          switchMap(() => {
             const serialNo = new SerialNo();
             Object.assign(serialNo, serialNoPayload);
             serialNo.uuid = uuidv4();
@@ -198,7 +198,7 @@ export class SerialNoAggregateService extends AggregateRoot {
         retry(3),
       )
       .subscribe({
-        next: response => {
+        next: () => {
           return this.serialNoService
             .updateOne(
               { uuid: serialNo.uuid },
@@ -208,8 +208,8 @@ export class SerialNoAggregateService extends AggregateRoot {
                 },
               },
             )
-            .then(updated => {})
-            .catch(error => {});
+            .then(() => {})
+            .catch(() => {});
         },
         error: err => {
           this.errorLogService.createErrorLog(
@@ -371,6 +371,20 @@ export class SerialNoAggregateService extends AggregateRoot {
           })
           .pipe(map(res => res.data));
       }),
+    );
+  }
+
+  async listSerialQuantity(
+    offset: number,
+    limit: number,
+    sort: any,
+    query: any,
+  ) {
+    return await this.serialNoService.listSerialQuantity(
+      offset || 0,
+      limit || 10,
+      sort,
+      query,
     );
   }
 }

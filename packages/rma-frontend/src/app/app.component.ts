@@ -18,7 +18,12 @@ import {
 } from './constants/storage';
 import { AppService } from './app.service';
 import { LoginService } from './api/login/login.service';
-import { USER_ROLE, TERRITORY, WAREHOUSES } from './constants/app-string';
+import {
+  USER_ROLE,
+  TERRITORY,
+  WAREHOUSES,
+  SYSTEM_MANAGER,
+} from './constants/app-string';
 import { SettingsService } from './settings/settings.service';
 import { switchMap, retry, delay } from 'rxjs/operators';
 import { PermissionManager } from './api/permission/permission.service';
@@ -40,6 +45,7 @@ export class AppComponent implements OnInit {
   countDown: Subscription;
   counter = 0;
   tick = 1000;
+  isSystemManager: boolean = false;
 
   fullName: string = '';
   imageURL: string = '';
@@ -70,7 +76,7 @@ export class AppComponent implements OnInit {
               (now + Number(query.get(EXPIRES_IN))).toString(),
             );
         })
-        .then(saved => {
+        .then(() => {
           this.startTimer();
           this.loginService.login();
         });
@@ -108,7 +114,7 @@ export class AppComponent implements OnInit {
           this.loggedIn = false;
         }
       },
-      error: error => {},
+      error: () => {},
     });
 
     if (location.hash.includes(ACCESS_TOKEN)) {
@@ -155,7 +161,7 @@ export class AppComponent implements OnInit {
           if (data && data.roles && data.roles.length === 0) {
             return of({}).pipe(
               delay(500),
-              switchMap(obj => {
+              switchMap(() => {
                 return throwError(data);
               }),
             );
@@ -173,6 +179,9 @@ export class AppComponent implements OnInit {
           this.startTimer();
           this.loggedIn = true;
           if (res) {
+            if (res.roles.find(x => x === SYSTEM_MANAGER)) {
+              this.isSystemManager = true;
+            }
             this.appService.getStorage().setItem(USER_ROLE, res.roles || []);
             this.appService
               .getStorage()
@@ -185,13 +194,13 @@ export class AppComponent implements OnInit {
               .setItem(TERRITORY, filtered_territory || []);
           }
         },
-        error: error => {},
+        error: () => {},
       });
   }
 
   setupSilentRefresh() {
     const source = interval(TEN_MINUTES_IN_MS);
-    this.subscription = source.subscribe(val => this.silentRefresh());
+    this.subscription = source.subscribe(() => this.silentRefresh());
   }
 
   login() {
@@ -207,11 +216,11 @@ export class AppComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: success => {
+        next: () => {
           this.loggedIn = false;
           window.location.href = this.authServerUrl + '?cmd=web_logout';
         },
-        error: error => {},
+        error: () => {},
       });
   }
 

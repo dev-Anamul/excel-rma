@@ -1,0 +1,167 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="navigateBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title> Serial Quantity </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<div class="loading-shade" *ngIf="dataSource.loading$ | async">
+  <mat-progress-bar
+    *ngIf="dataSource.loading$ | async"
+    mode="indeterminate"
+  ></mat-progress-bar>
+</div>
+
+<ion-content color="light">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-text color="primary"> Serial Quantity </ion-text>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding">
+      <form [formGroup]="serialQuantityForm">
+        <ion-grid>
+          <ion-row>
+            <ion-col>
+              <mat-form-field class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Item Name"
+                  [matAutocomplete]="item_name"
+                  formControlName="item_name"
+                  (focusout)="validateInput(this.f.item_name, filteredItemNameList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #item_name="matAutocomplete"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredItemNameList | async"
+                    [value]="option.item_name"
+                  >
+                    {{ option.item_name }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="this.f.item_name.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{this.f.item_name.value}}'</strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
+
+            <ion-col>
+              <mat-form-field class="mat-input-wrapper">
+                <input
+                  matInput
+                  placeholder="Warehouse"
+                  [matAutocomplete]="warehouse"
+                  formControlName="warehouse"
+                  (focusout)="validateInput(this.f.warehouse, filteredWarehouseList)"
+                />
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #warehouse="matAutocomplete"
+                  (optionSelected)="setFilter()"
+                >
+                  <mat-option
+                    *ngFor="let option of filteredWarehouseList | async"
+                    [value]="option"
+                  >
+                    {{ option }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="this.f.warehouse.hasError('falseValse')">
+                  You should select a value from dropdown only.
+                  <strong>'{{this.f.warehouse.value}}'</strong> is not allowed.
+                </mat-error>
+              </mat-form-field>
+
+              <ion-button
+                color="tertiary"
+                (click)="clearFilters()"
+                fill="outline"
+              >
+                Clear
+              </ion-button>
+
+              <ion-button
+                color="tertiary"
+                [disabled]="!dataSource.length"
+                (click)="downloadSerialQuantity()"
+                fill="outline"
+              >
+                Download CSV
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </form>
+
+      <div class="example-container mat-elevation-z8">
+        <table
+          mat-table
+          class="full-width-table"
+          [dataSource]="dataSource"
+          matSort
+          (matSortChange)="setFilter($event)"
+        >
+          <ng-container matColumnDef="sr_no">
+            <mat-header-cell *matHeaderCellDef>No. </mat-header-cell>
+            <mat-cell *matCellDef="let row;let i=index ">
+              {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="item_name">
+            <mat-header-cell *matHeaderCellDef mat-sort-header="item_name">
+              Item name
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row?.item_name }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="item_code">
+            <mat-header-cell *matHeaderCellDef mat-sort-header="item_code">
+              Item code
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row?.item_code }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="warehouse">
+            <mat-header-cell *matHeaderCellDef mat-sort-header="warehouse">
+              Warehouse
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row">{{ row?.warehouse }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="serial_quantity">
+            <mat-header-cell *matHeaderCellDef mat-sort-header="total">
+              Serial quantity
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{ row?.total }} </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
+          </mat-header-row>
+
+          <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+        </table>
+      </div>
+      <mat-card-actions>
+        <mat-paginator
+          #paginator
+          class="mat-paginator-sticky"
+          (page)="setFilter($event)"
+          [length]="dataSource.length"
+          [pageSizeOptions]="[30, 50, 100, 500]"
+        >
+        </mat-paginator>
+      </mat-card-actions>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

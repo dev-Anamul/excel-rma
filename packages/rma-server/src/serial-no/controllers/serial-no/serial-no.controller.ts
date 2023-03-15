@@ -35,6 +35,7 @@ import { RetrieveDirectSerialNoQuery } from '../../query/get-direct-serial-no/re
 import { RetrieveSerialNoHistoryQuery } from '../../query/get-serial-no-history/get-serial-no-history.query';
 import { RetrieveSalesInvoiceDeliveredSerialNoQuery } from '../../query/retrieve-sales-invoice-delivered-serial-no/retrieve-sales-invoice-delivered-serial-no.query'; // eslint-disable-line
 import { RetrieveSalesInvoiceReturnedSerialNoQuery } from '../../../serial-no/query/retrieve-sales-invoice-return-serial-no/retrieve-sales-invoice-return-serial-no.query'; // eslint-disable-line
+import { SerialQuantityListQueryDto } from '../../../constants/listing-dto/serial-quantity-list-query';
 
 @Controller('serial_no')
 export class SerialNoController {
@@ -197,6 +198,26 @@ export class SerialNoController {
         req.body.params.updates[1].value,
         req.body.params.updates[0].value,
       )
-      .subscribe(data => {});
+      .subscribe(() => {});
+  }
+
+  @Get('v1/list_serial_quantity')
+  @UseGuards(TokenGuard)
+  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
+  async getSerialQuantity(@Query() query: SerialQuantityListQueryDto) {
+    const { offset, limit, sort, filter_query } = query;
+    let filter = {};
+    try {
+      filter = JSON.parse(filter_query);
+    } catch {
+      filter;
+    }
+
+    return await this.serialAggregateService.listSerialQuantity(
+      Number(offset),
+      Number(limit),
+      sort,
+      filter,
+    );
   }
 }

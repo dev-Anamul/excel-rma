@@ -192,3 +192,5 @@ export const SYNC_STOCK_PRINT_ENDPOINT =
 
 export const INVOICE_LIST = '/api/serial_no/v1/invoicelist';
 export const INVOICE_PUT = '/api/serial_no/v1/updateInvoice';
+export const LIST_SERIAL_QUANTITY_ENDPOINT =
+  '/api/serial_no/v1/list_serial_quantity';

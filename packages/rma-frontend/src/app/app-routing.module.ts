@@ -156,6 +156,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'serial-quantity',
+    loadChildren: () =>
+      import('./stock-entry/serial-quantity/serial-quantity.module').then(
+        m => m.SerialQuantityPageModule,
+      ),
+  },
+  {
     path: 'stock-ledger',
     loadChildren: () =>
       import(
