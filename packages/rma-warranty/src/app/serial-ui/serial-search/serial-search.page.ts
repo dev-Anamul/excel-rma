@@ -143,7 +143,7 @@ export class SerialSearchPage implements OnInit {
       return true;
     }
     this.snackBar.open(
-      'Either Serial number or Warehosue and Item are mandatory for Serial Search',
+      'Either Serial number or Warehouse and Item are mandatory for Serial Search',
       CLOSE,
       { duration: 3000 },
     );

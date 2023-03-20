@@ -39,7 +39,7 @@ export class SerialQuantityDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(pageIndex = 0, pageSize = 30, filters: any, sortOrder: any) {
+  loadItems(pageIndex = 0, pageSize = 30, filters?: any, sortOrder?: any) {
     if (!sortOrder) {
       sortOrder = { item_name: 'asc' };
     }

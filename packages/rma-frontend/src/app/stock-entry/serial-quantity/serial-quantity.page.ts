@@ -1,22 +1,22 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
-import { FormControl, FormGroup } from '@angular/forms';
-
-import { SerialQuantityDataSource } from './serial-quantity-datasource';
-import { SalesService } from '../../sales-ui/services/sales.service';
-import { ValidateInputSelected } from '../../common/pipes/validators';
+import { MatSort } from '@angular/material/sort';
 import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
+import { startWith, debounceTime, switchMap } from 'rxjs/operators';
 import { CsvJsonService } from '../../api/csv-json/csv-json.service';
+import { ValidateInputSelected } from '../../common/pipes/validators';
 import {
   SERIAL_QUANTITY_CSV_FILE,
   SERIAL_QUANTITY_DOWNLOAD_HEADERS,
   WAREHOUSES,
 } from '../../constants/app-string';
-import { MatSort } from '@angular/material/sort';
-import { Observable } from 'rxjs';
-import { debounceTime, startWith, switchMap } from 'rxjs/operators';
+import { SalesService } from '../../sales-ui/services/sales.service';
 import { StockEntryService } from '../services/stock-entry/stock-entry.service';
+import { SerialQuantityDataSource } from './serial-quantity-datasource';
+
 @Component({
   selector: 'app-serial-quantity',
   templateUrl: './serial-quantity.page.html',
@@ -87,7 +87,31 @@ export class SerialQuantityPage implements OnInit {
 
   clearFilters() {
     this.serialQuantityForm.reset();
-    this.setFilter();
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
+    this.dataSource.loadItems(
+      this.paginator.pageIndex || undefined,
+      this.paginator.pageSize || undefined,
+      undefined,
+      this.sortQuery,
+    );
+  }
+
+  getUpdate(event: any) {
+    const query: any = {};
+    if (this.f.item_name.value) query.item_name = this.f.item_name.value;
+    if (this.f.warehouse.value) query.warehouse = this.f.warehouse.value;
+
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
+    this.dataSource.loadItems(
+      event?.pageIndex || undefined,
+      event?.pageSize || undefined,
+      query,
+      this.sortQuery,
+    );
   }
 
   setFilter(event?: any) {
@@ -106,6 +130,9 @@ export class SerialQuantityPage implements OnInit {
       Object.keys(this.sortQuery).length === 0
         ? { item_name: 'ASC' }
         : this.sortQuery;
+
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
 
     this.dataSource.loadItems(0, 30, query, this.sortQuery);
   }

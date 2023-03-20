@@ -230,8 +230,8 @@ export class ItemPricePage implements OnInit {
     this.itemPriceService
       .setWarrantyMonths(row.uuid, { purchaseWarrantyMonths: days })
       .subscribe({
-        next: success => (row.purchaseWarrantyMonths = days),
-        error: error => {},
+        next: () => (row.purchaseWarrantyMonths = days),
+        error: () => {},
       });
   }
 
@@ -241,8 +241,8 @@ export class ItemPricePage implements OnInit {
     this.itemPriceService
       .setWarrantyMonths(row.uuid, { salesWarrantyMonths: days })
       .subscribe({
-        next: success => (row.salesWarrantyMonths = days),
-        error: error => {},
+        next: () => (row.salesWarrantyMonths = days),
+        error: () => {},
       });
   }
 
@@ -250,8 +250,8 @@ export class ItemPricePage implements OnInit {
     if (minPrice == null) return;
 
     this.itemPriceService.setMinPrice(row.uuid, minPrice).subscribe({
-      next: success => (row.minimumPrice = minPrice),
-      error: error => {},
+      next: () => (row.minimumPrice = minPrice),
+      error: () => {},
     });
   }
 
@@ -259,8 +259,8 @@ export class ItemPricePage implements OnInit {
     if (mrp == null) return;
 
     this.itemPriceService.setMRP(row.uuid, mrp).subscribe({
-      next: success => (row.mrp = mrp),
-      error: error => {},
+      next: () => (row.mrp = mrp),
+      error: () => {},
     });
   }
 

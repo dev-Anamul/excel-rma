@@ -156,9 +156,9 @@
         <mat-paginator
           #paginator
           class="mat-paginator-sticky"
-          (page)="setFilter($event)"
+          (page)="getUpdate($event)"
           [length]="dataSource.length"
-          [pageSizeOptions]="[30, 50, 100, 500]"
+          [pageSizeOptions]="[30, 50, 100, 500, 1000]"
         >
         </mat-paginator>
       </mat-card-actions>
