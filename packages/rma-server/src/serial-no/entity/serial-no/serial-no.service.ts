@@ -186,11 +186,13 @@ export class SerialNoService {
         delete sortQuery[key];
       }
     }
-    const purchaseInvoiceQuery = { purchase_invoice_name: { $ne: null } };
+    const purchaseInvoiceQuery = { purchase_invoice_name: { $exists: true } };
+    const salesInvoiceQuery = { sales_invoice_name: { $exists: false } };
 
     const $and: any[] = [
       filter_query ? this.getFilterQuery(filter_query) : {},
       purchaseInvoiceQuery,
+      salesInvoiceQuery,
     ];
     const results: any = await this.asyncAggregate([
       { $match: { $and } },
