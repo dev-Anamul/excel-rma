@@ -299,7 +299,6 @@ export const PermissionRoles = {
       'Branch Sales Creator',
       'General Admin',
     ],
-    read_price: ['Item Price Manager', 'Item Price Viewer', 'General Admin'],
     update: ['Item Price Manager', 'General Admin'],
     delete: ['Item Price Manager', 'General Admin'],
   },
@@ -404,7 +403,7 @@ export const PermissionRoles = {
     submit: ['RMA Invoice Manager', 'General Admin'],
     cancel: ['RMA Invoice Manager', 'General Admin'],
   },
-  // the problem list should be accesible to this roles only
+  // the problem list should be accessible to this roles only
   problems: {
     read: [
       'RMA Claim Creator',
