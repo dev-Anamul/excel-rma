@@ -78,7 +78,7 @@ export class ItemPricePage implements OnInit {
           return event;
         }),
       )
-      .subscribe({ next: res => {}, error: err => {} });
+      .subscribe({ next: () => {}, error: () => {} });
 
     this.filteredItemNameList = this.itemsForm
       .get('itemName')
@@ -170,7 +170,7 @@ export class ItemPricePage implements OnInit {
     }
 
     return this.itemPriceService.updateHasSerialNo(event, item_name).subscribe({
-      next: success => {
+      next: () => {
         this.snackBar.open('Item updated.', CLOSE, { duration: 2000 });
       },
       error: err => {
