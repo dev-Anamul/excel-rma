@@ -5,7 +5,12 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { startWith, debounceTime, switchMap, distinctUntilChanged } from 'rxjs/operators';
+import {
+  startWith,
+  debounceTime,
+  switchMap,
+  distinctUntilChanged,
+} from 'rxjs/operators';
 import { CsvJsonService } from '../../api/csv-json/csv-json.service';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import {
