@@ -302,6 +302,11 @@ export const PermissionRoles = {
     update: ['Item Price Manager', 'General Admin'],
     delete: ['Item Price Manager', 'General Admin'],
   },
+
+  item_price_list: {
+    read: ['Item Price Manager', 'Item Price Viewer', 'General Admin'],
+  },
+
   erpnext: {
     read: [
       'Branch Sales Manager',
@@ -482,6 +487,10 @@ export const PERMISSION_STATE: PermissionStateInterface = {
     read: false,
     update: false,
     active: false,
+  },
+
+  item_price_list: {
+    read: false,
   },
 
   sales_return: {

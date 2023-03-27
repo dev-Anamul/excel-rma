@@ -38,7 +38,7 @@ export class PermissionManager {
 
   getPermission(module: string, state: string) {
     return of({}).pipe(
-      switchMap(object => {
+      switchMap(() => {
         return from(this.storageService.getItem(USER_ROLE));
       }),
       switchMap((roles: string[]) => {
@@ -56,7 +56,7 @@ export class PermissionManager {
       retryWhen(errors => {
         return errors.pipe(delay(300), take(10), concat(throwError('Retry')));
       }),
-      catchError(err => {
+      catchError(() => {
         return of(false);
       }),
     );
