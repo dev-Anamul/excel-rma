@@ -244,8 +244,8 @@
               (keyup.enter)="p.open()"
               (click)="p.open()"
             >
-              <ion-text *ngIf="permissionState?.item_price?.read">
-                {{row.minimumPrice || 0 | curFormat | async}}
+              <ion-text *ngIf="permissionState?.item_price_list?.read">
+                {{ row.minimumPrice || 0 | curFormat | async }}
               </ion-text>
               <sat-popover
                 #p
