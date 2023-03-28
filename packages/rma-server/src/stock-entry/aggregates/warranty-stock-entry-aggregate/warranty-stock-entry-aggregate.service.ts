@@ -636,6 +636,7 @@ export class WarrantyStockEntryAggregateService {
             'warranty.salesWarrantyDate': '',
             'warranty.soldOn': '',
             sales_invoice_name: '',
+            claim_no: '',
           },
         },
       ),
