@@ -8,6 +8,7 @@ import {
   filter,
   map,
   startWith,
+  distinctUntilChanged,
   switchMap,
 } from 'rxjs/operators';
 import { ItemPriceDataSource, ListingData } from './item-price.datasource';
@@ -42,7 +43,11 @@ export class ItemPricePage implements OnInit {
     'selling_price',
   ];
   purchaseWarrantyMonths: string = '';
-  itemsForm: FormGroup;
+  itemsForm: FormGroup = new FormGroup({
+    itemName: new FormControl(),
+    itemGroup: new FormControl(),
+    itemBrand: new FormControl(),
+  });
   permissionState: any = PERMISSION_STATE;
   validateInput: any = ValidateInputSelected;
   filteredItemNameList: Observable<any[]>;
@@ -65,7 +70,6 @@ export class ItemPricePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
@@ -79,11 +83,15 @@ export class ItemPricePage implements OnInit {
         }),
       )
       .subscribe({ next: () => {}, error: () => {} });
+    this.setAutoComplete();
+  }
 
+  setAutoComplete() {
     this.filteredItemNameList = this.itemsForm
       .get('itemName')
       .valueChanges.pipe(
         startWith(''),
+        distinctUntilChanged(),
         debounceTime(1000),
         switchMap(value => {
           return this.salesService.getItemList(value);
@@ -94,6 +102,7 @@ export class ItemPricePage implements OnInit {
       .get('itemGroup')
       .valueChanges.pipe(
         startWith(''),
+        distinctUntilChanged(),
         switchMap(value => {
           return this.salesService.getItemGroupList(value);
         }),
@@ -106,6 +115,7 @@ export class ItemPricePage implements OnInit {
       .get('itemBrand')
       .valueChanges.pipe(
         startWith(''),
+        distinctUntilChanged(),
         switchMap(value => {
           return this.salesService.getItemBrandList(value);
         }),
@@ -113,41 +123,6 @@ export class ItemPricePage implements OnInit {
           return of(data);
         }),
       );
-  }
-
-  createFormGroup() {
-    this.itemsForm = new FormGroup({
-      itemName: new FormControl(),
-      itemGroup: new FormControl(),
-      itemBrand: new FormControl(),
-    });
-  }
-
-  getItemNameOption(option) {
-    if (option) {
-      if (option.item_name) {
-        return `${option.item_name}`;
-      }
-      return option.name;
-    }
-  }
-
-  getItemGroupOption(option) {
-    if (option) {
-      if (option.item_group_name) {
-        return `${option.item_group_name}`;
-      }
-      return option.item_group_name;
-    }
-  }
-
-  getItemBrandOption(option) {
-    if (option) {
-      if (option.brand) {
-        return `${option.brand}`;
-      }
-      return option.brand;
-    }
   }
 
   navigateBack() {
@@ -199,13 +174,13 @@ export class ItemPricePage implements OnInit {
   setFilter(item?) {
     const query: any = {};
     if (this.f.itemName.value) {
-      query.item_name = this.f.itemName.value.item_name;
+      query.item_name = this.f.itemName.value;
     }
     if (this.f.itemGroup.value) {
-      query.item_group = this.f.itemGroup.value.item_group_name;
+      query.item_group = this.f.itemGroup.value;
     }
     if (this.f.itemBrand.value) {
-      query.brand = this.f.itemBrand.value.brand;
+      query.brand = this.f.itemBrand.value;
     }
     const sortQuery = {};
     if (item) {
@@ -219,10 +194,16 @@ export class ItemPricePage implements OnInit {
   }
 
   clearFilters() {
-    this.f.itemName.setValue('');
-    this.f.itemGroup.setValue('');
-    this.f.itemBrand.setValue('');
-    this.dataSource.loadItems();
+    this.itemsForm.reset();
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
+    this.dataSource.loadItems(
+      undefined,
+      undefined,
+      this.paginator.pageIndex || undefined,
+      this.paginator.pageSize || undefined,
+    );
   }
 
   updatePurchaseWarrantyMonths(row: ListingData, days: number) {
@@ -264,7 +245,9 @@ export class ItemPricePage implements OnInit {
     });
   }
 
-  getUpdate(event) {
+  getUpdate(event: any) {
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
     this.dataSource.loadItems(
       {
         brand: this.f.itemBrand.value ? this.f.itemBrand.value.brand : '',
@@ -274,12 +257,12 @@ export class ItemPricePage implements OnInit {
         item_name: this.f.itemName.value ? this.f.itemName.value.item_name : '',
       },
       this.sort.direction,
-      event.pageIndex,
-      event.pageSize,
+      event?.pageIndex || undefined,
+      event?.pageSize || undefined,
     );
   }
 
-  loadPrice(row, index) {
+  loadPrice(index: number) {
     const data = this.dataSource.getData();
     this.salesService
       .getItemPrice(data[index].name)
@@ -306,7 +289,7 @@ export class ItemPricePage implements OnInit {
     await loading.present();
 
     return this.itemPriceService.syncItems(this.dataSource.data).subscribe({
-      next: success => {
+      next: () => {
         loading.dismiss();
         this.clearFilters();
         this.snackBar.open('Items successfully synced.', CLOSE, {
