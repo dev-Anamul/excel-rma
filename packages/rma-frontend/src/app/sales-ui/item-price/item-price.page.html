@@ -38,12 +38,11 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #itemNameAutocomplete="matAutocomplete"
-                  [displayWith]="getItemNameOption"
                   (optionSelected)="setFilter($event.option.value)"
                 >
                   <mat-option
                     *ngFor="let option of filteredItemNameList | async"
-                    [value]="option"
+                    [value]="option.item_name"
                   >
                     {{ option.item_name }}
                   </mat-option>
@@ -66,12 +65,11 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #itemGroupAutocomplete="matAutocomplete"
-                  [displayWith]="getItemGroupOption"
                   (optionSelected)="setFilter($event.option.value)"
                 >
                   <mat-option
                     *ngFor="let option of filteredItemGroupList | async"
-                    [value]="option"
+                    [value]="option.item_group_name"
                   >
                     {{ option.item_group_name }}
                   </mat-option>
@@ -83,6 +81,7 @@
               </mat-form-field>
             </ion-col>
           </ion-row>
+
           <ion-row>
             <ion-col>
               <mat-form-field class="mat-input-wrapper">
@@ -96,12 +95,11 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #itemBrandAutocomplete="matAutocomplete"
-                  [displayWith]="getItemBrandOption"
                   (optionSelected)="setFilter($event.option.value)"
                 >
                   <mat-option
                     *ngFor="let option of filteredItemBrandList | async"
-                    [value]="option"
+                    [value]="option.brand"
                   >
                     {{ option.brand }}
                   </mat-option>
@@ -130,6 +128,7 @@
           </ion-row>
         </form>
       </ion-grid>
+
       <div class="example-container mat-elevation-z8">
         <table
           mat-table
@@ -310,7 +309,7 @@
               </ion-text>
               <ion-button
                 *ngIf="row.selling_price === undefined"
-                (click)="loadPrice(row, i)"
+                (click)="loadPrice(i)"
                 fill="clear"
               >
                 <ion-icon slot="icon-only" name="refresh"></ion-icon>
