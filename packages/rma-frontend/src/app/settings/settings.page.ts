@@ -3,7 +3,7 @@ import { Location } from '@angular/common';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { SettingsService } from './settings.service';
-import { startWith, debounceTime } from 'rxjs/operators';
+import { startWith, debounceTime, switchMap } from 'rxjs/operators';
 import { ToastController, PopoverController } from '@ionic/angular';
 import {
   SHORT_DURATION,
@@ -82,12 +82,14 @@ export class SettingsPage implements OnInit {
       this.service.relayTimeZoneOperation(),
     );
 
-  accounts: Observable<unknown[]> = this.companySettingsForm
+  accounts: Observable<any> = this.companySettingsForm
     .get('debtorAccount')
     .valueChanges.pipe(
-      debounceTime(500),
       startWith(''),
-      this.service.relayAccountsOperation(),
+      debounceTime(500),
+      switchMap(value => {
+        return this.service.relayAccountsOperation(value);
+      }),
     );
 
   warehouses: Observable<unknown[]> = this.companySettingsForm
