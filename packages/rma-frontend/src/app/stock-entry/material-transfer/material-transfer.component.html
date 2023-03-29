@@ -26,11 +26,12 @@
             <ion-card-title>
               <ion-text color="tertiary">
                 {{ title }}
-              </ion-text> <br />
+              </ion-text>
+              <br />
               <ion-text color="tertiary">
                 {{ stock_id }}
-              </ion-text> <br />
-
+              </ion-text>
+              <br />
             </ion-card-title>
           </ion-col>
         </ion-row>
@@ -171,17 +172,19 @@
                   matInput
                   required
                   placeholder="Account"
-                  aria-label="Account"
-                  [matAutocomplete]="expenseAccount"
-                  (focusout)="validateInput(f.accounts, accounts)"
+                  [matAutocomplete]="accounts"
                   formControlName="accounts"
+                  (focusout)="validateInput(f.accounts, filteredAccounts)"
                 />
-                <mat-autocomplete #expenseAccount="matAutocomplete">
+                <mat-autocomplete
+                  autoActiveFirstOption
+                  #accounts="matAutocomplete"
+                >
                   <mat-option
-                    *ngFor="let account of accounts | async"
+                    *ngFor="let account of filteredAccounts | async"
                     [value]="account.name"
                   >
-                    <span>{{ account.name }}</span>
+                    {{ account.name }}
                   </mat-option>
                 </mat-autocomplete>
                 <mat-error *ngIf="f.accounts.hasError('falseValse')">
@@ -190,6 +193,7 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="example-full-width">
                 <input
