@@ -406,7 +406,7 @@ export class SalesService {
             switchMap(response => {
               return of(response.docs);
             }),
-            catchError(err => {
+            catchError(() => {
               return of(this.itemList);
             }),
           );

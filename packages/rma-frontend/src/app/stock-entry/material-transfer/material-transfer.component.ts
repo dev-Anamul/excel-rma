@@ -8,6 +8,7 @@ import {
   mergeMap,
   toArray,
   catchError,
+  distinctUntilChanged,
 } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
@@ -109,7 +110,7 @@ export class MaterialTransferComponent implements OnInit {
     warehouse: undefined,
     itemData: [],
   };
-  accounts: Observable<any[]>;
+  filteredAccounts: Observable<any[]>;
   uuid: string;
   materialTransferDataSource: MaterialTransferDataSource = new MaterialTransferDataSource();
   fromRangeUpdate = new Subject<string>();
@@ -255,7 +256,7 @@ export class MaterialTransferComponent implements OnInit {
 
     this.filteredWarehouseList1 = this.warehouseState.s_warehouse.valueChanges.pipe(
       startWith(''),
-      debounceTime(300),
+      debounceTime(1000),
       switchMap(value => {
         return this.salesService
           .getStore()
@@ -279,7 +280,7 @@ export class MaterialTransferComponent implements OnInit {
 
     this.filteredWarehouseList2 = this.warehouseState.t_warehouse.valueChanges.pipe(
       startWith(''),
-      debounceTime(300),
+      debounceTime(1000),
       switchMap(value => {
         const filter = `[["name","like","%${value}%"],["is_group","=",0]]`;
         return this.salesService
@@ -291,6 +292,7 @@ export class MaterialTransferComponent implements OnInit {
 
     this.territoryList = this.form.get('territory').valueChanges.pipe(
       startWith(''),
+      debounceTime(1000),
       switchMap(value => {
         return this.salesService.getStore().getItemAsync(TERRITORY, value);
       }),
@@ -317,10 +319,13 @@ export class MaterialTransferComponent implements OnInit {
       }),
     );
 
-    this.accounts = this.form.controls.accounts.valueChanges.pipe(
-      debounceTime(500),
+    this.filteredAccounts = this.form.get('accounts').valueChanges.pipe(
       startWith(''),
-      this.service.relayAccountsOperation(),
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap(value => {
+        return this.service.relayAccountsOperation(value);
+      }),
     );
   }
 
@@ -328,7 +333,7 @@ export class MaterialTransferComponent implements OnInit {
     this.location.back();
   }
 
-  setDeliveredSerialState(stock_entry_type) {
+  setDeliveredSerialState(stock_entry_type: string) {
     switch (stock_entry_type) {
       case STOCK_ENTRY_TYPE.MATERIAL_ISSUE:
         this.deliveredSerialsState.type =
@@ -729,12 +734,14 @@ export class MaterialTransferComponent implements OnInit {
     this.submit = true;
     const body = await this.getStockEntryBody();
     this.stockEntryService.createMaterialTransfer(body).subscribe({
-      next: response => {
+      next: () => {
         this.submit = false;
         this.getMessage('Stock Entry Created');
         this.resetRangeState();
         this.materialTransferDataSource.update([]);
-        this.router.navigateByUrl('stock-entry');
+        this.router.navigate(['/stock-entry'], {
+          replaceUrl: true,
+        });
       },
       error: err => {
         this.submit = false;
@@ -1003,7 +1010,7 @@ export class MaterialTransferComponent implements OnInit {
     return base_rate;
   }
 
-  typeChange(stock_entry_type) {
+  typeChange(stock_entry_type: string) {
     this.materialTransferDisplayedColumns = [
       ...MATERIAL_TRANSFER_DISPLAYED_COLUMNS,
     ];
@@ -1039,7 +1046,7 @@ export class MaterialTransferComponent implements OnInit {
     this.setDeliveredSerialState(stock_entry_type);
   }
 
-  disabledWarehouse(stock_entry_type) {
+  disabledWarehouse(stock_entry_type: string) {
     this.warehouseState.s_warehouse.enable();
     this.warehouseState.t_warehouse.enable();
     this.warehouseState.s_warehouse.reset();
@@ -1086,7 +1093,7 @@ export class MaterialTransferComponent implements OnInit {
 
   deleteStockEntry() {
     return this.stockEntryService.deleteStockEntry(this.uuid).subscribe({
-      next: success => {
+      next: () => {
         this.getMessage('Stock Entry Deleted.');
         this.router.navigateByUrl('stock-entry');
       },
@@ -1104,7 +1111,7 @@ export class MaterialTransferComponent implements OnInit {
     const dialog = this.dialog.open(ConfirmationDialog, {
       data: {
         event: `
-      <h3>Reseting Stock Entry will cancel linked:</h3>
+      <h3> Resetting Stock Entry will cancel linked: </h3>
       <li> All Linked ERPNExt Stock Entries.
       <li> Linked/Assigned Serial's.
       <li> Serial History.
@@ -1124,12 +1131,12 @@ export class MaterialTransferComponent implements OnInit {
 
     const loading = await this.loadingController.create({
       message:
-        'validating and reseting all linked documents, this may take a while...!',
+        'validating and resetting all linked documents, this may take a while...!',
     });
     await loading.present();
 
     this.stockEntryService.resetStockEntry(this.uuid).subscribe({
-      next: success => {
+      next: () => {
         loading.dismiss();
         this.snackBar.open('Stock Entry Reseted.', CLOSE, { duration: 5500 });
         this.router.navigateByUrl('stock-entry');
@@ -1184,8 +1191,8 @@ export class MaterialTransferComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: success => {},
-        error: err => {},
+        next: () => {},
+        error: () => {},
       });
   }
 

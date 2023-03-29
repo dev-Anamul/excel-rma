@@ -203,30 +203,28 @@ export class SettingsService {
     );
   }
 
-  relayAccountsOperation() {
-    return switchMap(value => {
-      if (!value) value = '';
-      return forkJoin({
-        headers: this.getHeaders(),
-        company: from(this.storage.getItem(DEFAULT_COMPANY)),
-      }).pipe(
-        switchMap(({ headers, company }) => {
-          const params = new HttpParams({
-            fromObject: {
-              fields: '["*"]',
-              filters: `[["name","like","%${value}%"],["company","=","${company}"],["is_group","=",0]]`,
-            },
-          });
+  relayAccountsOperation(value: string) {
+    return forkJoin({
+      headers: this.getHeaders(),
+      company: from(this.storage.getItem(DEFAULT_COMPANY)),
+    }).pipe(
+      switchMap(({ headers, company }) => {
+        if (!value) value = '';
+        const params = new HttpParams({
+          fromObject: {
+            fields: '["*"]',
+            filters: `[["name","like","%${value}%"],["company","=","${company}"],["is_group","=",0]]`,
+          },
+        });
 
-          return this.http
-            .get<{ data: unknown[] }>(ERPNEXT_ACCOUNT_ENDPOINT, {
-              headers,
-              params,
-            })
-            .pipe(map(res => res.data));
-        }),
-      );
-    });
+        return this.http
+          .get(ERPNEXT_ACCOUNT_ENDPOINT, {
+            headers,
+            params,
+          })
+          .pipe(map((res: any) => res.data));
+      }),
+    );
   }
 
   setFavicon(faviconURL) {
