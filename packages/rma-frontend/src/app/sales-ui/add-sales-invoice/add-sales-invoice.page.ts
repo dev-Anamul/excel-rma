@@ -50,6 +50,7 @@ import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MY_FORMATS } from '../../constants/date-format';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 import { StorageService } from '../../api/storage/storage.service';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-add-sales-invoice',
@@ -229,14 +230,16 @@ export class AddSalesInvoicePage implements OnInit {
   }
 
   checkBackDatedInvoices() {
-    this.storageService
-      .getItem(BACKDATE_PERMISSION)
-      .then(res => (this.allowBackDatedInvoices = res));
-    this.storageService.getItem(BACKDATE_PERMISSION_FOR_DAYS).then(res => {
-      if (res) {
-        this.allowBackDatedInvoicesForDays = res;
-        this.minPostingDate.setDate(
-          new Date().getDate() - this.allowBackDatedInvoicesForDays,
+    this.storageService.getItem(BACKDATE_PERMISSION).then(res => {
+      this.allowBackDatedInvoices = res;
+    });
+    this.storageService.getItem(BACKDATE_PERMISSION_FOR_DAYS).then(days => {
+      if (days) {
+        this.allowBackDatedInvoicesForDays = days;
+        this.minPostingDate = new Date(
+          moment()
+            .subtract(this.allowBackDatedInvoicesForDays, 'days')
+            .format('L'),
         );
       }
     });
