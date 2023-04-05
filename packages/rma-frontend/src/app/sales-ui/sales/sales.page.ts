@@ -81,9 +81,9 @@ export class SalesPage implements OnInit {
   sortQuery: any = {};
   filteredSalesPersonList: Observable<any[]>;
 
-  filteredCustomerList: Observable<any>;
+  filteredCustomerList: Observable<any[]>;
   customerList: any;
-  filteredTerritoryList: Observable<any>;
+  filteredTerritoryList: Observable<any[]>;
   statusColor = {
     Draft: 'blue',
     'To Deliver': '#4d2500',
@@ -152,7 +152,9 @@ export class SalesPage implements OnInit {
       .valueChanges.pipe(
         startWith(''),
         switchMap(value => {
-          return this.salesService.getCustomerList(value);
+          return this.salesService
+            .getCustomerList(value)
+            .pipe(map(res => res.docs));
         }),
       );
 

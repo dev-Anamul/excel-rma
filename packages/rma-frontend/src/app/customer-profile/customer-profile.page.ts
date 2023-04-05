@@ -40,7 +40,9 @@ export class CustomerProfilePage implements OnInit {
   ];
   filters: any = [];
   countFilter: any = {};
-  customerProfileForm: FormGroup;
+  customerProfileForm: FormGroup = new FormGroup({
+    customer: new FormControl(),
+  });
   filteredCustomerList: Observable<any[]>;
   validateInput: any = ValidateInputSelected;
 
@@ -54,11 +56,10 @@ export class CustomerProfilePage implements OnInit {
     private readonly itemService: ItemPriceService,
     private readonly time: TimeService,
     private readonly snackBar: MatSnackBar,
-    private route: ActivatedRoute,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
@@ -70,15 +71,11 @@ export class CustomerProfilePage implements OnInit {
       .valueChanges.pipe(
         startWith(''),
         switchMap(value => {
-          return this.salesService.getCustomerList(value);
+          return this.salesService
+            .getCustomerList(value)
+            .pipe(map(res => res.docs));
         }),
       );
-  }
-
-  createFormGroup() {
-    this.customerProfileForm = new FormGroup({
-      customer: new FormControl(),
-    });
   }
 
   getCustomerOption(option) {
@@ -95,7 +92,7 @@ export class CustomerProfilePage implements OnInit {
     this.dataSource.loadItems();
   }
 
-  getUpdate(event) {
+  getUpdate(event: any) {
     this.dataSource.loadItems(
       event.pageIndex,
       event.pageSize,
@@ -104,7 +101,7 @@ export class CustomerProfilePage implements OnInit {
     );
   }
 
-  setFilter(customer) {
+  setFilter(customer: any) {
     this.filters = [];
     this.countFilter = {};
 
@@ -123,7 +120,7 @@ export class CustomerProfilePage implements OnInit {
       data[index] = { ...row };
       of({})
         .pipe(
-          switchMap(obj => {
+          switchMap(() => {
             return forkJoin({
               time: from(this.time.getDateTime(new Date())),
               token: from(this.salesService.getStore().getItem(ACCESS_TOKEN)),

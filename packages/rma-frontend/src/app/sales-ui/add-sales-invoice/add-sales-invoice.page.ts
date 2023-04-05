@@ -170,7 +170,9 @@ export class AddSalesInvoicePage implements OnInit {
     this.filteredCustomerList = this.f.customer.valueChanges.pipe(
       startWith(''),
       switchMap(value => {
-        return this.salesService.getCustomerList(value);
+        return this.salesService
+          .getCustomerList(value)
+          .pipe(map(res => res.docs));
       }),
     );
 

@@ -10,7 +10,7 @@ import { DEFAULT_COMPANY } from '../constants/storage';
 import { StorageService } from '../api/storage/storage.service';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ValidateInputSelected } from '../common/pipes/validators';
 
@@ -32,12 +32,10 @@ export class CreditLimitPage implements OnInit {
     'set_by',
     'set_on',
   ];
-  name: any;
-  customer_name: any;
-  search: any;
-  filters: any = [];
   filteredCustomerList: Observable<any[]>;
-  customerProfileForm: FormGroup;
+  customerProfileForm: FormGroup = new FormGroup({
+    customer: new FormControl(),
+  });
   validateInput: any = ValidateInputSelected;
 
   get f() {
@@ -49,53 +47,42 @@ export class CreditLimitPage implements OnInit {
     private readonly salesService: SalesService,
     private readonly storage: StorageService,
     private readonly popoverController: PopoverController,
-    private route: ActivatedRoute,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
     this.dataSource = new CreditLimitDataSource(this.salesService);
-    this.dataSource.loadItems();
-    this.filteredCustomerList = this.customerProfileForm
-      .get('customer')
-      .valueChanges.pipe(
-        startWith(''),
-        switchMap(value => {
-          return this.salesService.getCustomerList(value);
-        }),
-      );
-  }
-
-  createFormGroup() {
-    this.customerProfileForm = new FormGroup({
-      customer: new FormControl(),
-    });
-  }
-
-  getCustomerOption(option) {
-    if (option) {
-      if (option.customer_name) {
-        return `${option.customer_name}`;
-      }
-      return option.customer_name;
-    }
+    this.dataSource.loadItems(undefined, undefined, 0, 30);
+    this.filteredCustomerList = this.f.customer.valueChanges.pipe(
+      startWith(''),
+      switchMap(value => {
+        return this.salesService
+          .getCustomerList(value)
+          .pipe(map(res => res.docs));
+      }),
+    );
   }
 
   clearFilters() {
-    this.customer_name = '';
-    this.name = '';
-    this.f.customer.setValue('');
-    this.dataSource.loadItems();
+    this.customerProfileForm.reset();
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+    this.dataSource.loadItems(
+      undefined,
+      undefined,
+      this.paginator.pageIndex || undefined,
+      this.paginator.pageSize || undefined,
+    );
   }
 
   navigateBack() {
     this.location.back();
   }
 
-  async updateCreditLimitDialog(row?) {
+  async updateCreditLimitDialog(row?: any) {
     const defaultCompany = await this.storage.getItem(DEFAULT_COMPANY);
     const creditLimits: { credit_limit: number; company: string }[] =
       row.credit_limits || [];
@@ -123,12 +110,27 @@ export class CreditLimitPage implements OnInit {
     return await popover.present();
   }
 
-  setFilter(customer?) {
+  setFilter(event: any) {
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
     this.dataSource.loadItems(
-      customer.name,
+      event.option.value,
       this.sort.direction,
-      customer?.pageIndex || 0,
-      customer?.pageSize || 30,
+      event.pageIndex || 0,
+      event.pageSize || 30,
+    );
+  }
+
+  getUpdate(event: any) {
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
+    this.dataSource.loadItems(
+      event.option.value,
+      undefined,
+      event?.pageIndex || undefined,
+      event?.pageSize || undefined,
     );
   }
 }
