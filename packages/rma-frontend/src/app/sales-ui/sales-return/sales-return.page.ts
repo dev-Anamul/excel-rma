@@ -7,7 +7,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { SalesService } from '../services/sales.service';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs/internal/Observable';
-import { switchMap, startWith } from 'rxjs/operators';
+import { switchMap, startWith, map } from 'rxjs/operators';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 
 @Component({
@@ -35,7 +35,7 @@ export class SalesReturnPage implements OnInit {
   filters: any = [['is_return', '=', '1']];
   countFilter: any = { is_return: ['=', '1'] };
   salesReturnForm: FormGroup;
-  filteredCustomerList: Observable<any>;
+  filteredCustomerList: Observable<any[]>;
   validateInput: any = ValidateInputSelected;
 
   get f() {
@@ -73,7 +73,9 @@ export class SalesReturnPage implements OnInit {
       .valueChanges.pipe(
         startWith(''),
         switchMap(value => {
-          return this.salesService.getCustomerList(value);
+          return this.salesService
+            .getCustomerList(value)
+            .pipe(map(res => res.docs));
         }),
       );
   }

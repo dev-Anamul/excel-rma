@@ -1,7 +1,7 @@
 import { DataSource, CollectionViewer } from '@angular/cdk/collections';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { SalesService } from '../sales-ui/services/sales.service';
-import { DEFAULT_COMPANY } from '../constants/storage';
+import { catchError, finalize, map } from 'rxjs/operators';
 
 export interface ListingData {
   uuid: string;
@@ -11,7 +11,7 @@ export interface ListingData {
   expiry_date: string;
 }
 
-export interface ItemListResponse {
+export interface ListResponse {
   docs: ListingData[];
   length: number;
   offset: number;
@@ -43,21 +43,17 @@ export class CreditLimitDataSource extends DataSource<ListingData> {
     this.loadingSubject.next(true);
     this.salesService
       .getCustomerList(filter, sortOrder, pageIndex, pageSize)
-      .subscribe(async items => {
-        const defaultCompany = await this.salesService
-          .getStore()
-          .getItem(DEFAULT_COMPANY);
-
-        items.forEach(customer => {
-          customer.credit_limits = customer.credit_limits?.filter(limit => {
-            if (limit.company === defaultCompany) {
-              return limit;
-            }
-          });
-        });
-        this.itemSubject.next(items);
-        this.loadingSubject.next(false);
-      });
+      .pipe(
+        map((res: ListResponse) => {
+          this.data = res.docs;
+          this.length = res.length;
+          this.offset = res.offset;
+          return res.docs;
+        }),
+        catchError(() => of([])),
+        finalize(() => this.loadingSubject.next(false)),
+      )
+      .subscribe(items => this.itemSubject.next(items));
   }
 
   getData() {

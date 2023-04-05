@@ -9,6 +9,7 @@ import {
   toArray,
   catchError,
   distinctUntilChanged,
+  map,
 } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
@@ -82,7 +83,6 @@ import { RELAY_LIST_PROJECT_ENDPOINT } from '../../constants/url-strings';
   ],
 })
 export class MaterialTransferComponent implements OnInit {
-  value: string;
   rangePickerState = {
     prefix: '',
     fromRange: '',
@@ -164,7 +164,7 @@ export class MaterialTransferComponent implements OnInit {
     );
   });
 
-  CATCH_ERROR: any = catchError(err => {
+  CATCH_ERROR: any = catchError(() => {
     this.getMessage('Error occurred in fetching warehouses.');
     return of([]);
   });
@@ -174,17 +174,17 @@ export class MaterialTransferComponent implements OnInit {
     private readonly location: Location,
     private readonly salesService: SalesService,
     private readonly timeService: TimeService,
-    public dialog: MatDialog,
+    private readonly dialog: MatDialog,
     private readonly stockEntryService: StockEntryService,
-    private activatedRoute: ActivatedRoute,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly renderer: Renderer2,
-    private router: Router,
+    private readonly router: Router,
     private readonly service: SettingsService,
     private readonly loadingController: LoadingController,
   ) {}
 
   ngOnInit() {
-    this.subscribeEndpoints();
+    this.setupAutocomplete();
     this.setDefaults();
 
     if (this.uuid) {
@@ -197,7 +197,7 @@ export class MaterialTransferComponent implements OnInit {
           if (success.status === STOCK_TRANSFER_STATUS.draft) {
             this.readonly = false;
             this.readonlyFormControl(this.readonly);
-            this.subscribeEndpoints();
+            this.setupAutocomplete();
           }
           this.form.controls.posting_date.setValue(
             new Date(success.posting_date),
@@ -225,7 +225,7 @@ export class MaterialTransferComponent implements OnInit {
           this.typeChange(success.stock_entry_type);
           this.updateItemStock();
         },
-        error: err => {},
+        error: () => {},
       });
       return;
     }
@@ -241,7 +241,7 @@ export class MaterialTransferComponent implements OnInit {
     return this.form.controls;
   }
 
-  async subscribeEndpoints() {
+  async setupAutocomplete() {
     this.transferWarehouse = await this.salesService
       .getStore()
       .getItem(TRANSFER_WAREHOUSE);
@@ -250,7 +250,11 @@ export class MaterialTransferComponent implements OnInit {
     this.filteredCustomerList = this.form.get('customer').valueChanges.pipe(
       startWith(''),
       switchMap(value => {
-        return this.salesService.getCustomerList(value);
+        return this.salesService.getCustomerList(value).pipe(
+          map(res => {
+            return res.docs;
+          }),
+        );
       }),
     );
 
@@ -310,6 +314,8 @@ export class MaterialTransferComponent implements OnInit {
 
     this.filteredProjectList = this.form.get('project').valueChanges.pipe(
       startWith(''),
+      distinctUntilChanged(),
+      debounceTime(1000),
       switchMap(value => {
         const filter = `[["name", "like", "%${value}%"]]`;
         return this.stockEntryService.getFilteredAccountingDimensions(
@@ -377,7 +383,7 @@ export class MaterialTransferComponent implements OnInit {
   rejectTransfer() {
     this.submit = true;
     this.stockEntryService.rejectMaterialTransfer(this.uuid).subscribe({
-      next: success => {
+      next: () => {
         this.submit = false;
         this.router.navigateByUrl('stock-entry');
         this.getMessage('Stock entry returned successfully');
@@ -830,9 +836,9 @@ export class MaterialTransferComponent implements OnInit {
     body.status = STOCK_TRANSFER_STATUS.draft;
     this.stockEntryService.createMaterialTransfer(body).subscribe({
       next: (response: any) => {
-        this.uuid = response.uuid;
-        this.form.controls.stock_entry_type.disable();
-        this.status = response.status;
+        this.router.navigate(['/material-transfer/', response.uuid], {
+          replaceUrl: true,
+        });
         this.getMessage('Stock Entry Saved');
       },
       error: err => {
@@ -934,7 +940,7 @@ export class MaterialTransferComponent implements OnInit {
     return '';
   }
 
-  getMessage(notFoundMessage, expected?, found?) {
+  getMessage(notFoundMessage: string) {
     return this.snackBar.open(notFoundMessage, CLOSE, { duration: 4500 });
   }
 
@@ -952,8 +958,8 @@ export class MaterialTransferComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: success => {},
-        error: err => {},
+        next: () => {},
+        error: () => {},
       });
   }
 

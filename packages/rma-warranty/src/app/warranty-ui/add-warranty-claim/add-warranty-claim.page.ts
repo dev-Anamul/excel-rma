@@ -426,7 +426,7 @@ export class AddWarrantyClaimPage implements OnInit {
           .subscribe({
             next: () => {
               loading.dismiss();
-              this.router.navigate(['/warranty']);
+              this.router.navigate(['/warranty'], { replaceUrl: true });
             },
             error: err => {
               loading.dismiss();
@@ -442,7 +442,7 @@ export class AddWarrantyClaimPage implements OnInit {
     return this.addWarrantyService.createWarrantyClaim(detail).subscribe({
       next: () => {
         loading.dismiss();
-        this.router.navigate(['/warranty']);
+        this.router.navigate(['/warranty'], { replaceUrl: true });
       },
       error: error => {
         loading.dismiss();

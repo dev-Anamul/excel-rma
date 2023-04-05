@@ -38,12 +38,11 @@
             <mat-autocomplete
               autoActiveFirstOption
               #auto="matAutocomplete"
-              [displayWith]="getCustomerOption"
-              (optionSelected)="setFilter($event.option.value)"
+              (optionSelected)="setFilter($event)"
             >
               <mat-option
                 *ngFor="let option of filteredCustomerList | async"
-                [value]="option"
+                [value]="option.customer_name"
               >
                 {{ option.customer_name }}
                 
@@ -174,7 +173,7 @@
           <mat-paginator
             #paginator
             class="mat-paginator-sticky"
-            (page)="setFilter($event)"
+            (page)="getUpdate($event)"
             [length]="dataSource.length"
             [pageSizeOptions]="[30, 50, 100, 500]"
           >
