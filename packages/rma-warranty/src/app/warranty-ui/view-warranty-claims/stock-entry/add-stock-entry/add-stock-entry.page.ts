@@ -179,10 +179,13 @@ export class AddStockEntryPage implements OnInit {
           next: () => {
             loading.dismiss();
             this.presentSnackBar(STOCK_ENTRY_CREATED);
-            this.router.navigate([
-              '/warranty/view-warranty-claims',
-              this.activatedRoute.snapshot.params.uuid,
-            ]);
+            this.router.navigate(
+              [
+                '/warranty/view-warranty-claims',
+                this.activatedRoute.snapshot.params.uuid,
+              ],
+              { replaceUrl: true },
+            );
           },
           error: (err: any) => {
             loading.dismiss();
