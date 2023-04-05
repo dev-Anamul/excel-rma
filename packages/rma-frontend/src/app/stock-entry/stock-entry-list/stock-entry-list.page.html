@@ -217,9 +217,40 @@
           (matSortChange)="setFilter($event)"
         >
           <ng-container matColumnDef="sr_no">
-            <mat-header-cell *matHeaderCellDef>No. </mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
             <mat-cell *matCellDef="let row;let i=index ">
               {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
+            </mat-cell>
+            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              <a [routerLink]="['/material-transfer/',row.uuid]">
+                {{ row.stock_id }}
+              </a>
+            </mat-cell>
+            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="s_warehouse">
+            <mat-header-cell *matHeaderCellDef>
+              From Warehouse
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              {{ ['Material Receipt'].includes(row.stock_entry_type) ? '' :
+              row?.items[0]?.s_warehouse }}
+            </mat-cell>
+            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="t_warehouse">
+            <mat-header-cell *matHeaderCellDef> To Warehouse </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              {{ !['Material Receipt','Material
+              Transfer'].includes(row.stock_entry_type) ? '' :
+              row?.items[0]?.t_warehouse }}
             </mat-cell>
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>
@@ -228,14 +259,16 @@
             <mat-header-cell *matHeaderCellDef mat-sort-header="name">
               Created By
             </mat-header-cell>
-            <mat-cell *matCellDef="let row"> {{row.createdByEmail}} </mat-cell>
+            <mat-cell *matCellDef="let row">
+              {{ row.createdByEmail }}
+            </mat-cell>
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>
 
           <ng-container matColumnDef="status">
-            <mat-header-cell *matHeaderCellDef mat-sort-header="status"
-              >Status</mat-header-cell
-            >
+            <mat-header-cell *matHeaderCellDef mat-sort-header="status">
+              Status
+            </mat-header-cell>
             <mat-cell *matCellDef="let row">
               <ion-text
                 [ngStyle]="{'color': (row.status === 'Delivered') ? 'green' : ['Returned','Reseted'].includes(row.status) ? 'red' : 'blue' }"
@@ -243,6 +276,26 @@
                 {{row.status}}
               </ion-text>
             </mat-cell>
+            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="createdBy">
+            <mat-header-cell *matHeaderCellDef mat-sort-header="supplier">
+              Created By
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{row.createdBy}} </mat-cell>
+            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="remarks">
+            <mat-header-cell *matHeaderCellDef> Remarks </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{ row.remarks }} </mat-cell>
+            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="territory">
+            <mat-header-cell *matHeaderCellDef> Territory </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{ row.territory }} </mat-cell>
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>
 
@@ -265,26 +318,6 @@
             </mat-cell>
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>
-          
-          <ng-container matColumnDef="createdBy">
-            <mat-header-cell *matHeaderCellDef mat-sort-header="supplier">
-              Created By
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row"> {{row.createdBy}} </mat-cell>
-            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="remarks">
-            <mat-header-cell *matHeaderCellDef> Remarks </mat-header-cell>
-            <mat-cell *matCellDef="let row"> {{ row.remarks }} </mat-cell>
-            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="territory">
-            <mat-header-cell *matHeaderCellDef> Territory </mat-header-cell>
-            <mat-cell *matCellDef="let row"> {{ row.territory }} </mat-cell>
-            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-          </ng-container>
 
           <ng-container matColumnDef="posting_time">
             <mat-header-cell *matHeaderCellDef> Posting Time </mat-header-cell>
@@ -292,39 +325,10 @@
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>
 
-          <ng-container matColumnDef="name">
-            <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
-            <mat-cell *matCellDef="let row">
-              <a [routerLink]="['/material-transfer/',row.uuid]" >{{ row.stock_id }}</a>
-            </mat-cell>
-            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="s_warehouse">
-            <mat-header-cell *matHeaderCellDef>
-              From Warehouse
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row">
-              {{ ['Material Receipt'].includes(row.stock_entry_type) ?  '' : row?.items[0]?.s_warehouse  }}
-            </mat-cell>
-            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-          </ng-container>
-
-          <ng-container matColumnDef="t_warehouse">
-            <mat-header-cell *matHeaderCellDef> To Warehouse </mat-header-cell>
-            <mat-cell *matCellDef="let row">
-              {{ !['Material Receipt','Material Transfer'].includes(row.stock_entry_type) ? '' : row?.items[0]?.t_warehouse  }}
-            </mat-cell>
-            <mat-footer-cell *matFooterCellDef></mat-footer-cell>
-          </ng-container>
-
           <mat-header-row
             *matHeaderRowDef="displayedColumns; sticky: true"
           ></mat-header-row>
-          <mat-row
-            *matRowDef="let row; columns: displayedColumns;"
-          >
-          </mat-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"> </mat-row>
           <mat-footer-row
             class="footer"
             *matFooterRowDef="displayedColumns; sticky: true"
