@@ -15,7 +15,10 @@ import {
 } from '@angular/material/core';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MY_FORMATS } from '../../constants/date-format';
-import { INVOICE_DELIVERY_STATUS } from '../../constants/app-string';
+import {
+  INVOICE_DELIVERY_STATUS,
+  INVOICE_STATUS,
+} from '../../constants/app-string';
 import { PERMISSION_STATE } from '../../constants/permission-roles';
 import { Observable, of } from 'rxjs';
 import { ValidateInputSelected } from '../../common/pipes/validators';
@@ -34,12 +37,9 @@ import { ValidateInputSelected } from '../../common/pipes/validators';
   ],
 })
 export class SalesPage implements OnInit {
-  salesInvoiceList: Array<SalesInvoice>;
-
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   dataSource: SalesInvoiceDataSource;
-  permissionState = PERMISSION_STATE;
   displayedColumns = [
     'sr_no',
     'name',
@@ -56,34 +56,7 @@ export class SalesPage implements OnInit {
     'created_by',
     'delivered_by',
   ];
-  bufferValue = 70;
-  invoiceStatus: string[] = [
-    'Draft',
-    'Completed',
-    'To Deliver',
-    'Canceled',
-    'Rejected',
-    'Submitted',
-    'All',
-  ];
-  campaignStatus: string[] = ['Yes', 'No', 'All'];
-  delivery_statuses: string[] = Object.values(INVOICE_DELIVERY_STATUS);
-  customer_name: any;
-  status: string = 'All';
-  invoice_number: string = '';
-  sales_person: string = '';
-  branch: string = '';
-  total: number = 0;
-  dueTotal: number = 0;
-  disableRefresh: boolean = false;
-  campaign: string = 'All';
-  salesForm: FormGroup;
-  sortQuery: any = {};
-  filteredSalesPersonList: Observable<any[]>;
-
-  filteredCustomerList: Observable<any[]>;
-  customerList: any;
-  filteredTerritoryList: Observable<any[]>;
+  invoiceStatus: string[] = Object.values(INVOICE_STATUS);
   statusColor = {
     Draft: 'blue',
     'To Deliver': '#4d2500',
@@ -92,7 +65,36 @@ export class SalesPage implements OnInit {
     Submitted: '#4d2500',
     Canceled: 'red',
   };
+  campaignStatus: string[] = ['Yes', 'No', 'All'];
+  delivery_statuses: string[] = Object.values(INVOICE_DELIVERY_STATUS);
+  status: string = 'All';
+  total: number = 0;
+  dueTotal: number = 0;
+  bufferValue: number = 70;
+  disableRefresh: boolean = false;
+  campaign: string = 'All';
+  sortQuery: any = {};
+  salesInvoiceList: Array<SalesInvoice>;
+
+  salesForm: FormGroup = new FormGroup({
+    customer_name: new FormControl(),
+    fromDateFormControl: new FormControl(),
+    toDateFormControl: new FormControl(),
+    singleDateFormControl: new FormControl(),
+    salesPerson: new FormControl(),
+    invoice_number: new FormControl(),
+    branch: new FormControl(),
+    campaign: new FormControl(),
+    status: new FormControl(),
+    delivery_status: new FormControl(),
+  });
+
+  filteredSalesPersonList: Observable<any[]>;
+  filteredCustomerList: Observable<any[]>;
+  filteredTerritoryList: Observable<any[]>;
+
   validateInput: any = ValidateInputSelected;
+  permissionState = PERMISSION_STATE;
 
   get f() {
     return this.salesForm.controls;
@@ -106,23 +108,10 @@ export class SalesPage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
+    this.setAutoComplete();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
-    this.filteredSalesPersonList = this.f.salesPerson.valueChanges.pipe(
-      startWith(''),
-      switchMap(value => {
-        return this.salesService.getSalesPersonList(value);
-      }),
-      switchMap((data: any[]) => {
-        const salesPersons = [];
-        data.forEach(person =>
-          person.name !== 'Sales Team' ? salesPersons.push(person.name) : null,
-        );
-        return of(salesPersons);
-      }),
-    );
     this.dataSource = new SalesInvoiceDataSource(this.salesService);
     this.router.events
       .pipe(
@@ -146,6 +135,22 @@ export class SalesPage implements OnInit {
         this.disableRefresh = res;
       },
     });
+  }
+
+  setAutoComplete() {
+    this.filteredSalesPersonList = this.f.salesPerson.valueChanges.pipe(
+      startWith(''),
+      switchMap(value => {
+        return this.salesService.getSalesPersonList(value);
+      }),
+      switchMap((data: any[]) => {
+        const salesPersons = [];
+        data.forEach(person =>
+          person.name !== 'Sales Team' ? salesPersons.push(person.name) : null,
+        );
+        return of(salesPersons);
+      }),
+    );
 
     this.filteredCustomerList = this.salesForm
       .get('customer_name')
@@ -166,21 +171,6 @@ export class SalesPage implements OnInit {
     );
   }
 
-  createFormGroup() {
-    this.salesForm = new FormGroup({
-      customer_name: new FormControl(),
-      fromDateFormControl: new FormControl(),
-      toDateFormControl: new FormControl(),
-      singleDateFormControl: new FormControl(),
-      salesPerson: new FormControl(),
-      invoice_number: new FormControl(),
-      branch: new FormControl(),
-      campaign: new FormControl(),
-      status: new FormControl(),
-      delivery_status: new FormControl(),
-    });
-  }
-
   getTotal() {
     this.dataSource.total.subscribe({
       next: total => {
@@ -196,14 +186,13 @@ export class SalesPage implements OnInit {
 
   syncOutstandingAmount() {
     this.dataSource.syncOutstandingAmount().subscribe({
-      next: res => {},
+      next: () => {},
     });
   }
 
-  getUpdate(event) {
+  getUpdate(event: any) {
     const query: any = {};
-    if (this.f.customer_name.value)
-      query.customer = this.f.customer_name.value.name;
+    if (this.f.customer_name.value) query.customer = this.f.customer_name.value;
     if (this.f.status.value) query.status = this.f.status.value;
     if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
     if (this.f.salesPerson.value) query.sales_team = this.f.salesPerson.value;
@@ -249,8 +238,8 @@ export class SalesPage implements OnInit {
 
     this.dataSource.loadItems(
       this.sortQuery,
-      event?.pageIndex || undefined,
-      event?.pageSize || undefined,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
       query,
     );
   }
@@ -268,37 +257,29 @@ export class SalesPage implements OnInit {
 
   getStringTime(stringTime: string) {
     const newDate = new Date();
-
     const [hours, minutes, seconds] = stringTime.split(':');
-
     newDate.setHours(+hours);
     newDate.setMinutes(Number(minutes));
     newDate.setSeconds(Number(seconds));
-
     return newDate;
   }
 
   clearFilters() {
-    this.customer_name = '';
+    this.salesForm.reset();
     this.status = 'All';
-    this.invoice_number = '';
-    this.branch = '';
     this.campaign = 'All';
-    this.sales_person = '';
-    this.f.delivery_status.setValue('');
-    this.f.customer_name.setValue('');
-    this.f.invoice_number.setValue('');
-    this.f.branch.setValue('');
-    this.f.campaign.setValue('');
-    this.f.status.setValue('');
-    this.f.fromDateFormControl.setValue('');
-    this.f.salesPerson.setValue('');
-    this.f.toDateFormControl.setValue('');
-    this.f.singleDateFormControl.setValue('');
-    this.dataSource.loadItems();
+
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      undefined,
+    );
   }
 
-  setFilter(event?) {
+  setFilter(event?: any) {
     const query: any = {};
     if (this.f.customer_name.value)
       query.customer = this.f.customer_name.value.name;
@@ -357,14 +338,22 @@ export class SalesPage implements OnInit {
         ? { created_on: 'DESC' }
         : this.sortQuery;
 
-    this.dataSource.loadItems(this.sortQuery, undefined, undefined, query);
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+    );
   }
 
   navigateBack() {
     this.location.back();
   }
 
-  statusChange(status) {
+  statusChange(status: string) {
     if (status === 'All') {
       this.dataSource.loadItems();
     } else {
@@ -377,7 +366,7 @@ export class SalesPage implements OnInit {
     return new Date(date);
   }
 
-  statusOfCampaignChange(campaign) {
+  statusOfCampaignChange(campaign: string) {
     if (campaign === 'All') {
       this.dataSource.loadItems();
     } else {
@@ -386,20 +375,7 @@ export class SalesPage implements OnInit {
     }
   }
 
-  getCustomerOption(option) {
-    if (option) {
-      if (option.customer_name) {
-        return `${option.customer_name}`;
-      }
-      return option.customer_name;
-    }
-  }
-
   getStatusColor(status: string) {
     return { color: this.statusColor[status] };
-  }
-
-  getOption(option) {
-    if (option) return option;
   }
 }

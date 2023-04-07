@@ -18,19 +18,19 @@ export class ProblemPage implements OnInit {
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   dataSource: ProblemDataSource;
   displayedColumns = ['sr_no', 'problem_name', 'delete'];
-  search: string;
+  search: string = '';
+
   constructor(
-    private location: Location,
+    private readonly location: Location,
     private readonly problemService: ProblemService,
-    private popoverController: PopoverController,
-    private route: ActivatedRoute,
+    private readonly popoverController: PopoverController,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
-    this.search = '';
     this.dataSource = new ProblemDataSource(this.problemService);
     this.dataSource.loadItems();
   }
@@ -82,7 +82,7 @@ export class ProblemPage implements OnInit {
 
   deleteProblem(uuid: string) {
     this.problemService.deleteProblem(uuid).subscribe({
-      next: res => {
+      next: () => {
         this.dataSource.loadItems(
           this.search,
           this.sort.direction,
@@ -93,12 +93,27 @@ export class ProblemPage implements OnInit {
     });
   }
 
-  setFilter(event?) {
+  setFilter() {
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
     this.dataSource.loadItems(
       this.search,
       this.sort.direction,
-      event?.pageIndex || 0,
-      event?.pageSize || 30,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+    );
+  }
+
+  getUpdate(event: any) {
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
+    this.dataSource.loadItems(
+      this.search,
+      this.sort.direction,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
     );
   }
 }
