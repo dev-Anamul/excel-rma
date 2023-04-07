@@ -26,11 +26,7 @@ export const NEGATIVE_STOCK_ERROR = 'NegativeStockError';
 export const SERVICE_INVOICE_STATUS = {
   SUBMITTED: 'Submitted',
 };
-export const WARRANTY_TYPE = {
-  WARRANTY: 'Warranty / Non Warranty',
-  NON_SERAIL: 'Non Serial Warranty',
-  THIRD_PARTY: 'Third Party Warranty',
-};
+
 export const STOCK_TRANSFER_STATUS = {
   delivered: 'Delivered',
   returned: 'Returned',
@@ -38,6 +34,16 @@ export const STOCK_TRANSFER_STATUS = {
   draft: 'Draft',
   all: 'All',
   reseted: 'Reseted',
+};
+
+export const INVOICE_STATUS = {
+  DRAFT: 'Draft',
+  COMPLETED: 'Completed',
+  TO_DELIVER: 'To Deliver',
+  CANCELED: 'Canceled',
+  REJECTED: 'Rejected',
+  SUBMITTED: 'Submitted',
+  ALL: 'All',
 };
 
 export const SALES_INVOICE_STATUS = {

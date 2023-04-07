@@ -3,7 +3,6 @@ import { PurchaseService } from '../services/purchase.service';
 import { PurchaseInvoiceDataSource } from './purchase-invoice-datasource';
 import { MatSort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
-import { PurchaseInvoice } from '../../common/interfaces/purchase.interface';
 import { Location } from '@angular/common';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
@@ -32,8 +31,6 @@ import { Observable } from 'rxjs';
   ],
 })
 export class PurchasePage implements OnInit {
-  salesInvoiceList: Array<PurchaseInvoice>;
-
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   dataSource: PurchaseInvoiceDataSource;
@@ -49,13 +46,17 @@ export class PurchasePage implements OnInit {
     'delivered_by',
   ];
   invoiceStatus: string[] = ['Completed', 'Canceled', 'Submitted', 'All'];
-  supplier: any;
   status: string = 'All';
-  invoice_number: string = '';
-  search: string = '';
   total: number = 0;
-  supplierList = [];
-  purchaseForm: FormGroup;
+  sortQuery: any = {};
+  purchaseForm: FormGroup = new FormGroup({
+    invoice_number: new FormControl(),
+    supplier: new FormControl(),
+    status: new FormControl(),
+    fromDateFormControl: new FormControl(),
+    toDateFormControl: new FormControl(),
+    singleDateFormControl: new FormControl(),
+  });
   validateInput: any = ValidateInputSelected;
   filteredSupplierList: Observable<any[]>;
 
@@ -64,14 +65,13 @@ export class PurchasePage implements OnInit {
   }
 
   constructor(
-    private location: Location,
+    private readonly location: Location,
     private readonly purchaseService: PurchaseService,
-    private router: Router,
-    private route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
@@ -87,10 +87,10 @@ export class PurchasePage implements OnInit {
         }),
       )
       .subscribe({
-        next: res => {
+        next: () => {
           this.getTotal();
         },
-        error: err => {},
+        error: () => {},
       });
 
     this.filteredSupplierList = this.purchaseForm
@@ -103,22 +103,11 @@ export class PurchasePage implements OnInit {
       );
   }
 
-  createFormGroup() {
-    this.purchaseForm = new FormGroup({
-      invoice_number: new FormControl(),
-      supplier: new FormControl(),
-      status: new FormControl(),
-      fromDateFormControl: new FormControl(),
-      toDateFormControl: new FormControl(),
-      singleDateFormControl: new FormControl(),
-    });
-  }
-
-  getUpdate(event) {
+  getUpdate(event: any) {
     const query: any = {};
-    if (this.supplier) query.supplier_name = this.supplier.name;
-    if (this.status) query.status = this.status;
-    if (this.invoice_number) query.name = this.invoice_number;
+    if (this.f.supplier.value) query.supplier = this.f.supplier.value;
+    if (this.f.status.value) query.status = this.f.status.value;
+    if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
 
     if (this.f.singleDateFormControl.value) {
       query.fromDate = new Date(this.f.singleDateFormControl.value).setHours(
@@ -148,10 +137,14 @@ export class PurchasePage implements OnInit {
         59,
       );
     }
+
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
     this.dataSource.loadItems(
-      undefined,
-      event.pageIndex,
-      event.pageSize,
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
       query,
     );
   }
@@ -169,13 +162,11 @@ export class PurchasePage implements OnInit {
     this.setFilter();
   }
 
-  setFilter(event?) {
+  setFilter(event?: any) {
     const query: any = {};
-
-    if (this.f.supplier.value) query.supplier = this.f.supplier.value.name;
+    if (this.f.supplier.value) query.supplier = this.f.supplier.value;
     if (this.f.status.value) query.status = this.f.status.value;
     if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
-
     if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
       query.fromDate = new Date(this.f.fromDateFormControl.value).setHours(
         0,
@@ -204,24 +195,26 @@ export class PurchasePage implements OnInit {
         59,
       );
     }
-    let sortQuery = {};
     if (event) {
       for (const key of Object.keys(event)) {
         if (key === 'active' && event.direction !== '') {
-          sortQuery[event[key]] = event.direction;
+          this.sortQuery[event[key]] = event.direction;
         }
       }
     }
 
-    sortQuery =
-      Object.keys(sortQuery).length === 0 ? { created_on: 'DESC' } : sortQuery;
+    this.sortQuery =
+      Object.keys(this.sortQuery).length === 0
+        ? { created_on: 'DESC' }
+        : this.sortQuery;
 
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
+
     this.dataSource.loadItems(
-      sortQuery,
-      event?.pageIndex || undefined,
-      event?.pageSize || undefined,
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
       query,
     );
   }
@@ -233,28 +226,20 @@ export class PurchasePage implements OnInit {
   }
 
   clearFilters() {
-    this.supplier = '';
-    this.invoice_number = '';
+    this.purchaseForm.reset();
     this.status = 'All';
-    this.f.invoice_number.setValue('');
     this.f.status.setValue('All');
-    this.f.supplier.setValue('');
-    this.f.fromDateFormControl.setValue('');
-    this.f.toDateFormControl.setValue('');
-    this.f.singleDateFormControl.setValue('');
-    this.dataSource.loadItems();
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+    this.dataSource.loadItems(
+      this.sortQuery,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      undefined,
+    );
   }
 
   navigateBack() {
     this.location.back();
-  }
-
-  getSupplierOption(option) {
-    if (option) {
-      if (option.supplier_name) {
-        return `${option.supplier_name}`;
-      }
-      return option.supplier_name;
-    }
   }
 }

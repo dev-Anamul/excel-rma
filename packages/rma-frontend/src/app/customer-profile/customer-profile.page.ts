@@ -38,7 +38,6 @@ export class CustomerProfilePage implements OnInit {
     'remaining_balance',
     'remaining_credit',
   ];
-  filters: any = [];
   countFilter: any = {};
   customerProfileForm: FormGroup = new FormGroup({
     customer: new FormControl(),
@@ -65,7 +64,7 @@ export class CustomerProfilePage implements OnInit {
     });
     this.setDefaultCompany();
     this.dataSource = new CustomerDataSource(this.salesService);
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
+    this.dataSource.loadItems(0, 30, undefined, this.countFilter);
     this.filteredCustomerList = this.customerProfileForm
       .get('customer')
       .valueChanges.pipe(
@@ -78,42 +77,60 @@ export class CustomerProfilePage implements OnInit {
       );
   }
 
-  getCustomerOption(option) {
-    if (option) {
-      if (option.customer_name) {
-        return `${option.customer_name}`;
-      }
-      return option.customer_name;
-    }
-  }
-
   clearFilters() {
-    this.f.customer.setValue('');
-    this.dataSource.loadItems();
-  }
+    this.customerProfileForm.reset();
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
 
-  getUpdate(event: any) {
     this.dataSource.loadItems(
-      event.pageIndex,
-      event.pageSize,
-      this.filters,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      undefined,
       this.countFilter,
     );
   }
 
-  setFilter(customer: any) {
-    this.filters = [];
+  getUpdate(event: any) {
+    const filters = [];
     this.countFilter = {};
 
-    if (customer) {
-      this.filters.push(['name', 'like', `%${customer.name}%`]);
-      this.countFilter.name = ['like', `%${customer.name}%`];
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
+    if (this.f.customer.value) {
+      filters.push(['name', 'like', `%${this.f.customer.value}%`]);
+      this.countFilter.name = ['like', `%${this.f.customer.value}%`];
     }
 
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
+    this.dataSource.loadItems(
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      filters,
+      this.countFilter,
+    );
   }
 
-  loadPrice(row, index) {
+  setFilter() {
+    const filters = [];
+    this.countFilter = {};
+
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
+    if (this.f.customer.value) {
+      filters.push(['name', 'like', `%${this.f.customer.value}%`]);
+      this.countFilter.name = ['like', `%${this.f.customer.value}%`];
+    }
+
+    this.dataSource.loadItems(
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      filters,
+      this.countFilter,
+    );
+  }
+
+  loadPrice(row: any, index: number) {
     const data = this.dataSource.getData();
     this.dataSource.loadingSubject.next(true);
     if (data && data.length) {
@@ -217,7 +234,7 @@ export class CustomerProfilePage implements OnInit {
             next: res => {
               this.defaultCompany = res.defaultCompany;
             },
-            error: error => {
+            error: () => {
               this.snackBar.open('Error fetching default company', CLOSE, {
                 duration: 3500,
               });

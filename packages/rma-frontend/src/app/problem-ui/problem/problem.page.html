@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Problem</ion-title>
+    <ion-title> Problem </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -15,15 +15,11 @@
       <ion-row class="align">
         <ion-col>
           <ion-card-title>
-            <ion-text color="tertiary">
-              Problems
-            </ion-text>
+            <ion-text color="tertiary"> Problems </ion-text>
           </ion-card-title>
         </ion-col>
         <ion-col class="ion-text-right">
-          <ion-button color="tertiary" (click)="addProblem()">
-            Add
-          </ion-button>
+          <ion-button color="tertiary" (click)="addProblem()"> Add </ion-button>
         </ion-col>
       </ion-row>
     </ion-card-header>
@@ -43,7 +39,7 @@
             (keyup.enter)="setFilter()"
           />
           <button mat-button matSuffix (click)="setFilter()">
-            <mat-icon>search</mat-icon>
+            <mat-icon> search </mat-icon>
           </button>
         </mat-form-field>
       </div>
@@ -52,15 +48,13 @@
           <ng-container matColumnDef="sr_no">
             <mat-header-cell *matHeaderCellDef> </mat-header-cell>
             <mat-cell *matCellDef="let row;let i=index ">
-              {{i+1}}
+              {{ i + 1 }}
             </mat-cell>
             <mat-footer-cell *matFooterCellDef></mat-footer-cell>
           </ng-container>
 
           <ng-container matColumnDef="problem_name">
-            <mat-header-cell *matHeaderCellDef>
-              Problem
-            </mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> Problem </mat-header-cell>
             <mat-cell *matCellDef="let row" (click)="updateProblem(row.uuid)">
               {{row.problem_name}}
             </mat-cell>
@@ -91,7 +85,7 @@
         <mat-paginator
           #paginator
           class="mat-paginator-sticky"
-          (page)="setFilter($event)"
+          (page)="getUpdate($event)"
           [length]="dataSource.length"
           [pageSizeOptions]="[30, 50, 100, 500]"
         >

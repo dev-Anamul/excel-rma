@@ -97,8 +97,8 @@ export class SerialQuantityPage implements OnInit {
     this.paginator.pageSize = 30;
 
     this.dataSource.loadItems(
-      this.paginator.pageIndex || undefined,
-      this.paginator.pageSize || undefined,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
       undefined,
       this.sortQuery,
     );
@@ -113,8 +113,8 @@ export class SerialQuantityPage implements OnInit {
     this.paginator.pageSize = event?.pageSize || 30;
 
     this.dataSource.loadItems(
-      event?.pageIndex || undefined,
-      event?.pageSize || undefined,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
       query,
       this.sortQuery,
     );
@@ -137,10 +137,15 @@ export class SerialQuantityPage implements OnInit {
         ? { item_name: 'ASC' }
         : this.sortQuery;
 
-    this.paginator.pageIndex = event?.pageIndex || 0;
-    this.paginator.pageSize = event?.pageSize || 30;
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
 
-    this.dataSource.loadItems(0, 30, query, this.sortQuery);
+    this.dataSource.loadItems(
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      this.sortQuery,
+    );
   }
 
   navigateBack() {

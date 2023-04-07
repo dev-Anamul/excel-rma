@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Sales</ion-title>
+    <ion-title> Sales </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -30,12 +30,14 @@
           </ion-col>
         </ion-row>
       </ion-card-header>
+
       <div class="loading-shade" *ngIf="dataSource.loading$ | async">
         <mat-progress-bar
           *ngIf="dataSource.loading$ | async"
           mode="indeterminate"
         ></mat-progress-bar>
       </div>
+
       <ion-card-content class="ion-no-padding">
         <ion-grid>
           <ion-row>
@@ -49,6 +51,7 @@
                 />
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -61,12 +64,11 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #Customer="matAutocomplete"
-                  [displayWith]="getCustomerOption"
                   (optionSelected)="setFilter()"
                 >
                   <mat-option
                     *ngFor="let option of filteredCustomerList | async"
-                    [value]="option"
+                    [value]="option.customer_name"
                   >
                     {{ option.customer_name }}
                   </mat-option>
@@ -77,6 +79,7 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -88,7 +91,6 @@
                 <mat-autocomplete
                   autoActiveFirstOption
                   #territory="matAutocomplete"
-                  [displayWith]="getOption"
                   (optionSelected)="setFilter()"
                 >
                   <mat-option
@@ -101,10 +103,11 @@
               </mat-form-field>
             </ion-col>
           </ion-row>
+
           <ion-row>
             <ion-col>
               <mat-form-field class="full-width">
-                <mat-label> Campaign Invoice</mat-label>
+                <mat-label> Campaign Invoice </mat-label>
                 <mat-select
                   formControlName="campaign"
                   (selectionChange)="statusOfCampaignChange($event.value)"
@@ -118,9 +121,10 @@
                 </mat-select>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
-                <mat-label>Status</mat-label>
+                <mat-label> Status </mat-label>
                 <mat-select
                   formControlName="status"
                   (selectionChange)="statusChange($event.value)"
@@ -134,9 +138,10 @@
                 </mat-select>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
-                <mat-label>Delivery Status</mat-label>
+                <mat-label> Delivery Status </mat-label>
                 <mat-select
                   formControlName="delivery_status"
                   (selectionChange)="setFilter()"
@@ -150,6 +155,7 @@
                 </mat-select>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="full-width">
                 <input
@@ -178,6 +184,7 @@
               </mat-form-field>
             </ion-col>
           </ion-row>
+
           <ion-row>
             <ion-col class="ion-text-center">
               <ion-text color="medium" class="date-filter-text">
@@ -214,6 +221,7 @@
                 <mat-datepicker #toDate disabled="false"></mat-datepicker>
               </mat-form-field>
             </ion-col>
+
             <ion-col class="ion-text-center">
               <ion-text color="medium" class="date-filter-text">
                 Single Date
@@ -251,6 +259,7 @@
             </ion-col>
           </ion-row>
         </ion-grid>
+
         <div class="example-container mat-elevation-z8">
           <table
             mat-table
@@ -260,7 +269,7 @@
             (matSortChange)="setFilter($event)"
           >
             <ng-container matColumnDef="sr_no">
-              <mat-header-cell *matHeaderCellDef>No. </mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
               <mat-cell *matCellDef="let row;let i=index ">
                 {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
               </mat-cell>
@@ -286,7 +295,7 @@
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <a [routerLink]="['/sales/view-sales-invoice', row.uuid]">
-                  {{row.name || 'Draft'}}
+                  {{ row.name || 'Draft' }}
                 </a>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
@@ -305,7 +314,7 @@
                 Delivered By
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                {{ (row.delivered_by.length === 0) ? '' : row.delivered_by[0] }}
+                {{ row.delivered_by.length === 0 ? '' : row.delivered_by[0] }}
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
@@ -315,7 +324,7 @@
                 Date
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                {{( getDate(row.posting_date) | date: 'd MMM, y' )}}
+                {{ getDate(row.posting_date) | date: 'd MMM, y' }}
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
@@ -325,14 +334,14 @@
                 time
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                {{( getStringTime(row.posting_time) | date:'mediumTime' )}}
+                {{ getStringTime(row.posting_time) | date:'mediumTime' }}
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="remarks">
               <mat-header-cell *matHeaderCellDef> Remarks </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.remarks}} </mat-cell>
+              <mat-cell *matCellDef="let row"> {{ row.remarks }} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
@@ -355,7 +364,7 @@
                 Delivery Status
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                {{row.delivery_status}}
+                {{ row.delivery_status }}
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
@@ -364,17 +373,17 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header="territory">
                 Branch
               </mat-header-cell>
-              <mat-cell *matCellDef="let row"> {{row.territory}} </mat-cell>
+              <mat-cell *matCellDef="let row"> {{ row.territory }} </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="status">
-              <mat-header-cell *matHeaderCellDef mat-sort-header="status"
-                >Status</mat-header-cell
-              >
+              <mat-header-cell *matHeaderCellDef mat-sort-header="status">
+                Status
+              </mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <ion-text [ngStyle]="getStatusColor(row.status)">
-                  {{row.status}}
+                  {{ row.status }}
                 </ion-text>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
@@ -385,7 +394,7 @@
                 Invoice Amount
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                {{row.total | curFormat | async }}
+                {{ row.total | curFormat | async }}
               </mat-cell>
               <mat-footer-cell *matFooterCellDef>
                 {{ total | curFormat | async }}
@@ -400,7 +409,7 @@
                 Due Amount
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
-                {{row.outstanding_amount | curFormat | async }}
+                {{ row.outstanding_amount | curFormat | async }}
               </mat-cell>
               <mat-footer-cell *matFooterCellDef>
                 {{ dueTotal | curFormat | async }}
