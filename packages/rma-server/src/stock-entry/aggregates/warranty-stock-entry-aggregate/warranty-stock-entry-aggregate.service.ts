@@ -25,6 +25,7 @@ import { WarrantyClaimService } from '../../../warranty-claim/entity/warranty-cl
 import { SerialNoHistoryService } from '../../../serial-no/entity/serial-no-history/serial-no-history.service';
 import {
   EventType,
+  SerialNoHistory,
   SerialNoHistoryInterface,
 } from '../../../serial-no/entity/serial-no-history/serial-no-history.entity';
 import { StockEntryPoliciesService } from '../../../stock-entry/policies/stock-entry-policies/stock-entry-policies.service';
@@ -921,7 +922,7 @@ export class WarrantyStockEntryAggregateService {
             order: { created_on: 1 },
           }),
         ).pipe(
-          switchMap(serialHistory => {
+          switchMap((serialHistory: SerialNoHistory[]) => {
             return from(
               this.serialService.updateOne(
                 {
@@ -934,13 +935,12 @@ export class WarrantyStockEntryAggregateService {
                     warehouse:
                       serialHistory[serialHistory.length - 2].transaction_to,
                     // last entry is the one which is to be deleted so we get the warehouse of the second last entry
-                    delivery_note: serialHistory.find(
-                      x => x.document_type === DOC_NAMES.DELIVERY_NOTE,
-                    )
-                      ? serialHistory.find(
-                          x => x.document_type === DOC_NAMES.DELIVERY_NOTE,
-                        ).document_no
-                      : '',
+                    delivery_note:
+                      serialHistory.find(
+                        x =>
+                          x.document_type === DOC_NAMES.DELIVERY_NOTE ||
+                          x.eventType === EventType.DELIVER_TO_CUSTOMER,
+                      )?.document_no || '',
                   },
                 },
               ),
