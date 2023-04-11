@@ -54,7 +54,7 @@ export class DetailsComponent implements OnInit {
     private readonly salesService: SalesService,
     private readonly snackBar: MatSnackBar,
     private readonly route: ActivatedRoute,
-    private location: Location,
+    private readonly location: Location,
     private readonly router: Router,
     private readonly loadingController: LoadingController,
     private readonly siSub: ViewSalesInvoiceSubjectService,
@@ -199,11 +199,11 @@ export class DetailsComponent implements OnInit {
     payload.uuid = this.route.snapshot.params.invoiceUuid;
     payload.status = REJECTED;
     this.salesService.updateSalesInvoice(payload).subscribe({
-      next: success => {
+      next: () => {
         this.location.back();
         loading.dismiss();
       },
-      error: err => {
+      error: () => {
         loading.dismiss();
       },
     });
@@ -268,7 +268,7 @@ export class DetailsComponent implements OnInit {
     this.salesService
       .cancelSalesInvoice(this.route.snapshot.params.invoiceUuid)
       .subscribe({
-        next: success => {
+        next: () => {
           loading.dismiss();
           this.salesInvoiceDetails.status === 'Canceled';
           this.location.back();

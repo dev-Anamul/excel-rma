@@ -188,7 +188,7 @@ export class MaterialTransferComponent implements OnInit {
     this.setDefaults();
 
     if (this.uuid) {
-      this.form.controls.stock_entry_type.disable();
+      this.f.stock_entry_type.disable();
       this.readonly = true;
       this.readonlyFormControl(this.readonly);
       this.stockEntryService.getStockEntry(this.uuid).subscribe({
@@ -199,27 +199,21 @@ export class MaterialTransferComponent implements OnInit {
             this.readonlyFormControl(this.readonly);
             this.setupAutocomplete();
           }
-          this.form.controls.posting_date.setValue(
-            new Date(success.posting_date),
-          );
+          this.f.posting_date.setValue(new Date(success.posting_date));
           this.stock_receipt_names = success.names || [];
           this.title = success.names ? success.names[0] : '';
           this.stock_id = success.stock_id ? success.stock_id : '';
           this.status = success.status;
-          this.form.controls.remarks.setValue(success.remarks);
+          this.f.remarks.setValue(success.remarks);
           if (success.stock_entry_type !== STOCK_ENTRY_TYPE.MATERIAL_TRANSFER) {
-            this.form.controls.accounts.setValue(
-              success.items[0]?.expense_account || '',
-            );
-            this.form.controls.customer.setValue(
+            this.f.accounts.setValue(success.items[0]?.expense_account || '');
+            this.f.customer.setValue(
               success.customer ? { name: success.customer } : '',
             );
           }
-          this.form.controls.territory.setValue(success.territory);
-          this.form.controls.stock_entry_type.setValue(
-            success.stock_entry_type,
-          );
-          this.form.controls.territory.disable();
+          this.f.territory.setValue(success.territory);
+          this.f.stock_entry_type.setValue(success.stock_entry_type);
+          this.f.territory.disable();
           this.materialTransferDataSource.update(success.items);
           this.itemDataSource.update(success.item_data);
           this.typeChange(success.stock_entry_type);
@@ -233,7 +227,7 @@ export class MaterialTransferComponent implements OnInit {
 
   setDefaults() {
     this.uuid = this.activatedRoute.snapshot.params.uuid;
-    this.form.controls.posting_date.setValue(new Date());
+    this.f.posting_date.setValue(new Date());
     this.readonlyFormControl(this.readonly);
   }
 
@@ -247,14 +241,12 @@ export class MaterialTransferComponent implements OnInit {
       .getItem(TRANSFER_WAREHOUSE);
     this.company = await this.salesService.getStore().getItem(DEFAULT_COMPANY);
 
-    this.filteredCustomerList = this.form.get('customer').valueChanges.pipe(
+    this.filteredCustomerList = this.f.customer.valueChanges.pipe(
       startWith(''),
       switchMap(value => {
-        return this.salesService.getCustomerList(value).pipe(
-          map(res => {
-            return res.docs;
-          }),
-        );
+        return this.salesService
+          .getCustomerList(value)
+          .pipe(map(res => res.docs));
       }),
     );
 
@@ -294,7 +286,7 @@ export class MaterialTransferComponent implements OnInit {
       this.CATCH_ERROR,
     );
 
-    this.territoryList = this.form.get('territory').valueChanges.pipe(
+    this.territoryList = this.f.territory.valueChanges.pipe(
       startWith(''),
       debounceTime(1000),
       switchMap(value => {
@@ -304,15 +296,14 @@ export class MaterialTransferComponent implements OnInit {
         if (data && data.length) {
           this.initial.territory
             ? null
-            : (this.form.get('territory').setValue(data[0]),
-              this.initial.territory++);
+            : (this.f.territory.setValue(data[0]), this.initial.territory++);
           return of(data);
         }
         return of([]);
       }),
     );
 
-    this.filteredProjectList = this.form.get('project').valueChanges.pipe(
+    this.filteredProjectList = this.f.project.valueChanges.pipe(
       startWith(''),
       distinctUntilChanged(),
       debounceTime(1000),
@@ -325,7 +316,7 @@ export class MaterialTransferComponent implements OnInit {
       }),
     );
 
-    this.filteredAccounts = this.form.get('accounts').valueChanges.pipe(
+    this.filteredAccounts = this.f.accounts.valueChanges.pipe(
       startWith(''),
       distinctUntilChanged(),
       debounceTime(1000),
@@ -458,10 +449,7 @@ export class MaterialTransferComponent implements OnInit {
     warehouse = warehouse ? warehouse : this.warehouseState.s_warehouse.value;
     if (!warehouse) {
       this.itemDataSource.loadingSubject.next(false);
-      if (
-        this.form.controls.stock_entry_type.value ===
-        STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
-      ) {
+      if (this.f.stock_entry_type.value === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT) {
         return;
       }
       this.getMessage(
@@ -489,7 +477,7 @@ export class MaterialTransferComponent implements OnInit {
           });
           this.itemDataSource.update(existing_items);
         },
-        error: err => {
+        error: () => {
           this.itemDataSource.loadingSubject.next(false);
           this.getMessage('Error occurred in fetching stock for items');
         },
@@ -562,8 +550,7 @@ export class MaterialTransferComponent implements OnInit {
   ) {
     item.warehouse = this.warehouseState.s_warehouse.value;
     item.validateFor =
-      this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+      this.f.stock_entry_type.value === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
         ? PURCHASE_RECEIPT
         : DELIVERY_NOTE;
     this.salesService.validateSerials(item).subscribe({
@@ -581,7 +568,7 @@ export class MaterialTransferComponent implements OnInit {
         }
         this.assignRangeSerial(row, this.rangePickerState.serials);
       },
-      error: err => {},
+      error: () => {},
     });
   }
 
@@ -610,8 +597,7 @@ export class MaterialTransferComponent implements OnInit {
 
     if (
       (assignValue || 0) + row.assigned > row.available_stock &&
-      this.form.controls.stock_entry_type.value !==
-        STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+      this.f.stock_entry_type.value !== STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
     ) {
       this.getMessage(
         `Cannot assign ${(assignValue || 0) + row.assigned}, Only ${
@@ -644,7 +630,7 @@ export class MaterialTransferComponent implements OnInit {
   acceptTransfer() {
     this.submit = true;
     this.stockEntryService.acceptMaterialTransfer(this.uuid).subscribe({
-      next: success => {
+      next: () => {
         this.submit = false;
         this.router.navigateByUrl('stock-entry');
         this.getMessage('Stock entry accepted successfully');
@@ -680,7 +666,7 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   getSourceWarehouse() {
-    switch (this.form.controls.stock_entry_type.value) {
+    switch (this.f.stock_entry_type.value) {
       case STOCK_ENTRY_TYPE.MATERIAL_RECEIPT:
         return '';
 
@@ -690,7 +676,7 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   getTargetWarehouse() {
-    switch (this.form.controls.stock_entry_type.value) {
+    switch (this.f.stock_entry_type.value) {
       case STOCK_ENTRY_TYPE.MATERIAL_ISSUE:
         return '';
 
@@ -703,19 +689,15 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   async getWarrantyDate(item: ItemInterface) {
-    if (
-      this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.MATERIAL_TRANSFER
-    ) {
+    if (this.f.stock_entry_type.value === STOCK_ENTRY_TYPE.MATERIAL_TRANSFER) {
       return;
     }
     const warrantyInMonths =
-      this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+      this.f.stock_entry_type.value === STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
         ? item.purchaseWarrantyMonths
         : item.salesWarrantyMonths;
 
-    let date = new Date(this.form.controls.posting_date.value);
+    let date = new Date(this.f.posting_date.value);
     if (warrantyInMonths) {
       try {
         date = new Date(date.setMonth(date.getMonth() + warrantyInMonths));
@@ -770,8 +752,8 @@ export class MaterialTransferComponent implements OnInit {
         STOCK_ENTRY_TYPE.MATERIAL_ISSUE,
         STOCK_ENTRY_TYPE.MATERIAL_RECEIPT,
         STOCK_ENTRY_TYPE.RnD_PRODUCTS,
-      ].includes(this.form.controls.stock_entry_type.value) &&
-      (!this.form.controls.accounts.valid || !this.form.controls.accounts.value)
+      ].includes(this.f.stock_entry_type.value) &&
+      (!this.f.accounts.valid || !this.f.accounts.value)
     ) {
       this.getMessage('Please select an expense account.');
       return;
@@ -779,9 +761,9 @@ export class MaterialTransferComponent implements OnInit {
 
     if (
       [STOCK_ENTRY_TYPE.MATERIAL_ISSUE, STOCK_ENTRY_TYPE.RnD_PRODUCTS].includes(
-        this.form.controls.stock_entry_type.value,
+        this.f.stock_entry_type.value,
       ) &&
-      (!this.form.controls.customer.valid || !this.form.controls.customer.value)
+      (!this.f.customer.valid || !this.f.customer.value)
     ) {
       this.getMessage('Please select an expense account.');
       return;
@@ -790,23 +772,21 @@ export class MaterialTransferComponent implements OnInit {
     const body = new MaterialTransferDto();
     const date = await this.timeService.getDateAndTime(new Date());
     body.company = this.company;
-    body.territory = this.form.get('territory').value;
-    body.remarks = this.form.controls.remarks.value;
-    body.posting_date = this.getParsedDate(
-      this.form.controls.posting_date.value,
-    );
+    body.territory = this.f.territory.value;
+    body.remarks = this.f.remarks.value;
+    body.posting_date = this.getParsedDate(this.f.posting_date.value);
     body.posting_time = date.time;
-    body.stock_entry_type = this.form.controls.stock_entry_type.value;
+    body.stock_entry_type = this.f.stock_entry_type.value;
     body.project = this.f.project.value;
     body.items = this.materialTransferDataSource.data();
     body.item_data = this.itemDataSource.data();
     body.uuid = this.uuid;
     if (
       [STOCK_ENTRY_TYPE.MATERIAL_ISSUE, STOCK_ENTRY_TYPE.RnD_PRODUCTS].includes(
-        this.form.controls.stock_entry_type.value,
+        this.f.stock_entry_type.value,
       )
     ) {
-      body.customer = this.form.controls.customer.value.name;
+      body.customer = this.f.customer.value.name;
     }
     return body;
   }
@@ -847,25 +827,17 @@ export class MaterialTransferComponent implements OnInit {
     });
   }
 
-  readonlyFormControl(boolean) {
+  readonlyFormControl(boolean: boolean) {
     boolean
       ? this.warehouseState.s_warehouse.disable()
       : this.warehouseState.s_warehouse.enable();
     boolean
       ? this.warehouseState.t_warehouse.disable()
       : this.warehouseState.t_warehouse.enable();
-    boolean
-      ? this.form.controls.remarks.disable()
-      : this.form.controls.remarks.enable();
-    boolean
-      ? this.form.controls.accounts.disable()
-      : this.form.controls.accounts.enable();
-    boolean
-      ? this.form.controls.posting_date.disable()
-      : this.form.controls.posting_date.enable();
-    boolean
-      ? this.form.controls.customer.disable()
-      : this.form.controls.customer.enable();
+    boolean ? this.f.remarks.disable() : this.f.remarks.enable();
+    boolean ? this.f.accounts.disable() : this.f.accounts.enable();
+    boolean ? this.f.posting_date.disable() : this.f.posting_date.enable();
+    boolean ? this.f.customer.disable() : this.f.customer.enable();
   }
 
   mergeItems() {
@@ -882,9 +854,9 @@ export class MaterialTransferComponent implements OnInit {
           STOCK_ENTRY_TYPE.MATERIAL_ISSUE,
           STOCK_ENTRY_TYPE.MATERIAL_RECEIPT,
           STOCK_ENTRY_TYPE.RnD_PRODUCTS,
-        ].includes(this.form.controls.stock_entry_type.value)
+        ].includes(this.f.stock_entry_type.value)
       ) {
-        map[item.item_code].expense_account = this.form.controls.accounts.value;
+        map[item.item_code].expense_account = this.f.accounts.value;
       }
     });
     this.materialTransferDataSource.update(Object.values(map));
@@ -902,15 +874,14 @@ export class MaterialTransferComponent implements OnInit {
       return false;
     }
 
-    if (!this.form.controls.stock_entry_type.value) {
+    if (!this.f.stock_entry_type.value) {
       this.getMessage('Please select a stock entry type.');
       return false;
     }
 
     if (
       !this.warehouseState.s_warehouse.value &&
-      this.form.controls.stock_entry_type.value !==
-        STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
+      this.f.stock_entry_type.value !== STOCK_ENTRY_TYPE.MATERIAL_RECEIPT
     ) {
       this.getMessage('Please select source warehouse.');
       return false;
@@ -921,7 +892,7 @@ export class MaterialTransferComponent implements OnInit {
       [
         STOCK_ENTRY_TYPE.MATERIAL_RECEIPT,
         STOCK_ENTRY_TYPE.MATERIAL_TRANSFER,
-      ].includes(this.form.controls.stock_entry_type.value)
+      ].includes(this.f.stock_entry_type.value)
     ) {
       this.getMessage('Please select target warehouse.');
       return false;
@@ -1000,8 +971,7 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   getStockEntryDoctype() {
-    return this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.RnD_PRODUCTS
+    return this.f.stock_entry_type.value === STOCK_ENTRY_TYPE.RnD_PRODUCTS
       ? `Delivery Note`
       : `Stock Entry`;
   }
@@ -1160,10 +1130,7 @@ export class MaterialTransferComponent implements OnInit {
 
   printDeliveryNote(docType?: string) {
     const names = [];
-    if (
-      this.form.controls.stock_entry_type.value ===
-      STOCK_ENTRY_TYPE.MATERIAL_TRANSFER
-    ) {
+    if (this.f.stock_entry_type.value === STOCK_ENTRY_TYPE.MATERIAL_TRANSFER) {
       this.stock_receipt_names.forEach(name =>
         // names.push('TROUT-2022-00053')
         name.includes('TROUT') ? names.push(name) : null,
@@ -1187,7 +1154,7 @@ export class MaterialTransferComponent implements OnInit {
               ...aggregatedDeliveryNotes,
               name: names.join(', '),
               print: {
-                print_type: this.form.controls.stock_entry_type.value,
+                print_type: this.f.stock_entry_type.value,
                 ...warehouses,
               },
             },
@@ -1203,7 +1170,7 @@ export class MaterialTransferComponent implements OnInit {
   }
 
   getPrintWarehouse() {
-    switch (this.form.controls.stock_entry_type.value) {
+    switch (this.f.stock_entry_type.value) {
       case STOCK_ENTRY_TYPE.MATERIAL_TRANSFER:
         return {
           s_warehouse: this.materialTransferDataSource.data()[0].s_warehouse,
