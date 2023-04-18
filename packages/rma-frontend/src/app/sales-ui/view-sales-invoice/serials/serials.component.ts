@@ -144,19 +144,15 @@ export class SerialsComponent implements OnInit {
       ],
     type: DELIVERED_SERIALS_BY.sales_invoice_name,
   };
-  deliveredSerialsSearch: string = '';
   disableDeliveredSerialsCard: boolean = false;
   remaining: number = 0;
-  index: number = 0;
-  size: number = 10;
-  itemMap: any = {};
   validSerials: boolean = true;
 
   constructor(
     private readonly salesService: SalesService,
     private readonly snackBar: MatSnackBar,
     private readonly route: ActivatedRoute,
-    public dialog: MatDialog,
+    private readonly dialog: MatDialog,
     private readonly timeService: TimeService,
     private readonly renderer: Renderer2,
     private readonly viewSalesInvoicePage: ViewSalesInvoicePage,
@@ -179,7 +175,6 @@ export class SerialsComponent implements OnInit {
     const filteredItemList = [];
     let remaining = 0;
     salesInvoice.items.forEach(item => {
-      this.itemMap[item.item_code] = item;
       item.assigned = 0;
       item.remaining = item.qty;
       if (salesInvoice.delivered_items_map[btoa(item.item_code)]) {
@@ -210,10 +205,6 @@ export class SerialsComponent implements OnInit {
       )
       .subscribe({
         next: success => {
-          success.forEach(item => {
-            this.itemMap[item.item_code].salesWarrantyMonths =
-              item.salesWarrantyMonths;
-          });
           this.itemDataSource.loadItems(success);
         },
         error: () => {},
@@ -499,14 +490,7 @@ export class SerialsComponent implements OnInit {
     return isValid;
   }
 
-  async submitDeliveryNote() {
-    if (!this.validateState()) return;
-    this.submit = true;
-    this.mergeDuplicateItems();
-    const loading = await this.loadingController.create({
-      message: 'Creating Delivery Note..',
-    });
-    await loading.present();
+  generatePayload() {
     const assignSerial = {} as SerialAssign;
     assignSerial.company = this.salesInvoiceDetails.company;
     assignSerial.customer = this.salesInvoiceDetails.customer;
@@ -557,7 +541,19 @@ export class SerialsComponent implements OnInit {
         assignSerial.items.push(item_hash[key]);
       }
     });
-    this.salesService.assignSerials(assignSerial).subscribe({
+    return assignSerial;
+  }
+
+  async submitDeliveryNote() {
+    if (!this.validateState()) return;
+
+    this.submit = true;
+    this.mergeDuplicateItems();
+    const loading = await this.loadingController.create({
+      message: 'Creating Delivery Note..',
+    });
+    await loading.present();
+    this.salesService.assignSerials(this.generatePayload()).subscribe({
       next: () => {
         this.validSerials = true;
         this.submit = false;
@@ -577,138 +573,6 @@ export class SerialsComponent implements OnInit {
         this.presentSnackBar(err.error.message);
       },
     });
-
-    this.salesService
-      .assignInvoice(assignSerial.sales_invoice_name)
-      .subscribe(data => {
-        this.salesService
-          .getSalesInvoice(this.route.snapshot.params.invoiceUuid)
-          .subscribe((has_Bundle: any) => {
-            if (Object.keys(has_Bundle.bundle_items_map).length !== 0) {
-              if (this.validSerials) {
-                if (data.bundle_items.length > 0) {
-                  const checkItem = [];
-                  data.bundle_items.forEach(itemCode => {
-                    checkItem.push(itemCode.item_code);
-                  });
-                  if (!checkItem.includes(assignSerial.items[0].item_code)) {
-                    assignSerial.items.forEach(value => {
-                      const obj: any = {
-                        item_code: value.item_code,
-                        qty: value.qty,
-                        item_name: value.item_name,
-                        serial_no: value.serial_no.join(', '),
-                      };
-                      data.bundle_items.push(obj);
-                    });
-                  } else {
-                    data.bundle_items.forEach(bundleItem => {
-                      assignSerial.items.find(assignValue => {
-                        if (assignValue.item_code === bundleItem.item_code) {
-                          return (bundleItem.serial_no =
-                            bundleItem.serial_no +
-                            ', ' +
-                            assignValue.serial_no.join(', '));
-                        }
-                      });
-                    });
-                  }
-                } else {
-                  const checkItem = [];
-                  data.items.forEach(itemCode => {
-                    checkItem.push(itemCode.item_code);
-                  });
-                  // first time assign
-                  assignSerial.items.forEach(value => {
-                    if (!checkItem.includes(value.item_code)) {
-                      const obj: any = {
-                        item_code: value.item_code,
-                        qty: value.qty,
-                        item_name: value.item_name,
-                        serial_no: value.serial_no.join(', '),
-                      };
-                      data.bundle_items.push(obj);
-                    } else {
-                      data.items.forEach(element => {
-                        if (value.item_code === element.item_code) {
-                          if (value.has_serial_no === 0) {
-                            if (!element.excel_serials) {
-                              return (element.excel_serials = value.serial_no.join(
-                                '',
-                              ));
-                            }
-                          } else {
-                            if (this.validSerials) {
-                              this.validSerials = true;
-                              if (element.excel_serials) {
-                                if (value.serial_no.length > 1) {
-                                  return (element.excel_serials =
-                                    element.excel_serials +
-                                    ', ' +
-                                    value.serial_no.join(', '));
-                                } else {
-                                  return (element.excel_serials =
-                                    element.excel_serials +
-                                    ', ' +
-                                    value.serial_no.join(', '));
-                                }
-                              } else {
-                                return (element.excel_serials = value.serial_no.join(
-                                  ', ',
-                                ));
-                              }
-                            }
-                          }
-                        }
-                      });
-                    }
-                  });
-                }
-              }
-              this.salesService
-                .updateInvoice(data, assignSerial.sales_invoice_name)
-                .subscribe(() => {});
-            } else {
-              data.items.forEach(element => {
-                assignSerial.items.find(value => {
-                  if (value.item_code === element.item_code) {
-                    if (value.has_serial_no === 0) {
-                      if (!element.excel_serials) {
-                        return (element.excel_serials = value.serial_no.join(
-                          '',
-                        ));
-                      }
-                    } else {
-                      if (this.validSerials) {
-                        this.validSerials = true;
-                        if (element.excel_serials) {
-                          if (value.serial_no.length > 1) {
-                            return (element.excel_serials =
-                              element.excel_serials +
-                              ', ' +
-                              value.serial_no.join(', '));
-                          } else {
-                            return (element.excel_serials =
-                              element.excel_serials +
-                              ', ' +
-                              value.serial_no.join(', '));
-                          }
-                        } else {
-                          return (element.excel_serials = value.serial_no.join(
-                            ', ',
-                          ));
-                        }
-                      }
-                    }
-                  }
-                });
-              });
-              this.salesService
-                .updateInvoice(data, assignSerial.sales_invoice_name)
-                .subscribe(() => {});
-            }
-          });
-      });
   }
 
   mergeDuplicateItems() {

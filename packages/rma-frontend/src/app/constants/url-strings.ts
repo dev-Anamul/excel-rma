@@ -189,8 +189,5 @@ export const GET_STOCK_ENTRY = '/api/stock_entry/v1/get/';
 
 export const SYNC_STOCK_PRINT_ENDPOINT =
   'api/stock_entry/v1/sync_stock_document';
-
-export const INVOICE_LIST = '/api/serial_no/v1/invoicelist';
-export const INVOICE_PUT = '/api/serial_no/v1/updateInvoice';
 export const LIST_SERIAL_QUANTITY_ENDPOINT =
   '/api/serial_no/v1/list_serial_quantity';

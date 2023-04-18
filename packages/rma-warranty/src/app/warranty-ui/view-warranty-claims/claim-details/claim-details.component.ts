@@ -100,7 +100,7 @@ export class ClaimDetailsComponent implements OnInit {
         this.warrantyClaimsDetails?.serial_no,
       )
       .subscribe({
-        next: success => {
+        next: () => {
           loading.dismiss();
           this.router.navigate(['warranty']);
         },

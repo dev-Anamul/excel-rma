@@ -54,8 +54,6 @@ import {
   UPDATE_SALES_INVOICE_ITEM_MRP,
   RELAY_LIST_SALES_RETURN_ENDPOINT,
   GET_STOCK_BALANCE_ENDPOINT,
-  INVOICE_LIST,
-  INVOICE_PUT,
   STOCK_AVAILABILITY_COUNT_ENDPOINT,
   GET_DOCTYPE_COUNT_METHOD,
   GET_STOCK_ENTRY,
@@ -347,28 +345,6 @@ export class SalesService {
         return this.http.post(url, assignSerial, {
           headers,
         });
-      }),
-    );
-  }
-
-  assignInvoice(invoiceName: any) {
-    const params = new HttpParams().set('name', invoiceName);
-    const url = INVOICE_LIST;
-    return this.getHeaders().pipe(
-      switchMap(headers => {
-        return this.http.get<any>(url, { headers, params });
-      }),
-      map(res => res.data),
-    );
-  }
-  updateInvoice(invoiceBody: any, invoiceName: any) {
-    const params = new HttpParams()
-      .set('name', invoiceName)
-      .set('body', invoiceBody);
-    const url = INVOICE_PUT;
-    return this.getHeaders().pipe(
-      switchMap(headers => {
-        return this.http.put<any>(url, { headers, params });
       }),
     );
   }

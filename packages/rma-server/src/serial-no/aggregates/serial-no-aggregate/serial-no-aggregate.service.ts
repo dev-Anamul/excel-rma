@@ -151,21 +151,6 @@ export class SerialNoAggregateService extends AggregateRoot {
     return this.serialNoService.list(offset, limit, sort, filterQuery);
   }
 
-  updateSalesDoc(updatedInvoice, invoiceParam) {
-    return forkJoin({
-      headers: this.clientToken.getServiceAccountApiHeaders(),
-      settings: this.settingsService.find(),
-    }).pipe(
-      switchMap(({ headers, settings }) => {
-        const url = settings.authServerURL + INVOICE_LIST + '/' + invoiceParam;
-        const body = updatedInvoice;
-        return this.http.put(url, body, {
-          headers,
-        });
-      }),
-    );
-  }
-
   syncNewSerialNo(serialNo: SerialNo, clientHttpRequest) {
     return this.settingsService
       .find()
@@ -229,6 +214,7 @@ export class SerialNoAggregateService extends AggregateRoot {
     };
   }
 
+  // Can be improved
   assignSerial(assignPayload: AssignSerialDto, clientHttpRequest) {
     return lockDocumentTransaction(this.salesInvoiceService, {
       name: assignPayload.sales_invoice_name,
@@ -240,10 +226,116 @@ export class SerialNoAggregateService extends AggregateRoot {
               assignPayload,
             );
           }),
-          switchMap(isValid => {
+          switchMap(() => {
             return this.deliveryNoteAggregateService.createDeliveryNote(
               assignPayload,
               clientHttpRequest,
+            );
+          }),
+          switchMap(() => {
+            return forkJoin({
+              erp_invoice: this.retrieveSalesDoc(
+                assignPayload.sales_invoice_name,
+              ),
+              mongo_invoice: this.salesInvoiceService.findOne({
+                name: assignPayload.sales_invoice_name,
+              }),
+            }).pipe(
+              switchMap(({ erp_invoice, mongo_invoice }) => {
+                if (Object.keys(mongo_invoice.bundle_items_map).length !== 0) {
+                  if (erp_invoice.bundle_items.length) {
+                    // BUNDLE ITEMS
+                    if (
+                      !erp_invoice.bundle_items.includes(
+                        assignPayload.items[0].item_code,
+                      )
+                    ) {
+                      erp_invoice.bundle_items.forEach(item => {
+                        erp_invoice.bundle_items.push({
+                          item_code: item.item_code,
+                          qty: item.qty,
+                          item_name: item.item_name,
+                          serial_no: item.serial_no.join(', '),
+                        });
+                      });
+                    } else {
+                      erp_invoice.bundle_items.forEach(bundle_item => {
+                        assignPayload.items.forEach(item => {
+                          if (item.item_code === bundle_item.item_code) {
+                            return (bundle_item.serial_no =
+                              bundle_item.serial_no +
+                              ', ' +
+                              item.serial_no.join(', '));
+                          }
+                        });
+                      });
+                    }
+                  } else {
+                    // NON BUNDLE ITEMS
+                    assignPayload.items.forEach(payload_item => {
+                      if (!erp_invoice.items.includes(payload_item.item_code)) {
+                        erp_invoice.bundle_items.push({
+                          item_code: payload_item.item_code,
+                          qty: payload_item.qty,
+                          item_name: payload_item.item_name,
+                          serial_no: payload_item.serial_no.join(', '),
+                        });
+                      } else {
+                        erp_invoice.items.forEach(erp_item => {
+                          if (payload_item.item_code === erp_item.item_code) {
+                            if (payload_item.has_serial_no === 0) {
+                              if (!erp_item.excel_serials) {
+                                return (erp_item.excel_serials = payload_item.serial_no.join(
+                                  '',
+                                ));
+                              }
+                            } else {
+                              if (erp_item.excel_serials) {
+                                return (erp_item.excel_serials =
+                                  erp_item.excel_serials +
+                                  ', ' +
+                                  payload_item.serial_no.join(', '));
+                              } else {
+                                return (erp_item.excel_serials = payload_item.serial_no.join(
+                                  ', ',
+                                ));
+                              }
+                            }
+                          }
+                        });
+                      }
+                    });
+                  }
+                } else {
+                  erp_invoice.items.forEach(erp_item => {
+                    assignPayload.items.forEach(payload_item => {
+                      if (payload_item === erp_item.item_code) {
+                        if (payload_item.has_serial_no === 0) {
+                          if (!erp_item.excel_serials) {
+                            return (erp_item = payload_item.serial_no.join(''));
+                          }
+                        }
+                      } else {
+                        if (erp_item.excel_serials) {
+                          return (erp_item.excel_serials =
+                            erp_item.excel_serials +
+                            ', ' +
+                            payload_item.serial_no.join(', '));
+                        } else {
+                          return (erp_item.excel_serials = payload_item.serial_no.join(
+                            ', ',
+                          ));
+                        }
+                      }
+                    });
+                  });
+                }
+                this.updateErpInvoice(
+                  assignPayload.sales_invoice_name,
+                  erp_invoice,
+                );
+                return of({});
+              }),
             );
           }),
           // note: Finalize is a bit tricky it will get triggered on success+failure for
@@ -255,6 +347,18 @@ export class SerialNoAggregateService extends AggregateRoot {
             }),
           ),
         );
+      }),
+    );
+  }
+
+  updateErpInvoice(name: string, payload: any) {
+    return forkJoin({
+      headers: this.clientToken.getServiceAccountApiHeaders(),
+      settings: this.settingsService.find(),
+    }).pipe(
+      switchMap(({ headers, settings }) => {
+        const url = settings.authServerURL + INVOICE_LIST + '/' + name;
+        return this.http.post(url, payload, { headers });
       }),
     );
   }
@@ -358,18 +462,18 @@ export class SerialNoAggregateService extends AggregateRoot {
     );
   }
 
-  retrieveSalesDoc(invoiceParam) {
+  retrieveSalesDoc(name: string) {
     return forkJoin({
       headers: this.clientToken.getServiceAccountApiHeaders(),
       settings: this.settingsService.find(),
     }).pipe(
       switchMap(({ headers, settings }) => {
-        const url = settings.authServerURL + INVOICE_LIST + '/' + invoiceParam;
+        const url = settings.authServerURL + INVOICE_LIST + '/' + name;
         return this.http
           .get(url, {
             headers,
           })
-          .pipe(map(res => res.data));
+          .pipe(map(res => res.data.data));
       }),
     );
   }

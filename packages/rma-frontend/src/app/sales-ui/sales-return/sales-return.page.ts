@@ -7,7 +7,13 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { SalesService } from '../services/sales.service';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs/internal/Observable';
-import { switchMap, startWith, map } from 'rxjs/operators';
+import {
+  switchMap,
+  startWith,
+  map,
+  distinctUntilChanged,
+  debounceTime,
+} from 'rxjs/operators';
 import { ValidateInputSelected } from '../../common/pipes/validators';
 
 @Component({
@@ -23,6 +29,7 @@ export class SalesReturnPage implements OnInit {
   dataSource: SalesReturnListDataSource;
   customerList: any;
   displayedColumns = [
+    'sr_no',
     'name',
     'posting_date',
     'title',
@@ -34,7 +41,13 @@ export class SalesReturnPage implements OnInit {
   ];
   filters: any = [['is_return', '=', '1']];
   countFilter: any = { is_return: ['=', '1'] };
-  salesReturnForm: FormGroup;
+  salesReturnForm: FormGroup = new FormGroup({
+    fromDateFormControl: new FormControl(),
+    toDateFormControl: new FormControl(),
+    customer: new FormControl(),
+    name: new FormControl(),
+    status: new FormControl(),
+  });
   filteredCustomerList: Observable<any[]>;
   validateInput: any = ValidateInputSelected;
 
@@ -45,11 +58,10 @@ export class SalesReturnPage implements OnInit {
   constructor(
     private readonly salesReturnService: SalesReturnService,
     private readonly salesService: SalesService,
-    private route: ActivatedRoute,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
@@ -72,6 +84,8 @@ export class SalesReturnPage implements OnInit {
       .get('customer')
       .valueChanges.pipe(
         startWith(''),
+        distinctUntilChanged(),
+        debounceTime(1000),
         switchMap(value => {
           return this.salesService
             .getCustomerList(value)
@@ -80,17 +94,10 @@ export class SalesReturnPage implements OnInit {
       );
   }
 
-  createFormGroup() {
-    this.salesReturnForm = new FormGroup({
-      fromDateFormControl: new FormControl(),
-      toDateFormControl: new FormControl(),
-      customer: new FormControl(),
-      name: new FormControl(),
-      status: new FormControl(),
-    });
-  }
-
   getUpdate(event) {
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
     this.dataSource.loadItems(
       event.pageIndex,
       event.pageSize,
@@ -105,12 +112,8 @@ export class SalesReturnPage implements OnInit {
     this.filters.push(['is_return', '=', '1']);
     this.countFilter.is_return = ['=', '1'];
     if (this.f.customer.value) {
-      this.filters.push([
-        'customer',
-        'like',
-        `%${this.f.customer.value.name}%`,
-      ]);
-      this.countFilter.customer = ['like', `%${this.f.customer.value.name}%`];
+      this.filters.push(['customer_name', 'like', `${this.f.customer.value}`]);
+      this.countFilter.customer_name = ['like', `%${this.f.customer.value}%`];
     }
     if (this.f.name.value) {
       this.filters.push(['name', 'like', `%${this.f.name.value}%`]);
@@ -128,7 +131,15 @@ export class SalesReturnPage implements OnInit {
       this.filters.push(['creation', 'Between', [fromDate, toDate]]);
       this.countFilter.creation = ['Between', `${fromDate} ${toDate}`];
     }
-    this.dataSource.loadItems(0, 30, this.filters, this.countFilter);
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
+    this.dataSource.loadItems(
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      this.filters,
+      this.countFilter,
+    );
   }
 
   getStatus() {
@@ -151,14 +162,7 @@ export class SalesReturnPage implements OnInit {
   }
 
   clearFilters() {
-    this.f.fromDateFormControl.setValue('');
-    this.f.toDateFormControl.setValue('');
-    this.f.customer.setValue('');
-    this.f.name.setValue('');
+    this.salesReturnForm.reset();
     this.setFilter();
-  }
-
-  getCustomerOption(option) {
-    if (option) return option.customer_name;
   }
 }

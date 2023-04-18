@@ -5,30 +5,16 @@
   overflow: auto;
 }
 
-.example-full-width {
-  width: 100%;
-  color: black;
-}
-
 ion-button {
   float: right;
 }
 
-table {
-  width: 100%;
+// common width for all columns
+[class*='mat-column-'] {
+  min-width: 150px !important;
 }
 
-td.mat-column-star {
-  width: 20px;
-  padding-right: 8px;
-}
-
-th.mat-column-position,
-td.mat-column-position {
-  padding-left: 8px;
-}
-
-mat-header-cell {
-  flex-wrap: nowrap;
-  min-width: 120px;
+.mat-column-sr_no {
+  flex: 0 0 5% !important;
+  min-width: 10px !important;
 }
