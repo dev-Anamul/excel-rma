@@ -112,7 +112,7 @@
           (matSortChange)="setFilter($event)"
         >
           <ng-container matColumnDef="sr_no">
-            <mat-header-cell *matHeaderCellDef>No. </mat-header-cell>
+            <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
             <mat-cell *matCellDef="let row;let i=index ">
               {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
             </mat-cell>
@@ -122,21 +122,21 @@
             <mat-header-cell *matHeaderCellDef mat-sort-header="item_name">
               Item name
             </mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row?.item_name }}</mat-cell>
+            <mat-cell *matCellDef="let row"> {{ row?.item_name }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="item_code">
             <mat-header-cell *matHeaderCellDef mat-sort-header="item_code">
               Item code
             </mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row?.item_code }}</mat-cell>
+            <mat-cell *matCellDef="let row"> {{ row?.item_code }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="warehouse">
             <mat-header-cell *matHeaderCellDef mat-sort-header="warehouse">
               Warehouse
             </mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row?.warehouse }}</mat-cell>
+            <mat-cell *matCellDef="let row"> {{ row?.warehouse }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="serial_quantity">
@@ -149,7 +149,7 @@
           <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true">
           </mat-header-row>
 
-          <mat-row *matRowDef="let row; columns: displayedColumns"> </mat-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
         </table>
       </div>
       <mat-card-actions>
