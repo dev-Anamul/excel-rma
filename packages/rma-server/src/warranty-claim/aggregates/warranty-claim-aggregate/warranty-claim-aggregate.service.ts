@@ -1082,7 +1082,7 @@ export class WarrantyClaimAggregateService extends AggregateRoot {
               this.serialNoService.updateOne(
                 { serial_no: cancelPayload.serial_no },
                 {
-                  $unset: { claim_no: 1 },
+                  $unset: { claim_no: 1, warehouse: 1 },
                 },
               ),
             );

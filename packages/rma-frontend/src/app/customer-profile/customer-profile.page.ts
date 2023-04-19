@@ -32,6 +32,7 @@ export class CustomerProfilePage implements OnInit {
   dataSource: CustomerDataSource;
   defaultCompany: string;
   displayedColumns = [
+    'sr_no',
     'customer',
     'territory',
     'credit_limit',
@@ -98,8 +99,8 @@ export class CustomerProfilePage implements OnInit {
     this.paginator.pageSize = event?.pageSize || 30;
 
     if (this.f.customer.value) {
-      filters.push(['name', 'like', `%${this.f.customer.value}%`]);
-      this.countFilter.name = ['like', `%${this.f.customer.value}%`];
+      filters.push(['customer_name', 'like', `%${this.f.customer.value}%`]);
+      this.countFilter.customer_name = ['like', `%${this.f.customer.value}%`];
     }
 
     this.dataSource.loadItems(
@@ -118,8 +119,8 @@ export class CustomerProfilePage implements OnInit {
     this.paginator.pageSize = 30;
 
     if (this.f.customer.value) {
-      filters.push(['name', 'like', `%${this.f.customer.value}%`]);
-      this.countFilter.name = ['like', `%${this.f.customer.value}%`];
+      filters.push(['customer_name', 'like', `%${this.f.customer.value}%`]);
+      this.countFilter.customer_name = ['like', `%${this.f.customer.value}%`];
     }
 
     this.dataSource.loadItems(

@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Customer Profile</ion-title>
+    <ion-title> Customer Profile </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -26,7 +26,7 @@
       </ion-card-header>
       <ion-card-content class="ion-no-padding">
         <div class="ion-padding">
-          <mat-form-field class="example-full-width">
+          <mat-form-field class="mat-input-wrapper">
             <input
               matInput
               placeholder="Customer name"
@@ -63,6 +63,13 @@
             [dataSource]="dataSource"
             matSort
           >
+            <ng-container matColumnDef="sr_no">
+              <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
+              <mat-cell *matCellDef="let row;let i=index ">
+                {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
+              </mat-cell>
+            </ng-container>
+
             <ng-container matColumnDef="customer">
               <mat-header-cell *matHeaderCellDef>
                 Customer name
@@ -76,9 +83,9 @@
               <mat-header-cell *matHeaderCellDef>
                 Credit Limit
               </mat-header-cell>
-              <mat-cell *matCellDef="let row"
-                >{{ row.credit_limit | curFormat | async }}</mat-cell
-              >
+              <mat-cell *matCellDef="let row">
+                {{ row.credit_limit | curFormat | async }}
+              </mat-cell>
             </ng-container>
 
             <ng-container matColumnDef="remaining_credit">
@@ -108,7 +115,7 @@
                 *matCellDef="let row; let i = index"
               >
                 <ion-text *ngIf="row.remaining_balance">
-                  {{row.remaining_balance | curFormat | async}}
+                  {{ row.remaining_balance | curFormat | async }}
                 </ion-text>
                 <ion-button
                   *ngIf="!row.remaining_balance"
