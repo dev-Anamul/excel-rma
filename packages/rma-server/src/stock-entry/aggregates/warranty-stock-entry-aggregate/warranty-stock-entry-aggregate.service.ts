@@ -675,6 +675,7 @@ export class WarrantyStockEntryAggregateService {
                 sales_invoice_name: state.progress_state[0].sales_invoice_name,
                 delivery_note: payload.delivery_note,
               },
+              $unset: { warehouse: 1 },
             },
           ),
         );
@@ -738,21 +739,35 @@ export class WarrantyStockEntryAggregateService {
                   stockEntry.stock_entry_type === STOCK_ENTRY_STATUS.delivered
                 ) {
                   return from(
-                    this.serialService.updateOne(
-                      {
+                    this.serialNoHistoryService.find({
+                      where: {
                         serial_no: stockEntry.items.find(x => x)?.serial_no,
+                        eventType: 'Received from Customer',
                       },
-                      {
-                        $unset: {
-                          customer: undefined,
-                          'warranty.salesWarrantyDate': undefined,
-                          'warranty.soldOn': undefined,
-                          delivery_note: undefined,
-                          sales_invoice_name: undefined,
-                          sales_return_name: undefined,
+                      order: { created_on: -1 },
+                      limit: 1,
+                    }),
+                  ).pipe(
+                    switchMap(history => {
+                      return this.serialService.updateOne(
+                        {
+                          serial_no: stockEntry.items.find(x => x)?.serial_no,
                         },
-                      },
-                    ),
+                        {
+                          $unset: {
+                            customer: undefined,
+                            'warranty.salesWarrantyDate': undefined,
+                            'warranty.soldOn': undefined,
+                            delivery_note: undefined,
+                            sales_invoice_name: undefined,
+                            sales_return_name: undefined,
+                          },
+                          $set: {
+                            warehouse: history.find(x => x)?.transaction_to,
+                          },
+                        },
+                      );
+                    }),
                   );
                 }
                 if (
