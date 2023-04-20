@@ -322,7 +322,7 @@ export class SerialNoAggregateService extends AggregateRoot {
                             ', ' +
                             payload_item.serial_no.join(', '));
                         } else {
-                          return (erp_item.excel_serials = payload_item.serial_no.join(
+                          return (erp_item.excel_serials = payload_item.serial_no?.join(
                             ', ',
                           ));
                         }

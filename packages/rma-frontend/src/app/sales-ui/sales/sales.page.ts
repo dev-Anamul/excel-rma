@@ -275,7 +275,9 @@ export class SalesPage implements OnInit {
       this.sortQuery,
       this.paginator.pageIndex,
       this.paginator.pageSize,
-      undefined,
+      {
+        status: this.status,
+      },
     );
   }
 
