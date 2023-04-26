@@ -354,7 +354,7 @@ export class SerialNoAggregateService extends AggregateRoot {
     }).pipe(
       switchMap(({ headers, settings }) => {
         const url = settings.authServerURL + INVOICE_LIST + '/' + name;
-        return this.http.post(url, payload, { headers });
+        return this.http.put(url, payload, { headers });
       }),
     );
   }
