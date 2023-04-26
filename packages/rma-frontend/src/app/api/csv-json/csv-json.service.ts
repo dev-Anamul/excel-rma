@@ -290,7 +290,9 @@ export class CsvJsonService {
     });
 
     const dialogRef = this.dialog.open(SelectDumpHeadersDialog, {
-      width: '250px',
+      width:
+        (Math.ceil(Object.keys(parsedFields).length / 6) * 250).toString() +
+        'px',
       data: parsedFields,
     });
 
@@ -346,6 +348,10 @@ export class SelectDumpHeadersDialog {
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.keys = Object.keys(data);
+  }
+
+  calCols() {
+    return Math.ceil(this.keys.length / 6).toString();
   }
 
   onNoClick(): void {

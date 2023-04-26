@@ -25,6 +25,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { SatPopoverModule } from '@ncstate/sat-popover';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatGridListModule } from '@angular/material/grid-list';
 
 @NgModule({
   declarations: [],
@@ -56,6 +57,7 @@ import { MatChipsModule } from '@angular/material/chips';
     MatNativeDateModule,
     MatDialogModule,
     MatTooltipModule,
+    MatGridListModule,
   ],
   exports: [
     MatTooltipModule,
@@ -84,6 +86,7 @@ import { MatChipsModule } from '@angular/material/chips';
     MatOptionModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatGridListModule,
   ],
 })
 export class MaterialModule {}
