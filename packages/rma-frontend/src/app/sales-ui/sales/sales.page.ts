@@ -272,7 +272,7 @@ export class SalesPage implements OnInit {
     this.paginator.pageIndex = 0;
     this.paginator.pageSize = 30;
     this.dataSource.loadItems(
-      this.sortQuery,
+      undefined,
       this.paginator.pageIndex,
       this.paginator.pageSize,
       {
