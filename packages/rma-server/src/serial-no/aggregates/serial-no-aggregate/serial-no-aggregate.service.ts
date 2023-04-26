@@ -262,10 +262,10 @@ export class SerialNoAggregateService extends AggregateRoot {
                       erp_invoice.bundle_items.forEach(bundle_item => {
                         assignPayload.items.forEach(item => {
                           if (item.item_code === bundle_item.item_code) {
-                            return (bundle_item.serial_no =
+                            bundle_item.serial_no =
                               bundle_item.serial_no +
                               ', ' +
-                              item.serial_no.join(', '));
+                              item.serial_no.join(', ');
                           }
                         });
                       });
@@ -283,23 +283,19 @@ export class SerialNoAggregateService extends AggregateRoot {
                       } else {
                         erp_invoice.items.forEach(erp_item => {
                           if (payload_item.item_code === erp_item.item_code) {
-                            if (payload_item.has_serial_no === 0) {
-                              if (!erp_item.excel_serials) {
-                                return (erp_item.excel_serials = payload_item.serial_no.join(
-                                  '',
-                                ));
-                              }
+                            if (
+                              payload_item.has_serial_no === 0 &&
+                              !erp_item.excel_serials
+                            ) {
+                              erp_item.excel_serials = payload_item.serial_no.join(
+                                '',
+                              );
                             } else {
-                              if (erp_item.excel_serials) {
-                                return (erp_item.excel_serials =
-                                  erp_item.excel_serials +
+                              erp_item.excel_serials = erp_item.excel_serials
+                                ? erp_item.excel_serials +
                                   ', ' +
-                                  payload_item.serial_no.join(', '));
-                              } else {
-                                return (erp_item.excel_serials = payload_item.serial_no.join(
-                                  ', ',
-                                ));
-                              }
+                                  payload_item.serial_no.join(', ')
+                                : payload_item.serial_no.join(', ');
                             }
                           }
                         });
@@ -310,31 +306,31 @@ export class SerialNoAggregateService extends AggregateRoot {
                   erp_invoice.items.forEach(erp_item => {
                     assignPayload.items.forEach(payload_item => {
                       if (payload_item === erp_item.item_code) {
-                        if (payload_item.has_serial_no === 0) {
-                          if (!erp_item.excel_serials) {
-                            return (erp_item = payload_item.serial_no.join(''));
-                          }
+                        if (
+                          payload_item.has_serial_no === 0 &&
+                          !erp_item.excel_serials
+                        ) {
+                          erp_item = payload_item.serial_no.join('');
                         }
                       } else {
                         if (erp_item.excel_serials) {
-                          return (erp_item.excel_serials =
+                          erp_item.excel_serials =
                             erp_item.excel_serials +
                             ', ' +
-                            payload_item.serial_no.join(', '));
+                            payload_item.serial_no.join(', ');
                         } else {
-                          return (erp_item.excel_serials = payload_item.serial_no?.join(
+                          erp_item.excel_serials = payload_item.serial_no?.join(
                             ', ',
-                          ));
+                          );
                         }
                       }
                     });
                   });
                 }
-                this.updateErpInvoice(
+                return this.updateErpInvoice(
                   assignPayload.sales_invoice_name,
                   erp_invoice,
                 );
-                return of({});
               }),
             );
           }),
@@ -393,7 +389,7 @@ export class SerialNoAggregateService extends AggregateRoot {
     );
   }
 
-  getJsonData(file) {
+  getJsonData(file: any) {
     return of(JSON.parse(file.buffer));
   }
 
