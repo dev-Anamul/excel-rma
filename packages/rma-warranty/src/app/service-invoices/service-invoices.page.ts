@@ -39,6 +39,7 @@ export class ServiceInvoicesPage implements OnInit {
   statusList = Object.values(SERVICE_INVOICE_STATUS);
   status = SERVICE_INVOICE_STATUS.ALL;
   displayedColumns = [
+    'sr_no',
     'invoice_no',
     'status',
     'date',

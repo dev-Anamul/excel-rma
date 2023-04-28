@@ -36,9 +36,9 @@ export class StockLedgerReportComponent implements OnInit {
   filters: any = [];
   countFilter: any = {};
   dataSource: StockLedgerDataSource;
-  // dataSource: StockBalanceSummaryDataSource;
 
   displayedColumns = [
+    'sr_no',
     'posting_date',
     'item_name',
     'item_code',

@@ -68,7 +68,16 @@ export class StockEntryListPage implements OnInit {
     key => STOCK_TRANSFER_STATUS[key],
   );
   search: string = '';
-  stockEntryForm: FormGroup;
+  stockEntryForm: FormGroup = new FormGroup({
+    fromDateFormControl: new FormControl(),
+    toDateFormControl: new FormControl(),
+    singleDateFormControl: new FormControl(),
+    status: new FormControl(),
+    stockEntryType: new FormControl(),
+    from_warehouse: new FormControl(),
+    to_warehouse: new FormControl(),
+    names: new FormControl(),
+  });
   stockEntryType: string[] = Object.values(STOCK_ENTRY_TYPE);
 
   get f() {
@@ -83,7 +92,6 @@ export class StockEntryListPage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
@@ -97,8 +105,8 @@ export class StockEntryListPage implements OnInit {
         }),
       )
       .subscribe({
-        next: res => {},
-        error: err => {},
+        next: () => {},
+        error: () => {},
       });
     this.filteredFromWarehouseList = this.stockEntryForm
       .get('from_warehouse')
@@ -116,19 +124,6 @@ export class StockEntryListPage implements OnInit {
           return this.salesService.getStore().getItemAsync(WAREHOUSES, value);
         }),
       );
-  }
-
-  createFormGroup() {
-    this.stockEntryForm = new FormGroup({
-      fromDateFormControl: new FormControl(),
-      toDateFormControl: new FormControl(),
-      singleDateFormControl: new FormControl(),
-      status: new FormControl(),
-      stockEntryType: new FormControl(),
-      from_warehouse: new FormControl(),
-      to_warehouse: new FormControl(),
-      names: new FormControl(),
-    });
   }
 
   statusChange(status) {
@@ -208,15 +203,15 @@ export class StockEntryListPage implements OnInit {
 
   clearFilters() {
     this.filterState = {};
-    this.f.fromDateFormControl.setValue('');
-    this.f.toDateFormControl.setValue('');
-    this.f.singleDateFormControl.setValue('');
-    this.f.status.setValue('');
-    this.f.stockEntryType.setValue('');
-    this.f.names.setValue('');
-    this.f.from_warehouse.setValue('');
-    this.f.to_warehouse.setValue('');
-    this.dataSource.loadItems();
+    this.stockEntryForm.reset();
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+    this.dataSource.loadItems(
+      undefined,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      undefined,
+    );
   }
 
   setFilter(event?) {

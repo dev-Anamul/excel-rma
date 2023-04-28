@@ -1,77 +1,64 @@
 ::-ms-browse {
-    background: #633ce0;
-    color: #ffffff;
-    border: 1px solid #633ce0;
-    padding: 10px;
-    border-radius: 15px;
-  }
-  ::-webkit-file-upload-button {
-    background: #633ce0;
-    color: #ffffff;
-    border: 1px solid #633ce0;
-    padding: 10px;
-    border-radius: 15px;
-  }
+  background: #633ce0;
+  color: #ffffff;
+  border: 1px solid #633ce0;
+  padding: 10px;
+  border-radius: 15px;
+}
+::-webkit-file-upload-button {
+  background: #633ce0;
+  color: #ffffff;
+  border: 1px solid #633ce0;
+  padding: 10px;
+  border-radius: 15px;
+}
 
-  .example-container {
-    height: 270px;
-    overflow: auto;
-  }
+td {
+  text-align: left;
+}
 
-  table {
-    width: 100%;
-  }
+tr.mat-footer-row {
+  font-weight: bold;
+}
 
-  td {
-    text-align: left;
-  }
+.mat-table-sticky {
+  border-top: 1px solid #e0e0e0;
+}
 
-  tr.mat-footer-row {
-    font-weight: bold;
-  }
+.transform {
+  transform: translateY(10px);
+}
 
-  .mat-table-sticky {
-    border-top: 1px solid #e0e0e0;
-  }
-  .example-full-width {
-    width: 100%;
-    color: black;
-  }
+.add-comment {
+  opacity: 0.4;
+}
 
-  .transform {
-    transform: translateY(10px);
-  }
+.mat-column-clear {
+  flex: 0 0 5%;
+}
 
-  .add-comment {
-    opacity: 0.4;
-  }
+mat-header-cell {
+  display: flex;
+  justify-content: center;
+}
 
-  .mat-column-clear {
-    flex: 0 0 5%;
-  }
+mat-header-row {
+  display: flex;
+  justify-content: center;
+}
 
-  mat-header-cell {
-    display: flex;
-    justify-content: center;
-  }
+mat-cell {
+  display: flex;
+  justify-content: center;
+}
+.test {
+  color: red;
+}
 
-  mat-header-row {
-    display: flex;
-    justify-content: center;
-  }
+textarea {
+  height: 76px;
+}
 
-  mat-cell {
-    display: flex;
-    justify-content: center;
-  }
-  .test {
-    color: red;
-  }
-
-  textarea {
-    height: 76px;
-  }
-
-  .table-text-align-center {
-    text-align: center;
-  }
+.table-text-align-center {
+  text-align: center;
+}

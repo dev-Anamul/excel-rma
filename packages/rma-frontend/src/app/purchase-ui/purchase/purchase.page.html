@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Purchase</ion-title>
+    <ion-title> Purchase </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -158,9 +158,9 @@
             (matSortChange)="setFilter($event)"
           >
             <ng-container matColumnDef="sr_no">
-              <mat-header-cell *matHeaderCellDef> </mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
               <mat-cell *matCellDef="let row;let i=index ">
-                {{ i + 1 }}
+                {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>
@@ -197,9 +197,8 @@
 
             <ng-container matColumnDef="delivered_percent">
               <mat-header-cell *matHeaderCellDef> Delivered </mat-header-cell>
-              <mat-cell *matCellDef="let row">
+              <mat-cell *matCellDef="let row" class="right-padding">
                 <mat-progress-bar
-                  class="right-margin"
                   [color]="row.delivered_percent === 100 ? 'primary' : 'warn'"
                   mode="determinate"
                   [value]="row.delivered_percent"
@@ -225,23 +224,25 @@
               <mat-cell *matCellDef="let row">
                 {{ row.supplier_name }}
               </mat-cell>
-              <mat-footer-cell *matFooterCellDef style="justify-content: end">
+              <mat-footer-cell *matFooterCellDef class="right-aligned">
                 Total
               </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="total">
-              <mat-header-cell
-                *matHeaderCellDef
-                mat-sort-header="total"
-                style="display: flex; justify-content: center"
-              >
+              <mat-header-cell *matHeaderCellDef mat-sort-header="total">
                 Total
               </mat-header-cell>
-              <mat-cell *matCellDef="let row">
+              <mat-cell
+                *matCellDef="let row"
+                class="right-aligned right-padding"
+              >
                 {{ row.total | curFormat | async }}
               </mat-cell>
-              <mat-footer-cell *matFooterCellDef>
+              <mat-footer-cell
+                *matFooterCellDef
+                class="right-aligned right-padding"
+              >
                 {{ total | curFormat | async }}
               </mat-footer-cell>
             </ng-container>

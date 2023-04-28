@@ -46,7 +46,7 @@
         <ion-grid class="ion-no-padding">
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   placeholder="Naming Series"
@@ -56,7 +56,7 @@
               </mat-form-field>
             </ion-col>
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   required
@@ -72,7 +72,7 @@
           </ion-row>
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   required
                   type="text"
@@ -106,7 +106,7 @@
               </mat-form-field>
             </ion-col>
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   required
                   matInput
@@ -133,7 +133,7 @@
           </ion-row>
           <ion-row class="align">
             <ion-col size-md="6">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   required
                   type="text"
@@ -165,7 +165,7 @@
               </mat-form-field>
             </ion-col>
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   required
                   matInput
@@ -202,7 +202,7 @@
               </mat-form-field>
             </ion-col>
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   placeholder="Remaining Balance"
@@ -220,13 +220,13 @@
           </ion-row>
           <ion-row>
             <ion-col size-md="6">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <mat-label>Remarks</mat-label>
                 <textarea matInput formControlName="remarks"></textarea>
               </mat-form-field>
             </ion-col>
             <ion-col size-md="6">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   required
                   type="text"
@@ -430,7 +430,7 @@
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ion-col>
-            <ion-text class="example-full-width">
+            <ion-text class="full-width">
               {{address.name}}
               <br />
               {{address.address_line1}}
@@ -446,7 +446,7 @@
     <ion-card-content
       *ngIf="!address.name && salesInvoiceForm.get('customer').value "
     >
-      <ion-text class="example-full-width">
+      <ion-text class="full-width">
         No address assigned to customer
       </ion-text>
     </ion-card-content>

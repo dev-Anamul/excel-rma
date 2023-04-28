@@ -263,7 +263,7 @@
         <div class="example-container mat-elevation-z8">
           <table
             mat-table
-            class="full-width-table"
+            class="full-width"
             [dataSource]="dataSource"
             matSort
             (matSortChange)="setFilter($event)"
@@ -286,7 +286,9 @@
               <mat-cell *matCellDef="let row">
                 {{ row.customer_name || row.customer }}
               </mat-cell>
-              <mat-footer-cell *matFooterCellDef>Total</mat-footer-cell>
+              <mat-footer-cell *matFooterCellDef class="right-aligned">
+                Total
+              </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="name">
@@ -331,7 +333,7 @@
 
             <ng-container matColumnDef="posting_time">
               <mat-header-cell mat-sort-header="posting_time" *matHeaderCellDef>
-                time
+                Time
               </mat-header-cell>
               <mat-cell *matCellDef="let row">
                 {{ getStringTime(row.posting_time) | date:'mediumTime' }}
@@ -347,9 +349,8 @@
 
             <ng-container matColumnDef="delivered_percent">
               <mat-header-cell *matHeaderCellDef> Delivered </mat-header-cell>
-              <mat-cell *matCellDef="let row">
+              <mat-cell *matCellDef="let row" class="right-padding">
                 <mat-progress-bar
-                  class="right-margin"
                   [color]="row.delivered_percent === 100 ? 'primary' : 'warn'"
                   mode="determinate"
                   [value]="row.delivered_percent"
@@ -393,10 +394,16 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header="total">
                 Invoice Amount
               </mat-header-cell>
-              <mat-cell *matCellDef="let row">
+              <mat-cell
+                *matCellDef="let row"
+                class="right-aligned right-padding"
+              >
                 {{ row.total | curFormat | async }}
               </mat-cell>
-              <mat-footer-cell *matFooterCellDef>
+              <mat-footer-cell
+                *matFooterCellDef
+                class="right-aligned right-padding"
+              >
                 {{ total | curFormat | async }}
               </mat-footer-cell>
             </ng-container>
@@ -408,10 +415,16 @@
               >
                 Due Amount
               </mat-header-cell>
-              <mat-cell *matCellDef="let row">
+              <mat-cell
+                *matCellDef="let row"
+                class="right-aligned right-padding"
+              >
                 {{ row.outstanding_amount | curFormat | async }}
               </mat-cell>
-              <mat-footer-cell *matFooterCellDef>
+              <mat-footer-cell
+                *matFooterCellDef
+                class="right-aligned right-padding"
+              >
                 {{ dueTotal | curFormat | async }}
               </mat-footer-cell>
             </ng-container>
