@@ -29,6 +29,7 @@ export class SerialSearchPage implements OnInit {
 
   dataSource: SerialSearchDataSource;
   displayedColumns = [
+    'sr_no',
     'serial_no',
     'item_name',
     'item_code',

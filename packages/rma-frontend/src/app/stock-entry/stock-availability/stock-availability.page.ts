@@ -26,6 +26,7 @@ export class StockAvailabilityPage implements OnInit {
   dataSource: StockAvailabilityDataSource;
   defaultCompany: string;
   displayedColumns = [
+    'sr_no',
     'excel_item_name',
     'item_code',
     'excel_item_group',

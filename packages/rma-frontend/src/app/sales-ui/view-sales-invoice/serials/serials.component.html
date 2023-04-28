@@ -19,7 +19,7 @@
     <ion-grid class="ion-no-padding">
       <ion-row class="align">
         <ion-col>
-          <mat-form-field class="example-full-width transform">
+          <mat-form-field class="full-width transform">
             <input
               type="text"
               placeholder="Select Warehouse"
@@ -54,7 +54,7 @@
           </mat-form-field>
         </ion-col>
         <ion-col>
-          <mat-form-field class="example-full-width transform">
+          <mat-form-field class="full-width transform">
             <input
               matInput
               [matDatepicker]="claimsReceivedDate"
@@ -230,7 +230,7 @@
         <mat-header-cell *matHeaderCellDef>Warranty Date</mat-header-cell>
         <mat-cell *matCellDef="let row">
           <input
-            class="example-full-width"
+            class="full-width"
             matInput
             [(ngModel)]="row.warranty_date"
             [matDatepicker]="warranty_date"

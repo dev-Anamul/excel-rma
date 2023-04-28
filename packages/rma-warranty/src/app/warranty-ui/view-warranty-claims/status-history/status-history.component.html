@@ -30,7 +30,7 @@
       <ion-grid class="i-no-padding">
         <ion-row class="align">
           <ion-col>
-            <mat-form-field class="example-full-width">
+            <mat-form-field class="full-width">
               <input
                 matInput
                 type="text"
@@ -52,7 +52,7 @@
             </mat-form-field>
           </ion-col>
           <ion-col>
-            <mat-form-field class="example-full-width">
+            <mat-form-field class="full-width">
               <input
                 matInput
                 type="text"
@@ -80,7 +80,7 @@
         </ion-row>
         <ion-row class="align">
           <ion-col>
-            <mat-form-field class="example-full-width">
+            <mat-form-field class="full-width">
               <input
                 matInput
                 type="text"
@@ -106,7 +106,7 @@
             </mat-form-field>
           </ion-col>
           <ion-col>
-            <mat-form-field class="example-full-width">
+            <mat-form-field class="full-width">
               <input
                 matInput
                 type="text"
@@ -133,7 +133,7 @@
         </ion-row>
         <ion-row>
           <ion-col>
-            <mat-form-field class="example-full-width">
+            <mat-form-field class="full-width">
               <input
                 matInput
                 [matDatepicker]="posting_date"
@@ -152,7 +152,7 @@
             </mat-form-field>
           </ion-col>
           <ion-col>
-            <mat-form-field class="example-full-width">
+            <mat-form-field class="full-width">
               <input
                 matInput
                 type="text"
@@ -315,7 +315,7 @@
       <ion-row>
         <ion-col>
           <mat-form-field
-            class="example-full-width"
+            class="full-width"
             *ngIf="
               dataSource?.data[dataSource?.data?.length - 1]
                 ?.delivery_status === 'Upgraded'
@@ -330,7 +330,7 @@
             />
           </mat-form-field>
           <mat-form-field
-            class="example-full-width"
+            class="full-width"
             *ngIf="
               dataSource?.data[dataSource?.data?.length - 1]
                 ?.delivery_status === 'Replaced'
@@ -346,7 +346,7 @@
           </mat-form-field>
         </ion-col>
         <ion-col>
-          <mat-form-field class="example-full-width">
+          <mat-form-field class="full-width">
             <input
               matInput
               [value]="warrantyObject?.damage_warehouse"
@@ -360,7 +360,7 @@
 
       <ion-row>
         <ion-col>
-          <mat-form-field class="example-full-width">
+          <mat-form-field class="full-width">
             <input
               matInput
               [value]="warrantyObject?.replace_product"
@@ -371,7 +371,7 @@
           </mat-form-field>
         </ion-col>
         <ion-col>
-          <mat-form-field class="example-full-width">
+          <mat-form-field class="full-width">
             <input
               matInput
               [value]="warrantyObject?.damage_product"
@@ -385,7 +385,7 @@
 
       <ion-row>
         <ion-col>
-          <mat-form-field class="example-full-width">
+          <mat-form-field class="full-width">
             <input
               matInput
               [value]="warrantyObject?.replace_serial"
@@ -396,7 +396,7 @@
           </mat-form-field>
         </ion-col>
         <ion-col>
-          <mat-form-field class="example-full-width">
+          <mat-form-field class="full-width">
             <input
               matInput
               [value]="warrantyObject?.remarks"

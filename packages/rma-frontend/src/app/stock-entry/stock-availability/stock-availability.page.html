@@ -176,37 +176,50 @@
       <div class="example-container mat-elevation-z8">
         <table
           mat-table
-          class="full-width-table"
+          class="full-width"
           [dataSource]="dataSource"
           matSort
         >
+          <ng-container matColumnDef="sr_no">
+            <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
+            <mat-cell *matCellDef="let row;let i=index ">
+              {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
+            </mat-cell>
+          </ng-container>
+
           <ng-container matColumnDef="excel_item_name">
-            <mat-header-cell *matHeaderCellDef>Item name</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.item.item_name }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef> Item name </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              {{ row.item.item_name }}
+            </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="item_code">
-            <mat-header-cell *matHeaderCellDef>Item code</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row._id.item_code }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef> Item code </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{ row._id.item_code }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="excel_item_group">
-            <mat-header-cell *matHeaderCellDef>Item group</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.item.item_group }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef> Item group </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              {{ row.item.item_group }}
+            </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="excel_item_brand">
-            <mat-header-cell *matHeaderCellDef>Item brand</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row.item.brand }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef> Item brand </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{ row.item.brand }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="warehouse">
-            <mat-header-cell *matHeaderCellDef>Warehouse</mat-header-cell>
-            <mat-cell *matCellDef="let row">{{ row._id.warehouse }}</mat-cell>
+            <mat-header-cell *matHeaderCellDef> Warehouse </mat-header-cell>
+            <mat-cell *matCellDef="let row"> {{ row._id.warehouse }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="actual_qty">
-            <mat-header-cell *matHeaderCellDef>Actual quantity</mat-header-cell>
+            <mat-header-cell *matHeaderCellDef>
+              Actual quantity
+            </mat-header-cell>
             <mat-cell *matCellDef="let row">
               {{ row.stockAvailability }}
             </mat-cell>

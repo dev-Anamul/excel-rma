@@ -25,11 +25,11 @@ export class ViewSalesInvoicePage implements OnInit {
 
   constructor(
     private readonly location: Location,
-    private route: ActivatedRoute,
-    private salesService: SalesService,
-    private router: Router,
-    private popoverController: PopoverController,
-    private siSubject: ViewSalesInvoiceSubjectService,
+    private readonly route: ActivatedRoute,
+    private readonly salesService: SalesService,
+    private readonly router: Router,
+    private readonly popoverController: PopoverController,
+    private readonly siSubject: ViewSalesInvoiceSubjectService,
   ) {}
 
   ngOnInit() {

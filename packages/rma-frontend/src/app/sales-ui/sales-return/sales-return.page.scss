@@ -1,29 +1,7 @@
-.full-width {
-  width: 100%;
-  color: black;
-}
-
 .footer {
   font-weight: bold;
 }
 
-.example-container {
-  box-shadow: none;
-  height: auto;
-  width: 100%;
-  overflow: auto;
-}
-
-// common width for all columns
-[class*='mat-column-'] {
-  min-width: 150px !important;
-}
-
 .hash {
   font-size: 20px;
-}
-
-.mat-column-sr_no {
-  flex: 0 0 5% !important;
-  min-width: 10px !important;
 }

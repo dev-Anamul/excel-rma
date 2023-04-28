@@ -43,7 +43,7 @@
         <ion-grid class="i-no-padding">
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -67,7 +67,7 @@
             </ion-col>
 
             <ion-col>
-              <mat-form-field class="example-full-width" *ngIf="!uuid">
+              <mat-form-field class="full-width" *ngIf="!uuid">
                 <input
                   matInput
                   type="text"
@@ -106,7 +106,7 @@
         <ion-grid class="i-no-padding">
           <ion-row class="align">
             <ion-col *ngIf="warrantyState?.serial_no?.active && !uuid">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -134,7 +134,7 @@
             <ion-col
               *ngIf="warrantyState?.serial_no?.active && uuid && warrantyObject?.set !='Bulk'"
             >
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -149,7 +149,7 @@
             <ion-col
               *ngIf="warrantyState?.serial_no?.active && uuid && warrantyObject?.set=='Bulk'"
             >
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -173,7 +173,7 @@
             </ion-col>
 
             <ion-col *ngIf="warrantyState?.warranty_end_date?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   [matDatepicker]="warranty_end_date"
@@ -198,7 +198,7 @@
 
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -226,7 +226,7 @@
             </ion-col>
 
             <ion-col *ngIf="warrantyState?.product_brand?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -242,7 +242,7 @@
 
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -269,7 +269,7 @@
             </ion-col>
 
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -282,7 +282,7 @@
 
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -293,7 +293,7 @@
             </ion-col>
 
             <ion-col *ngIf="warrantyState?.invoice_no?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -420,7 +420,7 @@
         <ion-grid class="i-no-padding">
           <ion-row class="align">
             <ion-col *ngIf="warrantyState?.customer_name?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   type="text"
                   placeholder="Select Customer"
@@ -454,7 +454,7 @@
             </ion-col>
 
             <ion-col *ngIf="warrantyState?.third_party_name?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -470,7 +470,7 @@
 
           <ion-row class="align">
             <ion-col *ngIf="warrantyState?.customer_contact?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -484,7 +484,7 @@
             </ion-col>
 
             <ion-col *ngIf="warrantyState?.third_party_contact?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -500,7 +500,7 @@
 
           <ion-row class="align">
             <ion-col *ngIf="warrantyState?.customer_address?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -514,7 +514,7 @@
             </ion-col>
 
             <ion-col *ngIf="warrantyState?.third_party_address?.active">
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -539,7 +539,7 @@
         <ion-grid class="i-no-padding">
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   [matDatepicker]="received_on"
@@ -558,7 +558,7 @@
             </ion-col>
 
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   [matDatepicker]="delivery_date"
@@ -582,7 +582,7 @@
 
           <ion-row class="align">
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"
@@ -614,7 +614,7 @@
             </ion-col>
 
             <ion-col>
-              <mat-form-field class="example-full-width">
+              <mat-form-field class="full-width">
                 <input
                   matInput
                   type="text"

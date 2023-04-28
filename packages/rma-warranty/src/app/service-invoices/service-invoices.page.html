@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Service Invoice</ion-title>
+    <ion-title> Service Invoice </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -193,10 +193,19 @@
             </ion-col>
           </ion-row>
         </ion-grid>
+
         <div class="example-container mat-elevation-z8">
           <mat-table #table [dataSource]="dataSource">
+            <ng-container matColumnDef="sr_no">
+              <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
+              <mat-cell *matCellDef="let row;let i=index ">
+                {{ paginator.pageIndex * paginator.pageSize + 1 + i }}
+              </mat-cell>
+              <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+            </ng-container>
+
             <ng-container matColumnDef="invoice_no">
-              <mat-header-cell *matHeaderCellDef>Invoice No</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Invoice No </mat-header-cell>
               <mat-cell
                 *matCellDef="let row"
                 (click)="openERPServiceInvoice(row)"
@@ -209,7 +218,7 @@
             </ng-container>
 
             <ng-container matColumnDef="status">
-              <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <ng-container> {{ row.status }} </ng-container>
               </mat-cell>
@@ -217,7 +226,7 @@
             </ng-container>
 
             <ng-container matColumnDef="date">
-              <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Date </mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <ng-container> {{ row.posting_date }} </ng-container>
               </mat-cell>
@@ -225,70 +234,80 @@
             </ng-container>
 
             <ng-container matColumnDef="customer_third_party">
-              <mat-header-cell *matHeaderCellDef
-                >Customer / Third Party</mat-header-cell
-              >
+              <mat-header-cell *matHeaderCellDef>
+                Customer / Third Party
+              </mat-header-cell>
               <mat-cell *matCellDef="let row">
                 <ng-container> {{ row.customer_third_party }} </ng-container>
               </mat-cell>
-              <mat-footer-cell *matFooterCellDef>Total</mat-footer-cell>
+              <mat-footer-cell *matFooterCellDef class="right-aligned">
+                Total
+              </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="invoice_amount">
-              <mat-header-cell *matHeaderCellDef
-                >Invoice Amount</mat-header-cell
+              <mat-header-cell *matHeaderCellDef class="center-align">
+                Invoice Amount
+              </mat-header-cell>
+              <mat-cell
+                *matCellDef="let row"
+                class="right-aligned right-padding"
               >
-              <mat-cell *matCellDef="let row">
-                <ng-container> {{ row.total }} </ng-container>
+                <ng-container>
+                  {{ row.total | curFormat | async }}
+                </ng-container>
               </mat-cell>
-              <mat-footer-cell *matFooterCellDef>
-                {{ total | curFormat |async}}
+              <mat-footer-cell
+                *matFooterCellDef
+                class="right-aligned right-padding"
+              >
+                {{ total | curFormat | async}}
               </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="claim_no">
-              <mat-header-cell *matHeaderCellDef>Claim No</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Claim No </mat-header-cell>
               <mat-cell *matCellDef="let row"> {{ row.claim_no }} </mat-cell>
               <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="remarks">
-              <mat-header-cell *matHeaderCellDef>Remarks</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Remarks </mat-header-cell>
               <mat-cell *matCellDef="let row"> {{ row.remarks }} </mat-cell>
               <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="branch">
-              <mat-header-cell *matHeaderCellDef>Branch</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Branch </mat-header-cell>
               <mat-cell *matCellDef="let row"> {{ row.branch }} </mat-cell>
               <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="created_by">
-              <mat-header-cell *matHeaderCellDef>Created by</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Created by </mat-header-cell>
               <mat-cell *matCellDef="let row"> {{ row.created_by }} </mat-cell>
               <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="submitted_by">
-              <mat-header-cell *matHeaderCellDef>Submitted by</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef>
+                Submitted by
+              </mat-header-cell>
               <mat-cell *matCellDef="let row"> {{ row.created_by }} </mat-cell>
               <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
             </ng-container>
 
             <ng-container matColumnDef="submit">
-              <mat-header-cell *matHeaderCellDef>Submit</mat-header-cell>
+              <mat-header-cell *matHeaderCellDef> Submit </mat-header-cell>
               <mat-cell *matCellDef="let row; let i = index">
                 <ion-text
-                [ngStyle]="{
+                  [ngStyle]="{
                   color: row.docstatus === 1 ? '#4d2500' : 'red'
                 }"
-              >
-                {{
-                  row.docstatus === 0 ? 'Not Submitted' : 
-                  row.docstatus === 1 ? 'Submitted' : 'Canceled'
-                }}
-              </ion-text>
+                >
+                  {{ row.docstatus === 0 ? 'Not Submitted' : row.docstatus === 1
+                  ? 'Submitted' : 'Canceled' }}
+                </ion-text>
               </mat-cell>
               <mat-footer-cell *matFooterCellDef></mat-footer-cell>
             </ng-container>

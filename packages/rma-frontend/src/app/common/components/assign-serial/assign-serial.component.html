@@ -22,10 +22,10 @@
         <ion-grid class="ion-no-padding">
             <ion-row>
                 <ion-col>
-                    <mat-form-field class="example-full-width">
+                    <mat-form-field class="full-width">
                         <input matInput oninput="this.value = this.value.toUpperCase()" placeholder="From Range" type="text" name="From Range" [(ngModel)]="rangePickerState.fromRange" (ngModelChange)="this.fromRangeUpdate.next($event)" required />
                     </mat-form-field>
-                    <mat-form-field class="example-full-width">
+                    <mat-form-field class="full-width">
                         <input type="text" oninput="this.value = this.value.toUpperCase()" matInput placeholder="To Range" type="string" name="To Range" [(ngModel)]="rangePickerState.toRange" (ngModelChange)="this.toRangeUpdate.next($event)" />
                     </mat-form-field>
                 </ion-col>

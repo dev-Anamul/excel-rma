@@ -8,7 +8,7 @@
         <ion-grid class="ion-no-padding">
             <ion-row class="align">
                 <ion-col>
-                    <mat-form-field class="example-full-width transform">
+                    <mat-form-field class="full-width transform">
                         <input matInput placeholder="Select Warehouse"
                             [formControl]="warehouseFormControl"
                             type="text"
@@ -29,7 +29,7 @@
                     </mat-form-field>
                 </ion-col>
                 <ion-col>
-                    <mat-form-field class="example-full-width transform">
+                    <mat-form-field class="full-width transform">
                         <input matInput [matDatepicker]="purchaseReceiptDate" [formControl]="date" placeholder="Date" readonly (dateChange)="selectedPurchaseReceiptDate($event)" />
                         <mat-datepicker-toggle matSuffix [for]="purchaseReceiptDate"></mat-datepicker-toggle>
                         <mat-datepicker #purchaseReceiptDate disabled="false"></mat-datepicker>

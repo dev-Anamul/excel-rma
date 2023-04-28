@@ -13,15 +13,6 @@
   border-radius: 15px;
 }
 
-.example-container {
-  height: 270px;
-  overflow: auto;
-}
-
-table {
-  width: 100%;
-}
-
 td {
   text-align: left;
 }
@@ -32,11 +23,6 @@ tr.mat-footer-row {
 
 .mat-table-sticky {
   border-top: 1px solid #e0e0e0;
-}
-
-.example-full-width {
-  width: 100%;
-  color: black;
 }
 
 .fab-position {
@@ -76,8 +62,4 @@ mat-cell {
   bottom: 0px;
   position: sticky;
   z-index: 10;
-}
-
-.mat-column-sr_no {
-  flex: 0 0 5%;
 }
