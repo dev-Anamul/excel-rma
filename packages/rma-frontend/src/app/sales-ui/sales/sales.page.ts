@@ -6,7 +6,14 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { SalesInvoiceDataSource } from './sales-invoice-datasource';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { map, filter, startWith, switchMap } from 'rxjs/operators';
+import {
+  map,
+  filter,
+  startWith,
+  switchMap,
+  distinctUntilChanged,
+  debounceTime,
+} from 'rxjs/operators';
 import { FormControl, FormGroup } from '@angular/forms';
 import {
   DateAdapter,
@@ -156,6 +163,8 @@ export class SalesPage implements OnInit {
       .get('customer_name')
       .valueChanges.pipe(
         startWith(''),
+        distinctUntilChanged(),
+        debounceTime(1000),
         switchMap(value => {
           return this.salesService
             .getCustomerList(value)
@@ -192,7 +201,8 @@ export class SalesPage implements OnInit {
 
   getUpdate(event: any) {
     const query: any = {};
-    if (this.f.customer_name.value) query.customer = this.f.customer_name.value;
+    if (this.f.customer_name.value)
+      query.customer_name = this.f.customer_name.value;
     if (this.f.status.value) query.status = this.f.status.value;
     if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
     if (this.f.salesPerson.value) query.sales_team = this.f.salesPerson.value;
@@ -284,7 +294,7 @@ export class SalesPage implements OnInit {
   setFilter(event?: any) {
     const query: any = {};
     if (this.f.customer_name.value)
-      query.customer = this.f.customer_name.value.name;
+      query.customer_name = this.f.customer_name.value;
     if (this.status) query.status = this.status;
     if (this.f.salesPerson.value) query.sales_team = this.f.salesPerson.value;
     if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
