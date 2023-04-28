@@ -5,10 +5,13 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
+
     <ion-title> Stock Entry </ion-title>
+
     <ion-buttons slot="end" *ngIf="uuid">
       <ion-button (click)="showJobs()" color="primary"> Jobs </ion-button>
     </ion-buttons>
+
     <ion-buttons slot="end" *ngIf="stock_receipt_names?.length">
       <ion-button (click)="getPrint()" color="primary">
         <ion-icon slot="icon-only" name="print-outline"></ion-icon>
@@ -36,6 +39,7 @@
           </ion-col>
         </ion-row>
       </ion-card-header>
+
       <ion-card-content>
         <ion-grid class="ion-no-padding">
           <ion-row>
@@ -49,6 +53,7 @@
                 Open All Entries
               </ion-button>
             </ion-col>
+
             <ion-col class="ion-text-right">
               <ion-button
                 *ngIf="status === 'Draft'"
@@ -58,9 +63,11 @@
               >
                 <ion-icon name="trash"></ion-icon>
               </ion-button>
+
               <ion-button *ngIf="!readonly" color="light" (click)="saveDraft()">
                 Save
               </ion-button>
+
               <ion-button
                 *ngIf="!readonly"
                 [disabled]="!uuid || submit"
@@ -69,6 +76,7 @@
               >
                 Submit
               </ion-button>
+
               <ion-button
                 *ngIf="
                   readonly &&
@@ -81,6 +89,7 @@
               >
                 Accept
               </ion-button>
+
               <ion-button
                 *ngIf="readonly && status === 'In Transit'"
                 [disabled]="submit"
@@ -89,6 +98,7 @@
               >
                 Return
               </ion-button>
+
               <ion-text
                 *ngIf="
                   readonly && status !== 'In Transit' && status !== 'Draft'
@@ -101,6 +111,7 @@
               >
                 <h1>Stock Transfer {{ status }}</h1>
               </ion-text>
+
               <ion-button
                 *ngIf="
                   readonly &&
@@ -113,6 +124,7 @@
               </ion-button>
             </ion-col>
           </ion-row>
+
           <ion-row>
             <ion-col>
               <mat-form-field class="full-width">
@@ -144,7 +156,7 @@
               </mat-form-field>
 
               <mat-form-field class="full-width">
-                <mat-label>Stock Entry Type</mat-label>
+                <mat-label> Stock Entry Type </mat-label>
                 <mat-select
                   (selectionChange)="typeChange($event.value)"
                   formControlName="stock_entry_type"
@@ -212,7 +224,7 @@
               </mat-form-field>
 
               <mat-form-field class="full-width">
-                <mat-label>Remarks</mat-label>
+                <mat-label> Remarks </mat-label>
                 <textarea matInput formControlName="remarks"></textarea>
               </mat-form-field>
 
@@ -261,6 +273,7 @@
         </ion-grid>
       </ion-card-content>
     </ion-card>
+
     <ion-card *ngIf="!readonly">
       <ion-card-header>
         <ion-row class="align">
@@ -271,6 +284,7 @@
           </ion-col>
         </ion-row>
       </ion-card-header>
+
       <ion-card-content>
         <ion-grid class="ion-no-padding">
           <ion-row>
@@ -306,6 +320,7 @@
       </ion-card-content>
     </ion-card>
   </form>
+
   <app-assign-serial
     *ngIf="!readonly"
     [state]="state"
@@ -363,6 +378,7 @@
               </mat-error>
             </mat-form-field>
           </ion-col>
+
           <ion-col>
             <mat-form-field class="full-width">
               <input
@@ -410,6 +426,7 @@
         mode="indeterminate"
       ></mat-progress-bar>
     </div>
+
     <ion-card-header>
       <ion-row class="align">
         <ion-col>
@@ -417,6 +434,7 @@
             <ion-text color="tertiary"> Items </ion-text>
           </ion-card-title>
         </ion-col>
+
         <ion-col class="ion-text-right">
           <ion-button
             [disabled]="readonly"
@@ -430,18 +448,16 @@
     </ion-card-header>
 
     <ion-card-content class="ion-no-padding">
-      <mat-table #table [dataSource]="itemDataSource" style="width: 100%">
+      <table mat-table #table [dataSource]="itemDataSource" style="width: 100%">
         <ng-container matColumnDef="item_name">
-          <mat-header-cell *matHeaderCellDef>Item Name</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Item Name </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.item_name }}
-            </ng-container>
+            {{ row.item_name }}
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="delete">
-          <mat-header-cell *matHeaderCellDef>Delete Item</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Delete Item </mat-header-cell>
           <mat-cell *matCellDef="let row; let i = index">
             <ion-button
               color="danger"
@@ -454,48 +470,40 @@
         </ng-container>
 
         <ng-container matColumnDef="assigned">
-          <mat-header-cell *matHeaderCellDef>Assigned</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Assigned </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.assigned || 0 }}
-            </ng-container>
+            {{ row.assigned || 0 }}
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="available_stock">
-          <mat-header-cell *matHeaderCellDef>Available Stock</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Available Stock </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.available_stock || 0 }}
-            </ng-container>
+            {{ row.available_stock || 0 }}
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="qty">
-          <mat-header-cell *matHeaderCellDef>Qty</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Qty </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              <input
-                class="table-text-align-center"
-                matInput
-                type="number"
-                [(ngModel)]="row.qty"
-              />
-            </ng-container>
+            <input
+              class="table-text-align-center"
+              matInput
+              type="number"
+              [(ngModel)]="row.qty"
+            />
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="basic_rate">
-          <mat-header-cell *matHeaderCellDef>Base Rate</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Base Rate </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              <input
-                class="table-text-align-center"
-                matInput
-                type="number"
-                [(ngModel)]="row.basic_rate"
-              />
-            </ng-container>
+            <input
+              class="table-text-align-center"
+              matInput
+              type="number"
+              [(ngModel)]="row.basic_rate"
+            />
           </mat-cell>
         </ng-container>
 
@@ -524,7 +532,7 @@
           *matHeaderRowDef="itemDisplayedColumns; sticky: true"
         ></mat-header-row>
         <mat-row *matRowDef="let row; columns: itemDisplayedColumns"></mat-row>
-      </mat-table>
+      </table>
     </ion-card-content>
   </ion-card>
 
@@ -540,49 +548,46 @@
     </ion-card-header>
 
     <ion-card-content class="ion-no-padding">
-      <mat-table
+      <table
+        mat-table
         #table
         [dataSource]="materialTransferDataSource"
         style="width: 100%"
       >
         <ng-container matColumnDef="s_warehouse">
-          <mat-header-cell *matHeaderCellDef>Source Warehouse</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef>
+            Source Warehouse
+          </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.s_warehouse }}
-            </ng-container>
+            {{ row.s_warehouse }}
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="t_warehouse">
-          <mat-header-cell *matHeaderCellDef>Target Warehouse</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef>
+            Target Warehouse
+          </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.t_warehouse }}
-            </ng-container>
+            {{ row.t_warehouse }}
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="item_name">
-          <mat-header-cell *matHeaderCellDef>Item Name</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Item Name </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.item_name }}
-            </ng-container>
+            {{ row.item_name }}
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="qty">
-          <mat-header-cell *matHeaderCellDef>Quantity</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Quantity </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            <ng-container>
-              {{ row.qty }}
-            </ng-container>
+            {{ row.qty }}
           </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="warranty_date">
-          <mat-header-cell *matHeaderCellDef>Warranty Date</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Warranty Date </mat-header-cell>
           <mat-cell *matCellDef="let row">
             <input
               matInput
@@ -621,7 +626,7 @@
         </ng-container>
 
         <ng-container matColumnDef="basic_rate">
-          <mat-header-cell *matHeaderCellDef>Base Rate</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Base Rate </mat-header-cell>
           <mat-cell *matCellDef="let row">
             <ng-container *ngIf="permissionState?.stock_entry_receipt?.read">
               <input
@@ -636,7 +641,7 @@
         </ng-container>
 
         <ng-container matColumnDef="delete">
-          <mat-header-cell *matHeaderCellDef>Delete Serials</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef> Delete Serials </mat-header-cell>
           <mat-cell *matCellDef="let row; let i = index">
             <ion-button
               [disabled]="readonly"
@@ -659,7 +664,7 @@
             let i = index
           "
         ></mat-row>
-      </mat-table>
+      </table>
     </ion-card-content>
   </ion-card>
 

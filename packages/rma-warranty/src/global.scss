@@ -129,16 +129,16 @@
     overflow: hidden;
     vertical-align: middle;
   }
-}
 
-[class*='mat-column-'] {
-  flex: 0 0 9% !important;
-  min-width: 150px !important;
-}
+  [class*='mat-column-'] {
+    flex: 0 0 9% !important;
+    min-width: 150px !important;
+  }
 
-.mat-column-sr_no {
-  flex: 0 0 5% !important;
-  min-width: 60px !important;
+  .mat-column-sr_no {
+    flex: 0 0 5% !important;
+    min-width: 60px !important;
+  }
 }
 
 .full-width {

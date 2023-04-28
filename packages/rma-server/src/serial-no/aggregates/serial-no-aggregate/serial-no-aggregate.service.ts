@@ -313,15 +313,12 @@ export class SerialNoAggregateService extends AggregateRoot {
                           erp_item = payload_item.serial_no.join('');
                         }
                       } else {
-                        if (erp_item.excel_serials) {
-                          erp_item.excel_serials =
-                            erp_item.excel_serials +
-                            ', ' +
-                            payload_item.serial_no.join(', ');
-                        } else {
-                          erp_item.excel_serials = payload_item.serial_no?.join(
-                            ', ',
-                          );
+                        if (payload_item.item_code === erp_item.item_code) {
+                          erp_item.excel_serials = erp_item.excel_serials
+                            ? erp_item.excel_serials +
+                              ',' +
+                              payload_item.serial_no.join(',')
+                            : payload_item.serial_no.join(',');
                         }
                       }
                     });
