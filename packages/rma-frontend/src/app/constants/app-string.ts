@@ -115,7 +115,7 @@ export const DELIVERED_SERIALS_BY = {
   purchase_invoice_name: 'purchase_invoice_name',
   stock_entry_uuid: 'stock_entry_uuid',
 };
-export const NON_SERIAL_ITEM = 'Non serial Item';
+export const NON_SERIAL_ITEM = 'Non Serial Item';
 
 export const STOCK_AVAILABILITY_CSV_FILE = 'stock_availability.csv';
 export const SERIAL_QUANTITY_CSV_FILE = 'serial_quantity.csv';

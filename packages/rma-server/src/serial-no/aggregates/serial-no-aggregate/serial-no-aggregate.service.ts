@@ -23,6 +23,7 @@ import {
   CONTENT_TYPE,
   APPLICATION_JSON_CONTENT_TYPE,
   ACCEPT,
+  NON_SERIAL_ITEM,
 } from '../../../constants/app-strings';
 import { BEARER_HEADER_VALUE_PREFIX } from '../../../constants/app-strings';
 import {
@@ -303,23 +304,21 @@ export class SerialNoAggregateService extends AggregateRoot {
                     });
                   }
                 } else {
-                  erp_invoice.items.forEach(erp_item => {
-                    assignPayload.items.forEach(payload_item => {
-                      if (payload_item === erp_item.item_code) {
+                  assignPayload.items.forEach(payload_item => {
+                    erp_invoice.items.forEach(erp_item => {
+                      if (payload_item.item_code === erp_item.item_code) {
                         if (
                           payload_item.has_serial_no === 0 &&
                           !erp_item.excel_serials
                         ) {
-                          erp_item = payload_item.serial_no.join('');
+                          erp_item.excel_serials = NON_SERIAL_ITEM;
                         }
                       } else {
-                        if (payload_item.item_code === erp_item.item_code) {
-                          erp_item.excel_serials = erp_item.excel_serials
-                            ? erp_item.excel_serials +
-                              ',' +
-                              payload_item.serial_no.join(',')
-                            : payload_item.serial_no.join(',');
-                        }
+                        erp_item.excel_serials = erp_item.excel_serials
+                          ? erp_item.excel_serials +
+                            ',' +
+                            payload_item.serial_no.join(',')
+                          : payload_item.serial_no.join(',');
                       }
                     });
                   });
