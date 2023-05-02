@@ -245,7 +245,7 @@ export class SerialNoAggregateService extends AggregateRoot {
               switchMap(({ erp_invoice, mongo_invoice }) => {
                 if (Object.keys(mongo_invoice.bundle_items_map).length !== 0) {
                   if (erp_invoice.bundle_items.length) {
-                    // BUNDLE ITEMS
+                    // IF BUNDLE ITEMS EXISTS
                     if (
                       !erp_invoice.bundle_items.includes(
                         assignPayload.items[0].item_code,
@@ -272,7 +272,7 @@ export class SerialNoAggregateService extends AggregateRoot {
                       });
                     }
                   } else {
-                    // NON BUNDLE ITEMS
+                    // IF BUNDLE ITEMS DO NOT EXIST
                     assignPayload.items.forEach(payload_item => {
                       if (!erp_invoice.items.includes(payload_item.item_code)) {
                         erp_invoice.bundle_items.push({
@@ -312,13 +312,13 @@ export class SerialNoAggregateService extends AggregateRoot {
                           !erp_item.excel_serials
                         ) {
                           erp_item.excel_serials = NON_SERIAL_ITEM;
+                        } else {
+                          erp_item.excel_serials = erp_item.excel_serials
+                            ? erp_item.excel_serials +
+                              ',' +
+                              payload_item.serial_no.join(',')
+                            : payload_item.serial_no.join(',');
                         }
-                      } else {
-                        erp_item.excel_serials = erp_item.excel_serials
-                          ? erp_item.excel_serials +
-                            ',' +
-                            payload_item.serial_no.join(',')
-                          : payload_item.serial_no.join(',');
                       }
                     });
                   });
