@@ -317,9 +317,7 @@ export class DeliveryNoteJobService {
                 error: () => {},
               });
             return true;
-          })
-          .then(() => {})
-          .catch(() => {});
+          });
       }
     });
 
