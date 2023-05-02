@@ -88,6 +88,9 @@ export class DeliveryNotePoliciesService {
   validateStock(assignPayload: AssignSerialDto) {
     return from(assignPayload.items).pipe(
       concatMap(item => {
+        if (!item.has_serial_no) {
+          return of(true);
+        }
         return this.stockLedgerService
           .asyncAggregate([
             {

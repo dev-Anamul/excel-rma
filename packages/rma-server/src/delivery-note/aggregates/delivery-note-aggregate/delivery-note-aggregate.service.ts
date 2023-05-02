@@ -182,13 +182,10 @@ export class DeliveryNoteAggregateService extends AggregateRoot {
                   new NotImplementedException(PLEASE_RUN_SETUP),
                 );
               }
-              this.salesInvoiceService
-                .updateOne(
-                  { name: assignPayload.sales_invoice_name },
-                  { $set: { delivery_warehouse: assignPayload.set_warehouse } },
-                )
-                .then(() => {})
-                .catch(() => {});
+              this.salesInvoiceService.updateOne(
+                { name: assignPayload.sales_invoice_name },
+                { $set: { delivery_warehouse: assignPayload.set_warehouse } },
+              );
               const deliveryNoteBody = this.mapCreateDeliveryNote(
                 assignPayload,
               );
