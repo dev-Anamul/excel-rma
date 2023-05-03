@@ -29,38 +29,38 @@
           value="0"
           *ngIf="permissionState.sales_invoice.active"
         >
-          <ion-label>Details</ion-label>
+          <ion-label> Details </ion-label>
         </ion-segment-button>
         <ion-segment-button
           value="1"
           *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.delivery_note.active"
         >
-          <ion-label>Serials</ion-label>
+          <ion-label> Serials </ion-label>
         </ion-segment-button>
         <ion-segment-button
           value="2"
           *ngIf="status !== 'Canceled' && sales_invoice_name"
         >
-          <ion-label>Accounts</ion-label>
+          <ion-label> Accounts </ion-label>
         </ion-segment-button>
         <ion-segment-button
           value="3"
           *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.delivery_note.active"
         >
-          <ion-label>Returned Serials</ion-label>
+          <ion-label> Returns </ion-label>
         </ion-segment-button>
         <ion-segment-button
           value="4"
           *ngIf="status !== 'Canceled' && sales_invoice_name && permissionState.warranty_claim.active"
         >
-          <ion-label>Warranty</ion-label>
+          <ion-label> Warranty </ion-label>
         </ion-segment-button>
         <ion-segment-button
           value="5"
-          disabled="{{isCampaign ? true : false }}"
+          disabled=" {{ isCampaign ? true : false }} "
           *ngIf="status !== 'Canceled' && sales_invoice_name && showReturnTab && permissionState.credit_note.active"
         >
-          <ion-label>Credit Notes</ion-label>
+          <ion-label> Credit Notes </ion-label>
         </ion-segment-button>
       </ion-segment>
     </ion-card-header>

@@ -315,9 +315,9 @@ export class SerialNoAggregateService extends AggregateRoot {
                         } else {
                           erp_item.excel_serials = erp_item.excel_serials
                             ? erp_item.excel_serials +
-                              ',' +
-                              payload_item.serial_no.join(',')
-                            : payload_item.serial_no.join(',');
+                              ', ' +
+                              payload_item.serial_no.join(', ')
+                            : payload_item.serial_no.join(', ');
                         }
                       }
                     });
