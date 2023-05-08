@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { switchMap, mergeMap, catchError, retry } from 'rxjs/operators';
+import { switchMap, mergeMap, catchError, retry, map } from 'rxjs/operators';
 import {
   VALIDATE_AUTH_STRING,
   COMPLETED_STATUS,
@@ -11,6 +11,7 @@ import {
   SYNC_DELIVERY_NOTE_JOB,
   DEFAULT_NAMING_SERIES,
   DEFAULT_CURRENCY,
+  NON_SERIAL_ITEM,
 } from '../../../constants/app-strings';
 import { DirectService } from '../../../direct/aggregates/direct/direct.service';
 import { SerialNoService } from '../../../serial-no/entity/serial-no/serial-no.service';
@@ -25,7 +26,6 @@ import Agenda = require('agenda');
 import { AGENDA_TOKEN } from '../../../system-settings/providers/agenda.provider';
 import { DeliveryNoteJobHelperService } from '../delivery-note-job-helper/delivery-note-job-helper.service';
 import { v4 as uuidv4 } from 'uuid';
-import { TokenCache } from '../../../auth/entities/token-cache/token-cache.entity';
 import { AgendaJobService } from '../../../sync/entities/agenda-job/agenda-job.service';
 import {
   DataImportService,
@@ -47,6 +47,7 @@ import { StockLedger } from '../../../stock-ledger/entity/stock-ledger/stock-led
 import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 import { DeliveryNoteItemDto } from '../../../serial-no/entity/serial-no/assign-serial-dto';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
+import { ItemService } from '../../../item/entity/item/item.service';
 export const CREATE_STOCK_ENTRY_JOB = 'CREATE_STOCK_ENTRY_JOB';
 
 @Injectable()
@@ -64,6 +65,7 @@ export class DeliveryNoteJobService {
     private readonly serialNoHistoryService: SerialNoHistoryService,
     private readonly stockLedgerService: StockLedgerService,
     private readonly settingsService: SettingsService,
+    private readonly itemService: ItemService,
   ) {}
 
   execute(job) {
@@ -105,31 +107,28 @@ export class DeliveryNoteJobService {
 
     this.salesInvoiceService
       .updateOne({ name: job.data.sales_invoice_name }, { $inc: query })
-      .then(success => {
+      .then(() => {
         this.salesInvoiceService
           .findOne({ name: job.data.sales_invoice_name })
           .then(salesInvoice => {
             const status = this.getStatus(salesInvoice);
-            this.salesInvoiceService
-              .updateOne({ name: salesInvoice.name }, { $set: { status } })
-              .then(updated => {})
-              .catch(err => {});
+            this.salesInvoiceService.updateOne(
+              { name: salesInvoice.name },
+              { $set: { status } },
+            );
           })
-          .catch(err => {});
+          .catch(() => {});
       })
-      .catch(err => {});
+      .catch(() => {});
 
-    this.serialNoService
-      .updateMany(
-        { serial_no: { $in: serials } },
-        {
-          $unset: {
-            'queue_state.delivery_note': 1,
-          },
+    this.serialNoService.updateMany(
+      { serial_no: { $in: serials } },
+      {
+        $unset: {
+          'queue_state.delivery_note': 1,
         },
-      )
-      .then(updated => {})
-      .catch(err => {});
+      },
+    );
 
     return of(true);
   }
@@ -145,7 +144,7 @@ export class DeliveryNoteJobService {
   }) {
     let payload = job.payload;
     return of({}).pipe(
-      switchMap(object => {
+      switchMap(() => {
         payload = this.setCsvDefaults(payload, job.settings);
         const csvPayload = this.csvService.mapJsonToCsv(
           payload,
@@ -177,7 +176,7 @@ export class DeliveryNoteJobService {
               job.token.accessToken = token.accessToken;
               return throwError(err);
             }),
-            catchError(error => {
+            catchError(() => {
               return throwError(err);
             }),
           );
@@ -261,9 +260,8 @@ export class DeliveryNoteJobService {
     response: SingleDoctypeResponseInterface,
     token: any,
     settings: ServerSettings,
-    sales_invoice_name,
+    sales_invoice_name: string,
   ) {
-    const serials = [];
     const items = [];
     payload.items.forEach(item => {
       if (item.has_serial_no) {
@@ -312,51 +310,33 @@ export class DeliveryNoteJobService {
             serialHistory.transaction_to = payload.customer;
             this.serialNoHistoryService
               .addSerialHistory(serialArray, serialHistory)
-              .subscribe({
-                next: () => {},
-                error: () => {},
-              });
+              .subscribe();
             return true;
           });
       }
     });
 
-    response.items.filter(item => {
-      if (item.serial_no) {
-        serials.push(
-          ...(typeof item.serial_no === 'string'
-            ? item.serial_no.split('\n')
-            : item.serial_no),
-        );
-      }
-      const filter_obj = {
-        item_code: `${item.item_code}`,
-        warehouse: `${payload.set_warehouse}`,
-      };
-      const $match: any = filter_obj;
-      const where: any = [];
-      where.push({ $match });
-      const $sort: any = {
-        modified: -1,
-      };
-      where.push({ $sort });
-      this.stockLedgerService.asyncAggregate(where).subscribe(ledger => {
-        items.push({
-          item_code: item.item_code,
-          item_name: item.item_name,
-          description: item.description,
-          deliveredBy: token.fullName,
-          deliveredByEmail: token.email,
-          qty: item.qty,
-          rate: ledger[0].valuation_rate,
-          amount: ledger[0].valuation_rate,
-          serial_no: item.serial_no,
-          expense_account: item.expense_account,
-          cost_center: item.cost_center,
-          delivery_note: response.name,
-        });
-        this.salesInvoiceService
-          .updateOne(
+    response.items.forEach(item => {
+      let valuation_rate: number = 0;
+
+      this.itemService
+        .findOne({ item_code: item.item_code })
+        .then(item_details => {
+          valuation_rate = item_details.valuation_rate;
+          items.push({
+            item_code: item.item_code,
+            item_name: item.item_name,
+            description: item.description,
+            deliveredBy: token.fullName,
+            deliveredByEmail: token.email,
+            qty: item.qty,
+            rate: item_details.valuation_rate,
+            amount: item_details.valuation_rate,
+            serial_no: item.serial_no || NON_SERIAL_ITEM,
+            delivery_note: response.name,
+          });
+
+          this.salesInvoiceService.updateOne(
             { name: sales_invoice_name },
             {
               $push: {
@@ -364,50 +344,14 @@ export class DeliveryNoteJobService {
                 delivery_note_names: response.name,
               },
             },
-          )
-          .then(() => {})
-          .catch(() => {});
-      });
-    });
+          );
+        });
 
-    from(payload.items).forEach((item: DeliveryNoteItemDto) => {
-      // fetch latest incoming item's ledger report
-      const filter_obj = {
-        item_code: `${item.item_code}`,
-        warehouse: `${payload.set_warehouse}`,
-        actual_qty: { $gt: 0 },
-      };
-      const $match: any = filter_obj;
-      const where: any = [];
-      where.push({ $match });
-      const $sort: any = {
-        modified: -1,
-      };
-      where.push({ $sort });
+      // fetch stock availability
       return this.stockLedgerService
-        .asyncAggregate(where)
-        .pipe(
-          switchMap((latest_ledger: StockLedger) => {
-            // fetch available stock
-            const filter_query = [
-              ['item_code', 'like', `${item.item_code}`],
-              ['warehouse', 'like', `${payload.set_warehouse}`],
-              ['actual_qty', '!=', 0],
-            ];
-
-            const filter_Obj: any = {};
-            filter_query.forEach(element => {
-              if (element[0] === 'item_code') {
-                filter_Obj['item.item_code'] = element[2];
-              }
-              if (element[0] === 'warehouse') {
-                filter_Obj['_id.warehouse'] = element[2];
-              }
-              if (element[1] === '!=') {
-                filter_Obj.stockAvailability = { $gt: element[2] };
-              }
-            });
-            const obj: any = {
+        .asyncAggregate([
+          {
+            $group: {
               _id: {
                 warehouse: '$warehouse',
                 item_code: '$item_code',
@@ -415,34 +359,40 @@ export class DeliveryNoteJobService {
               stockAvailability: {
                 $sum: '$actual_qty',
               },
-            };
-            const $group: any = obj;
-            const where: any = [];
-            where.push({ $group });
-            const $lookup: any = {
+            },
+          },
+          {
+            $lookup: {
               from: 'item',
               localField: '_id.item_code',
               foreignField: 'item_code',
               as: 'item',
-            };
-            where.push({ $lookup });
-            const $unwind: any = '$item';
-            where.push({ $unwind });
-            const $match: any = filter_Obj;
-            where.push({ $match });
-            return this.stockLedgerService.asyncAggregate(where).pipe(
-              switchMap(data => {
-                return this.createStockLedgerPayload(
-                  { warehouse: payload.set_warehouse, deliveryNoteItem: item },
-                  token,
-                  settings,
-                  latest_ledger,
-                  data,
-                ).pipe(
-                  switchMap((response: StockLedger) => {
-                    return from(this.stockLedgerService.create(response));
-                  }),
-                );
+            },
+          },
+          { $unwind: '$item' },
+          {
+            $match: {
+              'item.item_code': item.item_code,
+              '_id.warehouse': payload.set_warehouse,
+              stockAvailability: { $gt: 0 },
+            },
+          },
+        ])
+        .pipe(
+          map(data => data[0]),
+          switchMap(res => {
+            return this.createStockLedgerPayload(
+              {
+                warehouse: payload.set_warehouse,
+                deliveryNoteItem: item,
+              },
+              token,
+              settings,
+              valuation_rate,
+              res?.stockAvailability || 0,
+            ).pipe(
+              switchMap((response: StockLedger) => {
+                return from(this.stockLedgerService.create(response));
               }),
             );
           }),
@@ -455,18 +405,11 @@ export class DeliveryNoteJobService {
 
   createStockLedgerPayload(
     payload: { warehouse: string; deliveryNoteItem: DeliveryNoteItemDto },
-    token,
+    token: any,
     settings: ServerSettings,
-    latest_ledger,
-    data,
+    valuation_rate: number,
+    stock_availability: number,
   ) {
-    const available_stock = data[0]?.stockAvailability
-      ? data[0].stockAvailability
-      : 0;
-    const current_valuation = latest_ledger[0].valuation_rate
-      ? latest_ledger[0].valuation_rate
-      : 0;
-
     return this.settingsService.getFiscalYear(settings).pipe(
       switchMap(fiscalYear => {
         const date = new DateTime(settings.timeZone).toJSDate();
@@ -477,19 +420,17 @@ export class DeliveryNoteJobService {
         stockPayload.warehouse = payload.warehouse;
         stockPayload.item_code = payload.deliveryNoteItem.item_code;
         stockPayload.actual_qty = -payload.deliveryNoteItem.qty;
-        stockPayload.balance_qty = available_stock - -stockPayload.actual_qty;
-        stockPayload.valuation_rate = current_valuation;
+        stockPayload.balance_qty =
+          stock_availability - -stockPayload.actual_qty;
+        stockPayload.valuation_rate = valuation_rate;
         stockPayload.balance_value = parseFloat(
           (stockPayload.balance_qty * stockPayload.valuation_rate).toFixed(2),
         );
-        stockPayload.batch_no = '';
         stockPayload.posting_date = date;
         stockPayload.posting_time = date;
         stockPayload.voucher_type = DELIVERY_NOTE_DOCTYPE;
         stockPayload.voucher_no =
           payload.deliveryNoteItem.against_sales_invoice;
-        stockPayload.voucher_detail_no = '';
-        stockPayload.incoming_rate = 0;
         stockPayload.outgoing_rate = payload.deliveryNoteItem.rate;
         stockPayload.qty_after_transaction = stockPayload.actual_qty;
         stockPayload.stock_value =
@@ -538,33 +479,6 @@ export class DeliveryNoteJobService {
       }
     });
     return this.agenda.now(FRAPPE_QUEUE_JOB, data);
-  }
-
-  syncImport(job: {
-    payload: DataImportSuccessResponse;
-    uuid: string;
-    type: string;
-    settings: ServerSettings;
-    token: TokenCache;
-  }) {
-    return this.importData.syncImport(job, DELIVERY_NOTE_DOCTYPE).pipe(
-      switchMap(
-        (response: {
-          parent_job: { value: { data: any } };
-          state: { doc: any };
-        }) => {
-          const parent_data = response.parent_job.value.data;
-          this.linkDeliveryNote(
-            parent_data.payload,
-            response.state.doc,
-            job.token,
-            job.settings,
-            parent_data.parent,
-          );
-          return of();
-        },
-      ),
-    );
   }
 
   addToExportedQueue(job: {
