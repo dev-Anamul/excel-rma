@@ -26,6 +26,8 @@ export interface CreateDeliveryNoteInterface {
 
 export interface CreateDeliveryNoteItemInterface {
   item_code: string;
+  item_name?: string;
+  description?:string
   qty?: number;
   rate?: number;
   amount?: number;

@@ -307,10 +307,7 @@ export class SerialNoAggregateService extends AggregateRoot {
                   assignPayload.items.forEach(payload_item => {
                     erp_invoice.items.forEach(erp_item => {
                       if (payload_item.item_code === erp_item.item_code) {
-                        if (
-                          payload_item.has_serial_no === 0 &&
-                          !erp_item.excel_serials
-                        ) {
+                        if (payload_item.has_serial_no === 0) {
                           erp_item.excel_serials = NON_SERIAL_ITEM;
                         } else {
                           erp_item.excel_serials = erp_item.excel_serials
