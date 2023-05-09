@@ -329,6 +329,7 @@ export class SalesInvoiceDetails {
   remarks?: string;
   sales_team?: any[];
   delivery_status: string;
+  returned_items?: any[];
 }
 
 export class SalesInvoiceItem {
