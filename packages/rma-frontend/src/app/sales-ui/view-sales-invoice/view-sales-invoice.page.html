@@ -5,7 +5,8 @@
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title> Sales Invoice </ion-title>
+    <ion-title *ngIf="sales_invoice_name"> {{ sales_invoice_name }} </ion-title>
+    <ion-title *ngIf="!sales_invoice_name"> Sales Invoice </ion-title>
     <ion-buttons slot="end" *ngIf="sales_invoice_name">
       <ion-button (click)="showJobs()" color="primary"> Jobs </ion-button>
     </ion-buttons>
@@ -57,8 +58,8 @@
         </ion-segment-button>
         <ion-segment-button
           value="5"
-          disabled=" {{ isCampaign ? true : false }} "
-          *ngIf="status !== 'Canceled' && sales_invoice_name && showReturnTab && permissionState.credit_note.active"
+          [disabled]="showCreditNotesTab"
+          *ngIf="status !== 'Canceled' && sales_invoice_name && !showCreditNotesTab && permissionState.credit_note.active"
         >
           <ion-label> Credit Notes </ion-label>
         </ion-segment-button>

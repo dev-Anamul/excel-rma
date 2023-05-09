@@ -18,8 +18,8 @@ export class ViewSalesInvoicePage implements OnInit {
   selectedSegment: any;
   sales_invoice_name: string = '';
   invoiceUuid: string = '';
-  showReturnTab: boolean;
-  isCampaign: boolean;
+  disableReturnsTab: boolean;
+  showCreditNotesTab: boolean;
   status: string = '';
   permissionState = PERMISSION_STATE;
 
@@ -34,7 +34,6 @@ export class ViewSalesInvoicePage implements OnInit {
 
   ngOnInit() {
     this.selectedSegment = 0;
-    this.showReturnTab = false;
     this.invoiceUuid = this.route.snapshot.params.invoiceUuid;
     this.siSubject.data
       .pipe(
@@ -45,7 +44,7 @@ export class ViewSalesInvoicePage implements OnInit {
         }),
       )
       .subscribe({
-        next: res => {
+        next: (res: SalesInvoiceDetails) => {
           this.updateView(res);
         },
         error: error => {},
@@ -78,9 +77,9 @@ export class ViewSalesInvoicePage implements OnInit {
     this.location.back();
   }
 
-  updateView(res) {
-    this.isCampaign = res.isCampaign;
-    this.showReturnTab =
+  updateView(res: SalesInvoiceDetails) {
+    this.showCreditNotesTab = res.returned_items.length ? false : true;
+    this.disableReturnsTab =
       Object.keys(res.delivered_items_map).length === 0 ? false : true;
     this.sales_invoice_name = res.name;
     this.status = res.status;
