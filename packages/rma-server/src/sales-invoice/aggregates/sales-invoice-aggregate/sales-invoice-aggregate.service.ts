@@ -570,7 +570,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
           sales_invoice_name: salesInvoice.name,
           'warranty.soldOn': salesInvoice.posting_date,
           warehouse: salesInvoice.delivery_warehouse,
-          delivery_note: deliveryHistory.document_no,
+          delivery_note: deliveryHistory?.document_no,
         },
         $unset: { sales_return_name: undefined },
       },

@@ -118,7 +118,7 @@
       </ng-container>
 
       <ng-container matColumnDef="sr_no">
-        <mat-header-cell *matHeaderCellDef>No </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> No </mat-header-cell>
         <mat-cell *matCellDef="let row; let i = index">
           {{ i + 1 }}
         </mat-cell>
@@ -126,7 +126,7 @@
       </ng-container>
 
       <ng-container matColumnDef="item_name">
-        <mat-header-cell *matHeaderCellDef>Item Name</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Item Name </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ng-container>
             {{ row.item_name }}
@@ -135,7 +135,7 @@
       </ng-container>
 
       <ng-container matColumnDef="qty">
-        <mat-header-cell *matHeaderCellDef>Quantity</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Quantity </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ng-container>
             {{ row.qty }}
@@ -144,7 +144,7 @@
       </ng-container>
 
       <ng-container matColumnDef="assigned">
-        <mat-header-cell *matHeaderCellDef>Assigned</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Assigned </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ng-container>
             {{ row.assigned || 0 }}
@@ -153,14 +153,14 @@
       </ng-container>
 
       <ng-container matColumnDef="remaining">
-        <mat-header-cell *matHeaderCellDef>Remaining</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Remaining </mat-header-cell>
         <mat-cell *matCellDef="let row">
           {{ row.remaining || 0 }}
         </mat-cell>
       </ng-container>
 
       <ng-container matColumnDef="has_serial_no">
-        <mat-header-cell *matHeaderCellDef>Has Serial</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Has Serial </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <mat-checkbox
             class="example-margin"
@@ -172,7 +172,7 @@
       </ng-container>
 
       <ng-container matColumnDef="add_serial">
-        <mat-header-cell *matHeaderCellDef>Add Serials</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Add Serials </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ion-button
             [disabled]="row.remaining === 0"
@@ -201,7 +201,7 @@
   <ion-card-content class="ion-no-padding">
     <mat-table #table [dataSource]="serialDataSource" style="width: 100%">
       <ng-container matColumnDef="sr_no">
-        <mat-header-cell *matHeaderCellDef>No </mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> No </mat-header-cell>
         <mat-cell *matCellDef="let row; let i = index">
           {{ i + 1 }}
         </mat-cell>
@@ -209,7 +209,7 @@
       </ng-container>
 
       <ng-container matColumnDef="item_name">
-        <mat-header-cell *matHeaderCellDef>Item Name</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Item Name </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ng-container>
             {{ row.item_name }}
@@ -218,7 +218,7 @@
       </ng-container>
 
       <ng-container matColumnDef="qty">
-        <mat-header-cell *matHeaderCellDef>Quantity</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Quantity </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <ng-container>
             {{ row.qty }}
@@ -227,7 +227,7 @@
       </ng-container>
 
       <ng-container matColumnDef="warranty_date">
-        <mat-header-cell *matHeaderCellDef>Warranty Date</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Warranty Date </mat-header-cell>
         <mat-cell *matCellDef="let row">
           <input
             class="full-width"
@@ -245,7 +245,7 @@
       </ng-container>
 
       <ng-container matColumnDef="serial_no">
-        <mat-header-cell *matHeaderCellDef>Serials</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Serials </mat-header-cell>
         <mat-cell *matCellDef="let row; let i = index">
           <input
             (keyup.enter)="onSerialKepUp(i)"
@@ -263,7 +263,7 @@
       </ng-container>
 
       <ng-container matColumnDef="delete">
-        <mat-header-cell *matHeaderCellDef>Delete Serials</mat-header-cell>
+        <mat-header-cell *matHeaderCellDef> Delete Serials </mat-header-cell>
         <mat-cell *matCellDef="let row; let i = index">
           <ion-button color="danger" fill="clear" (click)="deleteRow(row, i)">
             <ion-icon name="trash"></ion-icon>
