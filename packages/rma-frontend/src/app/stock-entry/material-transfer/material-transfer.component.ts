@@ -733,7 +733,7 @@ export class MaterialTransferComponent implements OnInit {
       },
       error: err => {
         this.submit = false;
-        this.getMessage(err.error.message);
+        this.getMessage(err?.error?.message);
       },
     });
   }
