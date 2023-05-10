@@ -747,6 +747,7 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
       item.sales_return_name = sales_return_name;
       return item;
     });
+    console.log('serials ', serials); // eslint-disable-line
 
     this.serialNoService
       .updateMany(
