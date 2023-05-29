@@ -10,8 +10,9 @@ import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MaterialModule } from '../../material/material.module';
-import { SalesService } from '../../sales-ui/services/sales.service';
 import { CsvJsonService } from '../../api/csv-json/csv-json.service';
+import { StockLedgerService } from '../services/stock-ledger/stock-ledger.service';
+import { SalesService } from 'src/app/sales-ui/services/sales.service';
 
 describe('StockAvailabilityPage', () => {
   let component: StockAvailabilityPage;
@@ -32,21 +33,25 @@ describe('StockAvailabilityPage', () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         {
+          provide: CsvJsonService,
+          useValue: {},
+        },
+        {
+          provide: StockLedgerService,
+          useValue: {
+            listStockLedger: (...args) => of([]),
+          },
+        },
+        {
           provide: SalesService,
           useValue: {
-            getItemList: () => of([{}]),
-            getDocCount: (...args) => of(0),
-            relayStockAvailabilityList: () => of(),
+            getItemList: (...args) => of([]),
             getStore: () => ({
-              getItemAsync: (...args) => of([]),
+              getItemAsync: (...args) => Promise.resolve({}),
             }),
             getItemGroupList: (...args) => of([]),
             getItemBrandList: (...args) => of([]),
           },
-        },
-        {
-          provide: CsvJsonService,
-          useValue: {},
         },
       ],
     }).compileComponents();

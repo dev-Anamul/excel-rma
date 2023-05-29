@@ -20,7 +20,7 @@ export class StockLedgerController {
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
   getStockSummaryList(@Query() query: PurchaseInvoiceListQueryDto, @Req() req) {
     const { offset, limit, sort, filter_query } = query;
-    let filter;
+    let filter = {};
     try {
       filter = JSON.parse(filter_query);
     } catch {
@@ -40,89 +40,49 @@ export class StockLedgerController {
     return this.stockLedgerAggregate.getVoucherTypeList();
   }
 
-  @Get('v1/list')
+  @Get('v1/ledger_report')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
-  async getPurchaseInvoiceList(@Query() query, @Req() req) {
-    const { limit_start, limit_page_length, filters } = query;
-    let filter;
-    const sort = 'ASC';
+  async getLedgerReport(
+    @Query('offset') offset = 0,
+    @Query('limit') limit = 10,
+    @Query('sort') sort: any,
+    @Query('query') query: any,
+  ) {
+    let filter = {};
     try {
-      filter = JSON.parse(decodeURIComponent(filters));
+      filter = JSON.parse(query);
     } catch {
       filter;
     }
-    return await this.stockLedgerAggregate.getStockLedgerList(
-      Number(limit_start) || 0,
-      Number(limit_page_length) || 10,
+    return await this.stockLedgerAggregate.listLedgerReport(
+      Number(offset) || 0,
+      Number(limit) || 10,
+      filter,
       sort,
-      filter,
-      req,
     );
   }
 
-  @Get('v1/ledger-report')
+  @Get('v1/list_stock_ledger')
   @UseGuards(TokenGuard)
   @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
-  async getLedgerReport(@Query() query, @Req() req) {
-    const { limit_start, limit_page_length, filters, date } = query;
-    let filter;
-    let rangeDate;
+  async listStockLedger(
+    @Query('offset') offset = 0,
+    @Query('limit') limit = 10,
+    @Query('sort') sort: any,
+    @Query('query') query: any,
+  ) {
+    let filter = {};
     try {
-      filter = JSON.parse(decodeURIComponent(filters));
-      rangeDate = JSON.parse(date);
+      filter = JSON.parse(query);
     } catch {
       filter;
     }
-    return await this.stockLedgerAggregate.getLedgerReportList(
-      Number(limit_start) || 0,
-      Number(limit_page_length) || 10,
+    return await this.stockLedgerAggregate.listStockLedger(
+      Number(offset) || 0,
+      Number(limit) || 10,
       filter,
-      req,
-      rangeDate,
-    );
-  }
-
-  @Get('v1/ledger-report-count')
-  @UseGuards(TokenGuard)
-  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
-  async getLedgerReportCount(@Query() query, @Req() req) {
-    const { limit_start, limit_page_length, filters, date } = query;
-    let filter;
-    let rangeDate;
-    try {
-      filter = JSON.parse(decodeURIComponent(filters));
-      rangeDate = JSON.parse(date);
-    } catch {
-      filter;
-    }
-    return await this.stockLedgerAggregate.getLedgerReportListCount(
-      Number(limit_start) || 0,
-      Number(limit_page_length) || 10,
-      filter,
-      req,
-      rangeDate,
-    );
-  }
-
-  @Get('v1/list_count')
-  @UseGuards(TokenGuard)
-  @UsePipes(new ValidationPipe({ forbidNonWhitelisted: true }))
-  async getPurchaseInvoiceListCount(@Query() query, @Req() req) {
-    const { limit_start, limit_page_length, filters } = query;
-    let filter;
-    const sort = 'ASC';
-    try {
-      filter = JSON.parse(filters);
-    } catch {
-      filter;
-    }
-    return await this.stockLedgerAggregate.getStockLedgerListCount(
-      Number(limit_start) || 0,
-      Number(limit_page_length) || 10,
       sort,
-      filter,
-      req,
     );
   }
 }

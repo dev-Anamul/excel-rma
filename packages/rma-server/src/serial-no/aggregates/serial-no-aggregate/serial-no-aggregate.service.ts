@@ -228,6 +228,11 @@ export class SerialNoAggregateService extends AggregateRoot {
             );
           }),
           switchMap(() => {
+            return this.assignSerialNoPolicyService.validateStock(
+              assignPayload,
+            );
+          }),
+          switchMap(() => {
             return this.deliveryNoteAggregateService.createDeliveryNote(
               assignPayload,
               clientHttpRequest,

@@ -4,6 +4,7 @@ import { SerialNoService } from '../../entity/serial-no/serial-no.service';
 import { ItemService } from '../../../item/entity/item/item.service';
 import { SettingsService } from '../../../system-settings/aggregates/settings/settings.service';
 import { SalesInvoiceService } from '../../../sales-invoice/entity/sales-invoice/sales-invoice.service';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 describe('AssignSerialNoPoliciesService', () => {
   let service: AssignSerialNoPoliciesService;
@@ -26,6 +27,10 @@ describe('AssignSerialNoPoliciesService', () => {
         },
         {
           provide: SalesInvoiceService,
+          useValue: {},
+        },
+        {
+          provide: StockLedgerService,
           useValue: {},
         },
       ],

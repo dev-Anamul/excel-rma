@@ -1,7 +1,7 @@
 import { DataSource, CollectionViewer } from '@angular/cdk/collections';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, catchError, finalize } from 'rxjs/operators';
-import { SalesService } from '../../sales-ui/services/sales.service';
+import { StockLedgerService } from '../../stock-entry/services/stock-ledger/stock-ledger.service';
 
 export interface ListingData {
   item_code: string;
@@ -20,7 +20,7 @@ export interface ListingData {
   balance_value: number;
 }
 
-export interface ItemListResponse {
+export interface ListResponse {
   docs: ListingData[];
   length: number;
   offset: number;
@@ -35,7 +35,7 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
 
   loading$ = this.loadingSubject.asObservable();
 
-  constructor(private readonly salesService: SalesService) {
+  constructor(private readonly stockLedgerService: StockLedgerService) {
     super();
   }
 
@@ -48,44 +48,26 @@ export class StockLedgerDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(
-    pageIndex = 0,
-    pageSize = 30,
-    filters = [],
-    countFilter = [],
-    dateSearch = '',
-  ) {
+  loadItems(pageIndex = 0, pageSize = 30, filters?: any, sortOrder?: any) {
     this.loadingSubject.next(true);
-    this.salesService
-      .getStockLedger(pageIndex, pageSize, filters, dateSearch)
+    this.stockLedgerService
+      .listLedgerReport(pageIndex, pageSize, filters, sortOrder)
       .pipe(
-        map((items: ListingData[]) => {
-          this.data = items;
-          items.forEach(item => {
-            if (item.transfer_in_id) {
-              item.voucher_no = item.transfer_in_id;
+        map((res: ListResponse) => {
+          res.docs.forEach((ledger: any) => {
+            if (ledger.item.transfer_in_id) {
+              ledger.voucher_no = ledger.item.transfer_in_id;
             }
           });
-          return items;
+          this.data = res.docs;
+          this.length = res.length[0].total;
+          this.offset = res.offset;
+          return res.docs;
         }),
         catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
       )
       .subscribe(items => this.itemSubject.next(items));
-
-    this.salesService
-      .getLedgerCount(pageIndex, pageSize, filters, dateSearch)
-      .subscribe({
-        next: res => {
-          if (Object.keys(res).length > 0) {
-            res.forEach(element => {
-              this.length = element.count;
-            });
-          } else {
-            this.length = 0;
-          }
-        },
-      });
   }
 
   getData() {

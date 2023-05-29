@@ -10,6 +10,7 @@ import { SalesInvoiceEntitiesModule } from '../sales-invoice/entity/entity.modul
 import { DeliveryNoteModule } from '../delivery-note/delivery-note.module';
 import { DirectModule } from '../direct/direct.module';
 import { SerialNoPolicies } from './policies';
+import { StockLedgerModule } from '../stock-ledger/stock-ledger.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SerialNoPolicies } from './policies';
     SalesInvoiceEntitiesModule,
     DeliveryNoteModule,
     DirectModule,
+    StockLedgerModule,
   ],
   controllers: [SerialNoController],
   providers: [
