@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { StockLedgerReportComponent } from './stock-ledger-report.component';
+import { StockLedgerReportPage } from './stock-ledger-report.page';
 
 const routes: Routes = [
   {
     path: '',
-    component: StockLedgerReportComponent,
+    component: StockLedgerReportPage,
   },
 ];
 @NgModule({

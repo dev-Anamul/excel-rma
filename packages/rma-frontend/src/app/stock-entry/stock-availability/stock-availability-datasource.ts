@@ -1,7 +1,7 @@
 import { DataSource, CollectionViewer } from '@angular/cdk/collections';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, catchError, finalize } from 'rxjs/operators';
-import { SalesService } from '../../sales-ui/services/sales.service';
+import { StockLedgerService } from '../services/stock-ledger/stock-ledger.service';
 
 export interface ListingData {
   actual_qty: number;
@@ -13,7 +13,7 @@ export interface ListingData {
   warehouse: string;
 }
 
-export interface ItemListResponse {
+export interface ListResponse {
   docs: ListingData[];
   length: number;
   offset: number;
@@ -28,7 +28,7 @@ export class StockAvailabilityDataSource extends DataSource<ListingData> {
 
   loading$ = this.loadingSubject.asObservable();
 
-  constructor(private readonly salesService: SalesService) {
+  constructor(private readonly stockLedgerService: StockLedgerService) {
     super();
   }
 
@@ -41,31 +41,21 @@ export class StockAvailabilityDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(pageIndex = 0, pageSize = 30, filters = []) {
+  loadItems(pageIndex = 0, pageSize = 30, filters?: any, sortOrder?: any) {
     this.loadingSubject.next(true);
-    this.salesService
-      .relayStockAvailabilityList(pageIndex, pageSize, filters)
+    this.stockLedgerService
+      .listStockLedger(pageIndex, pageSize, filters, sortOrder)
       .pipe(
-        map((items: ListingData[]) => {
-          this.data = items;
-          return items;
+        map((res: ListResponse) => {
+          this.data = res.docs;
+          this.length = res.length[0].total;
+          this.offset = res.offset;
+          return res.docs;
         }),
         catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
       )
       .subscribe(items => this.itemSubject.next(items));
-
-    this.salesService.getDocCount(pageIndex, pageSize, filters).subscribe({
-      next: res => {
-        if (res) {
-          res.forEach(element => {
-            this.length = element.count;
-          });
-        } else {
-          this.length = 0;
-        }
-      },
-    });
   }
 
   getData() {

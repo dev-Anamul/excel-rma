@@ -7,7 +7,12 @@ import { StockAvailabilityDataSource } from './stock-availability-datasource';
 import { SalesService } from '../../sales-ui/services/sales.service';
 import { Observable, of } from 'rxjs';
 import { ValidateInputSelected } from '../../common/pipes/validators';
-import { startWith, switchMap } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  startWith,
+  switchMap,
+} from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { WAREHOUSES } from '../../constants/app-string';
 import { CsvJsonService } from '../../api/csv-json/csv-json.service';
@@ -15,6 +20,7 @@ import {
   STOCK_AVAILABILITY_CSV_FILE,
   STOCK_AVAILABILITY_DOWNLOAD_HEADERS,
 } from '../../constants/app-string';
+import { StockLedgerService } from '../services/stock-ledger/stock-ledger.service';
 @Component({
   selector: 'app-stock-availability',
   templateUrl: './stock-availability.page.html',
@@ -27,21 +33,26 @@ export class StockAvailabilityPage implements OnInit {
   defaultCompany: string;
   displayedColumns = [
     'sr_no',
-    'excel_item_name',
+    'item_name',
     'item_code',
-    'excel_item_group',
-    'excel_item_brand',
+    'item_group',
+    'item_brand',
     'warehouse',
     'actual_qty',
   ];
-  filters: any = [];
-  countFilter: any = {};
-  stockAvailabilityForm: FormGroup;
-  filteredStockAvailabilityList: Observable<any>;
+  sortQuery: any = {};
+  stockAvailabilityForm: FormGroup = new FormGroup({
+    item_name: new FormControl(),
+    warehouse: new FormControl(),
+    item_group: new FormControl(),
+    item_brand: new FormControl(),
+    zero_stock: new FormControl(),
+  });
+  filteredItemNameList: Observable<any>;
   filteredWarehouseList: Observable<any[]>;
-  validateInput: any = ValidateInputSelected;
   filteredItemGroupList: Observable<any>;
   filteredItemBrandList: Observable<any>;
+  validateInput: any = ValidateInputSelected;
 
   get f() {
     return this.stockAvailabilityForm.controls;
@@ -50,175 +61,132 @@ export class StockAvailabilityPage implements OnInit {
   constructor(
     private readonly location: Location,
     private readonly salesService: SalesService,
+    private readonly stockLedgerService: StockLedgerService,
     private readonly route: ActivatedRoute,
     private readonly csvService: CsvJsonService,
   ) {}
 
   ngOnInit() {
-    this.createFormGroup();
+    this.setAutoComplete();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
-    if (!this.f.actual_qty.value) {
-      this.filters.push(['actual_qty', '!=', 0]);
-      this.countFilter.actual_qty = ['!=', 0];
-    }
-    this.dataSource = new StockAvailabilityDataSource(this.salesService);
-    this.dataSource.loadItems(0, 30, this.filters);
-
-    this.filteredStockAvailabilityList = this.stockAvailabilityForm
-      .get('itemName')
-      .valueChanges.pipe(
-        startWith(''),
-        switchMap(value => {
-          return this.salesService.getItemList(value);
-        }),
-      );
-
-    this.filteredWarehouseList = this.stockAvailabilityForm
-      .get('warehouse')
-      .valueChanges.pipe(
-        startWith(''),
-        switchMap(value => {
-          return this.salesService.getStore().getItemAsync(WAREHOUSES, value);
-        }),
-      );
-
-    this.filteredItemGroupList = this.stockAvailabilityForm
-      .get('excel_item_group')
-      .valueChanges.pipe(
-        startWith(''),
-        switchMap(value => {
-          return this.salesService.getItemGroupList(value);
-        }),
-        switchMap(data => {
-          return of(data);
-        }),
-      );
-
-    this.filteredItemBrandList = this.stockAvailabilityForm
-      .get('excel_item_brand')
-      .valueChanges.pipe(
-        startWith(''),
-        switchMap(value => {
-          return this.salesService.getItemBrandList(value);
-        }),
-        switchMap(data => {
-          return of(data);
-        }),
-      );
-  }
-
-  getItemBrandOption(option) {
-    if (option) {
-      if (option.brand) {
-        return `${option.brand}`;
-      }
-      return option.brand;
-    }
-  }
-
-  createFormGroup() {
-    this.stockAvailabilityForm = new FormGroup({
-      itemName: new FormControl(),
-      warehouse: new FormControl(),
-      excel_item_group: new FormControl(),
-      excel_item_brand: new FormControl(),
-      actual_qty: new FormControl(),
-    });
-  }
-
-  getStockAvailabilityOption(option) {
-    if (option) {
-      return option.item_name;
-    }
-  }
-
-  getWarehouseOption(option) {
-    if (option) {
-      return option.name;
-    }
-  }
-
-  clearFilters() {
-    this.f.itemName.setValue('');
-    this.f.warehouse.setValue('');
-    this.f.excel_item_brand.setValue('');
-    this.f.excel_item_group.setValue('');
+    this.dataSource = new StockAvailabilityDataSource(this.stockLedgerService);
     this.setFilter();
-  }
-
-  getUpdate(event) {
-    this.dataSource.loadItems(event.pageIndex, event.pageSize, this.filters);
-  }
-
-  setFilter() {
-    this.filters = [];
-    this.countFilter = {};
-
-    if (this.f.itemName.value) {
-      this.filters.push([
-        'item_code',
-        'like',
-        `${this.f.itemName.value.item_code}`,
-      ]);
-      this.countFilter.item_code = [
-        'like',
-        `${this.f.itemName.value.item_code}`,
-      ];
-    }
-
-    if (this.f.warehouse.value) {
-      this.filters.push(['warehouse', 'like', `${this.f.warehouse.value}`]);
-      this.countFilter.warehouse = ['like', `${this.f.warehouse.value}`];
-    }
-
-    if (this.f.excel_item_group.value) {
-      this.filters.push([
-        'excel_item_group',
-        'like',
-        `${this.f.excel_item_group.value.name}`,
-      ]);
-      this.countFilter.excel_item_group = [
-        'like',
-        `${this.f.excel_item_group.value.name}`,
-      ];
-    }
-
-    if (this.f.excel_item_brand.value) {
-      this.filters.push([
-        'excel_item_brand',
-        'like',
-        `${this.f.excel_item_brand.value.brand}`,
-      ]);
-      this.countFilter.excel_item_brand = [
-        'like',
-        `${this.f.excel_item_brand.value.brand}`,
-      ];
-    }
-
-    if (!this.f.actual_qty.value) {
-      this.filters.push(['actual_qty', '!=', 0]);
-      this.countFilter.actual_qty = ['!=', 0];
-    } else {
-      this.filters.push(['actual_qty', '==', 0]);
-      this.countFilter.actual_qty = ['==', 0];
-    }
-
-    this.dataSource.loadItems(0, 30, this.filters);
   }
 
   navigateBack() {
     this.location.back();
   }
 
-  getItemGroupOption(option) {
-    if (option) {
-      if (option.item_group_name) {
-        return `${option.item_group_name}`;
+  setAutoComplete() {
+    this.filteredItemNameList = this.f.item_name.valueChanges.pipe(
+      startWith(''),
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap(value => {
+        return this.salesService.getItemList(value);
+      }),
+    );
+
+    this.filteredWarehouseList = this.f.warehouse.valueChanges.pipe(
+      startWith(''),
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap(value => {
+        return this.salesService.getStore().getItemAsync(WAREHOUSES, value);
+      }),
+    );
+
+    this.filteredItemGroupList = this.f.item_group.valueChanges.pipe(
+      startWith(''),
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap(value => {
+        return this.salesService.getItemGroupList(value);
+      }),
+      switchMap(data => {
+        return of(data);
+      }),
+    );
+
+    this.filteredItemBrandList = this.f.item_brand.valueChanges.pipe(
+      startWith(''),
+      distinctUntilChanged(),
+      debounceTime(1000),
+      switchMap(value => {
+        return this.salesService.getItemBrandList(value);
+      }),
+      switchMap(data => {
+        return of(data);
+      }),
+    );
+  }
+
+  clearFilters() {
+    this.stockAvailabilityForm.reset();
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
+    this.dataSource.loadItems(
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      undefined,
+      this.sortQuery,
+    );
+  }
+
+  getUpdate(event) {
+    const query: any = {};
+    if (this.f.item_name.value)
+      query.item_code = this.f.item_name.value.item_code;
+    if (this.f.warehouse.value) query.warehouse = this.f.warehouse.value;
+    if (this.f.item_group.value) query.item_group = this.f.item_group.value;
+    if (this.f.item_brand.value) query.item_brand = this.f.item_brand.value;
+    if (this.f.zero_stock.value) query.zero_stock = this.f.zero_stock_value;
+
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
+    this.dataSource.loadItems(
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      this.sortQuery,
+    );
+  }
+
+  setFilter(event?: any) {
+    const query: any = {};
+    if (this.f.item_name.value)
+      query.item_code = this.f.item_name.value.item_code;
+    if (this.f.warehouse.value) query.warehouse = this.f.warehouse.value;
+    if (this.f.item_group.value) query.item_group = this.f.item_group.value;
+    if (this.f.item_brand.value) query.item_brand = this.f.item_brand.value;
+    if (this.f.zero_stock.value) query.zero_stock = this.f.zero_stock.value;
+
+    if (event) {
+      for (const key of Object.keys(event)) {
+        if (key === 'active' && event.direction !== '') {
+          this.sortQuery[event[key]] = event.direction;
+        }
       }
-      return option.item_group_name;
     }
+
+    this.sortQuery =
+      Object.keys(this.sortQuery).length === 0
+        ? { item_code: 'DESC' }
+        : this.sortQuery;
+
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
+    this.dataSource.loadItems(
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
+      query,
+      this.sortQuery,
+    );
   }
 
   downloadServiceInvoices() {
@@ -255,5 +223,9 @@ export class StockAvailabilityPage implements OnInit {
       }
     });
     return serializedArray;
+  }
+
+  getItemName(option: any) {
+    return option ? option.item_name : '';
   }
 }

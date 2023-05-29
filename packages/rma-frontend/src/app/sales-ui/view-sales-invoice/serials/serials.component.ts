@@ -71,7 +71,6 @@ export class SerialsComponent implements OnInit {
 
   xlsxData: any;
 
-  value: string;
   date = new FormControl(new Date());
   claimsReceivedDate: string;
   permissionState = PERMISSION_STATE;

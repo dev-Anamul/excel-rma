@@ -8,6 +8,7 @@ import { IonicModule } from '@ionic/angular';
 import { AppCommonModule } from '../common/app-common.module';
 import { AddItemDialog } from './material-transfer/add-item-dialog';
 import { CommonComponentModule } from '../common/components/common-component.module';
+import { StockLedgerService } from './services/stock-ledger/stock-ledger.service';
 
 @NgModule({
   declarations: [MaterialTransferComponent, AddItemDialog],
@@ -27,6 +28,6 @@ import { CommonComponentModule } from '../common/components/common-component.mod
     ]),
   ],
   exports: [],
-  providers: [],
+  providers: [StockLedgerService],
 })
 export class StockEntryModule {}

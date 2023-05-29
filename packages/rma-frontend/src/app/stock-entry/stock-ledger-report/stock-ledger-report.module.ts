@@ -6,7 +6,7 @@ import { IonicModule } from '@ionic/angular';
 
 import { StockLedgerReportRoutingModule } from './stock-ledger-report-routing.module';
 
-import { StockLedgerReportComponent } from './stock-ledger-report.component';
+import { StockLedgerReportPage } from './stock-ledger-report.page';
 import { MaterialModule } from '../../material/material.module';
 import { AppCommonModule } from '../../common/app-common.module';
 
@@ -20,6 +20,6 @@ import { AppCommonModule } from '../../common/app-common.module';
     MaterialModule,
     ReactiveFormsModule,
   ],
-  declarations: [StockLedgerReportComponent],
+  declarations: [StockLedgerReportPage],
 })
 export class StockLedgerReportModule {}

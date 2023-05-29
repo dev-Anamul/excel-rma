@@ -14,9 +14,10 @@ export class StockLedgerAggregateService extends AggregateRoot {
     super();
   }
 
-  // fetch vouchers
   async getVoucherTypeList() {
-    return this.stockLedgerService.distinct();
+    return this.stockLedgerService.distinct('voucher_type', {
+      voucher_type: { $ne: null },
+    });
   }
 
   getStockSummaryList(query: {
@@ -121,7 +122,7 @@ export class StockLedgerAggregateService extends AggregateRoot {
               );
             }),
             toArray(),
-            switchMap(summary => {
+            switchMap((summary: any) => {
               return of({
                 docs: summary,
                 length: summary.length,
@@ -133,315 +134,31 @@ export class StockLedgerAggregateService extends AggregateRoot {
     );
   }
 
-  async getStockLedgerList(offset, limit, sort, filter_query, req) {
-    const filter_Obj: any = {};
-    filter_query.forEach(element => {
-      if (element[0] === 'item_code') {
-        filter_Obj['item.item_code'] = element[2];
-      }
-      if (element[0] === 'excel_item_group') {
-        filter_Obj['item.item_group'] = element[2];
-      }
-      if (element[0] === 'excel_item_brand') {
-        filter_Obj['item.brand'] = element[2];
-      }
-      if (element[0] === 'warehouse') {
-        filter_Obj['_id.warehouse'] = element[2];
-      }
-      if (element[1] === '==') {
-        filter_Obj.stockAvailability = { $lte: element[2] };
-      }
-      if (element[1] === '!=') {
-        filter_Obj.stockAvailability = { $gt: element[2] };
-      }
-    });
-    if (Object.entries(filter_Obj).length !== 0) {
-      const $group: any = {
-        _id: {
-          warehouse: '$warehouse',
-          item_code: '$item_code',
-        },
-        stockAvailability: {
-          $sum: '$actual_qty',
-        },
-      };
-      const $lookup: any = {
-        from: 'item',
-        localField: '_id.item_code',
-        foreignField: 'item_code',
-        as: 'item',
-      };
-      const $sort: any = {
-        '_id.item_code': -1,
-      };
-      const where: any = [
-        { $group },
-        { $lookup },
-        { $unwind: '$item' },
-        { $match: filter_Obj },
-        { $sort },
-        { $skip: offset },
-        { $limit: limit },
-      ];
-      return this.stockLedgerService.asyncAggregate(where);
-    } else {
-      const obj: any = {
-        _id: {
-          warehouse: '$warehouse',
-          item_code: '$item_code',
-        },
-        stockAvailability: {
-          $sum: '$actual_qty',
-        },
-      };
-      const $group: any = obj;
-      const $limit: any = limit;
-      const $skip: any = offset;
-      const $lookup: any = {
-        from: 'item',
-        localField: '_id.item_code',
-        foreignField: 'item_code',
-        as: 'item',
-      };
-      const $unwind: any = '$item';
-      const $sort: any = {
-        '_id.item_code': -1,
-      };
-      const where: any = [
-        { $group },
-        { $lookup },
-        { $unwind },
-        { $sort },
-        { $skip },
-        { $limit },
-      ];
-      return this.stockLedgerService.asyncAggregate(where);
-    }
+  async listStockLedger(
+    offset: number,
+    limit: number,
+    filter_query: any,
+    sort: any,
+  ) {
+    return await this.stockLedgerService.listStockLedger(
+      offset || 0,
+      limit || 10,
+      filter_query,
+      sort,
+    );
   }
 
-  async getStockLedgerListCount(offset, limit, sort, filter_query, req) {
-    const filter_Obj: any = {};
-    filter_query.forEach(element => {
-      if (element[0] === 'item_code') {
-        filter_Obj['item.item_code'] = element[2];
-      }
-      if (element[0] === 'excel_item_group') {
-        filter_Obj['item.item_group'] = element[2];
-      }
-      if (element[0] === 'excel_item_brand') {
-        filter_Obj['item.brand'] = element[2];
-      }
-      if (element[0] === 'warehouse') {
-        filter_Obj['_id.warehouse'] = element[2];
-      }
-      if (element[1] === '==') {
-        filter_Obj.stockAvailability = { $lte: element[2] };
-      }
-      if (element[1] === '!=') {
-        filter_Obj.stockAvailability = { $gt: element[2] };
-      }
-    });
-    if (Object.entries(filter_Obj).length !== 0) {
-      const obj: any = {
-        _id: {
-          warehouse: '$warehouse',
-          item_code: '$item_code',
-        },
-        stockAvailability: {
-          $sum: '$actual_qty',
-        },
-      };
-      const $group: any = obj;
-      const where: any = [];
-      where.push({ $group });
-      const $lookup: any = {
-        from: 'item',
-        localField: '_id.item_code',
-        foreignField: 'item_code',
-        as: 'item',
-      };
-      where.push({ $lookup });
-      const $unwind: any = '$item';
-      where.push({ $unwind });
-      const $match: any = filter_Obj;
-      where.push({ $match });
-      where.push({ $count: 'count' });
-      return this.stockLedgerService.asyncAggregate(where);
-    } else {
-      const obj: any = {
-        _id: {
-          warehouse: '$warehouse',
-          item_code: '$item_code',
-        },
-        stockAvailability: {
-          $sum: '$actual_qty',
-        },
-      };
-      const $group: any = obj;
-      const where: any = [];
-      where.push({ $group });
-      where.push({ $count: 'count' });
-
-      return this.stockLedgerService.asyncAggregate(where);
-    }
-  }
-
-  // LEDGER REPORT
-  getLedgerReportList(offset, limit, filter_query, req, date) {
-    const filter_Obj: any = {};
-    filter_query.forEach(element => {
-      if (element[0] === 'warehouse') {
-        filter_Obj.warehouse = element[2];
-      }
-      if (element[0] === 'voucher_no') {
-        filter_Obj.voucher_no = element[2];
-      }
-      if (element[0] === 'voucher_type') {
-        filter_Obj.voucher_type = element[2];
-      }
-      if (element[0] === 'item_code') {
-        filter_Obj.item_code = element[2];
-      }
-      if (element[0] === 'excel_item_brand') {
-        filter_Obj['item.brand'] = element[2];
-      }
-      if (element[0] === 'excel_item_group') {
-        filter_Obj['item.item_group'] = element[2];
-      }
-    });
-    let startDate;
-    let endDate;
-    if (date) {
-      if (date.start_date != null && date.end_date != null) {
-        startDate = new Date(date.start_date);
-        endDate = new Date(date.end_date);
-        endDate.setDate(endDate.getDate() + 1);
-        const dateObj: any = {
-          $gte: startDate,
-          $lte: endDate,
-        };
-        filter_Obj.posting_date = dateObj;
-      }
-    }
-
-    // IF FILTER APPLY
-    if (Object.entries(filter_Obj).length !== 0) {
-      const where: any = [];
-
-      const $lookup: any = {
-        from: 'item',
-        localField: 'item_code',
-        foreignField: 'item_code',
-        as: 'item',
-      };
-      where.push({ $lookup });
-      const $unwind: any = '$item';
-      where.push({ $unwind });
-
-      const $match: any = filter_Obj;
-      where.push({ $match });
-      const $sort: any = {
-        posting_date: 1,
-      };
-      where.push({ $sort });
-      const $limit: any = limit;
-      const $skip: any = offset;
-      where.push({ $skip });
-      where.push({ $limit });
-
-      return this.stockLedgerService.asyncAggregate(where);
-    }
-    // WITHOUT FILTER
-    else {
-      const where: any = [];
-      const $lookup: any = {
-        from: 'item',
-        localField: 'item_code',
-        foreignField: 'item_code',
-        as: 'item',
-      };
-      where.push({ $lookup });
-      const $unwind: any = '$item';
-      where.push({ $unwind });
-
-      const $limit: any = limit;
-      const $skip: any = offset;
-      const $sort: any = {
-        posting_date: 1,
-      };
-      where.push({ $sort });
-      where.push({ $skip });
-      where.push({ $limit });
-
-      return this.stockLedgerService.asyncAggregate(where);
-    }
-  }
-  // LEDGER REPORT COUNT
-  getLedgerReportListCount(offset, limit, filter_query, req, date) {
-    const filter_Obj: any = {};
-    filter_query.forEach(element => {
-      if (element[0] === 'warehouse') {
-        filter_Obj.warehouse = element[2];
-      }
-      if (element[0] === 'voucher_no') {
-        filter_Obj.voucher_no = element[2];
-      }
-      if (element[0] === 'voucher_type') {
-        filter_Obj.voucher_type = element[2];
-      }
-      if (element[0] === 'item_code') {
-        filter_Obj.item_code = element[2];
-      }
-      if (element[0] === 'excel_item_brand') {
-        filter_Obj['item.brand'] = element[2];
-      }
-      if (element[0] === 'excel_item_group') {
-        filter_Obj['item.item_group'] = element[2];
-      }
-    });
-    let startDate;
-    let endDate;
-    if (date) {
-      if (date.start_date != null && date.end_date != null) {
-        startDate = new Date(date.start_date);
-        endDate = new Date(date.end_date);
-        endDate.setDate(endDate.getDate() + 1);
-        const dateObj: any = {
-          $gte: startDate,
-          $lte: endDate,
-        };
-        filter_Obj.posting_date = dateObj;
-      }
-    }
-
-    // IF FILTER APPLY
-    if (Object.entries(filter_Obj).length !== 0) {
-      const where: any = [];
-
-      const $lookup: any = {
-        from: 'item',
-        localField: 'item_code',
-        foreignField: 'item_code',
-        as: 'item',
-      };
-      where.push({ $lookup });
-      const $unwind: any = '$item';
-      where.push({ $unwind });
-
-      const $match: any = filter_Obj;
-      where.push({ $match });
-      const $sort: any = {
-        posting_date: 1,
-      };
-      where.push({ $sort });
-      where.push({ $count: 'count' });
-      return this.stockLedgerService.asyncAggregate(where);
-    }
-    // WITHOUT FILTER
-    else {
-      const where: any = [];
-      where.push({ $count: 'count' });
-      return this.stockLedgerService.asyncAggregate(where);
-    }
+  async listLedgerReport(
+    offset: number,
+    limit: number,
+    filter_query: any,
+    sort: any,
+  ) {
+    return await this.stockLedgerService.listLedgerReport(
+      offset || 0,
+      limit || 10,
+      filter_query,
+      sort,
+    );
   }
 }

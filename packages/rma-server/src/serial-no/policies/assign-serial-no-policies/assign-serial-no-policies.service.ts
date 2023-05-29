@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { SerialNoService } from '../../entity/serial-no/serial-no.service';
 import { from, of, throwError } from 'rxjs';
-import { switchMap, mergeMap, toArray } from 'rxjs/operators';
+import { switchMap, mergeMap, toArray, map } from 'rxjs/operators';
 import {
   PLEASE_SETUP_DEFAULT_COMPANY,
   INVALID_COMPANY,
@@ -21,6 +21,7 @@ import { SettingsService } from '../../../system-settings/aggregates/settings/se
 import { ItemService } from '../../../item/entity/item/item.service';
 import { ItemDto } from '../../../sales-invoice/entity/sales-invoice/sales-invoice-dto';
 import { getParsedPostingDate } from '../../../constants/agenda-job';
+import { StockLedgerService } from '../../../stock-ledger/entity/stock-ledger/stock-ledger.service';
 
 @Injectable()
 export class AssignSerialNoPoliciesService {
@@ -29,6 +30,7 @@ export class AssignSerialNoPoliciesService {
     private readonly settingsService: SettingsService,
     private readonly salesInvoiceService: SalesInvoiceService,
     private readonly itemService: ItemService,
+    private readonly stockLedgerService: StockLedgerService,
   ) {}
 
   validateSerial(serialProvider: AssignSerialDto) {
@@ -162,6 +164,35 @@ export class AssignSerialNoPoliciesService {
         }
         return of(true);
       }),
+    );
+  }
+
+  // non-serial-items
+  validateStock(payload: AssignSerialDto) {
+    return from(payload.items).pipe(
+      mergeMap(item => {
+        return from(
+          this.stockLedgerService.listLedgerReport(
+            undefined,
+            1,
+            { item_code: item.item_code, warehouse: payload.set_warehouse },
+            undefined,
+          ),
+        ).pipe(
+          map((res: any) => res.docs[0]),
+          switchMap(doc => {
+            if (doc.balance_qty <= item.qty) {
+              return throwError(
+                new BadRequestException(
+                  `Insufficient stock for ${doc.item.item_name} at ${doc.warehouse}`,
+                ),
+              );
+            }
+            return of(true);
+          }),
+        );
+      }),
+      toArray(),
     );
   }
 

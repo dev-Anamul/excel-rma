@@ -1,4 +1,3 @@
-import { StockLedgerReportComponent } from './stock-ledger-report.component';
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -11,14 +10,16 @@ import { MaterialModule } from '../../material/material.module';
 import { SalesService } from '../../sales-ui/services/sales.service';
 import { StockEntryService } from '../services/stock-entry/stock-entry.service';
 import { CsvJsonService } from '../../api/csv-json/csv-json.service';
+import { StockLedgerReportPage } from './stock-ledger-report.page';
+import { StockLedgerService } from '../services/stock-ledger/stock-ledger.service';
 
-describe('StockLedgerReportComponent', () => {
-  let component: StockLedgerReportComponent;
-  let fixture: ComponentFixture<StockLedgerReportComponent>;
+describe('StockLedgerReportPage', () => {
+  let component: StockLedgerReportPage;
+  let fixture: ComponentFixture<StockLedgerReportPage>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [StockLedgerReportComponent],
+      declarations: [StockLedgerReportPage],
       imports: [
         IonicModule.forRoot(),
         MaterialModule,
@@ -50,13 +51,19 @@ describe('StockLedgerReportComponent', () => {
           },
         },
         {
+          provide: StockLedgerService,
+          useValue: {
+            listLedgerReport: (...args) => of([]),
+          },
+        },
+        {
           provide: CsvJsonService,
           useValue: {},
         },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(StockLedgerReportComponent);
+    fixture = TestBed.createComponent(StockLedgerReportPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

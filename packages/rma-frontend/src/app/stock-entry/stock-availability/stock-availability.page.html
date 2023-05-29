@@ -31,30 +31,31 @@
               <mat-form-field class="mat-input-wrapper">
                 <input
                   matInput
-                  placeholder="Item name"
-                  [matAutocomplete]="itemName"
-                  formControlName="itemName"
-                  (focusout)="validateInput(f.itemName, filteredStockAvailabilityList)"
+                  placeholder="Item Name"
+                  [matAutocomplete]="item_name"
+                  formControlName="item_name"
+                  (focusout)="validateInput(f.item_name, filteredItemNameList)"
                 />
                 <mat-autocomplete
                   autoActiveFirstOption
-                  #itemName="matAutocomplete"
-                  [displayWith]="getStockAvailabilityOption"
+                  #item_name="matAutocomplete"
+                  [displayWith]="getItemName"
                   (optionSelected)="setFilter()"
                 >
                   <mat-option
-                    *ngFor="let option of filteredStockAvailabilityList | async"
+                    *ngFor="let option of filteredItemNameList | async"
                     [value]="option"
                   >
                     {{ option.item_name }}
                   </mat-option>
                 </mat-autocomplete>
-                <mat-error *ngIf="f.itemName.hasError('falseValse')">
+                <mat-error *ngIf="f.item_name.hasError('falseValse')">
                   You should select a value from dropdown only.
-                  <strong>'{{f.itemName.value}}'</strong> is not allowed.
+                  <strong>'{{f.item_name.value}}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>
+
             <ion-col>
               <mat-form-field class="mat-input-wrapper">
                 <input
@@ -90,27 +91,25 @@
                 <input
                   matInput
                   placeholder="Item Group"
-                  [matAutocomplete]="itemGroupAutocomplete"
-                  formControlName="excel_item_group"
-                  (focusout)="validateInput(f.excel_item_group, filteredItemGroupList)"
+                  [matAutocomplete]="item_group"
+                  formControlName="item_group"
+                  (focusout)="validateInput(f.item_group, filteredItemGroupList)"
                 />
                 <mat-autocomplete
                   autoActiveFirstOption
-                  #itemGroupAutocomplete="matAutocomplete"
-                  [displayWith]="getItemGroupOption"
+                  #item_group="matAutocomplete"
                   (optionSelected)="setFilter()"
                 >
                   <mat-option
                     *ngFor="let option of filteredItemGroupList | async"
-                    [value]="option"
+                    [value]="option.item_group_name"
                   >
                     {{ option.item_group_name }}
                   </mat-option>
                 </mat-autocomplete>
-                <mat-error *ngIf="f.excel_item_group.hasError('falseValse')">
+                <mat-error *ngIf="f.item_group.hasError('falseValse')">
                   You should select a value from dropdown only.
-                  <strong>'{{f.excel_item_group.value}}'</strong> is not
-                  allowed.
+                  <strong>'{{f.item_group.value}}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
             </ion-col>
@@ -120,31 +119,29 @@
                 <input
                   matInput
                   placeholder="Brand"
-                  [matAutocomplete]="itemBrandAutocomplete"
-                  formControlName="excel_item_brand"
-                  (focusout)="validateInput(f.excel_item_brand, filteredItemBrandList)"
+                  [matAutocomplete]="item_brand"
+                  formControlName="item_brand"
+                  (focusout)="validateInput(f.item_brand, filteredItemBrandList)"
                 />
                 <mat-autocomplete
                   autoActiveFirstOption
-                  #itemBrandAutocomplete="matAutocomplete"
-                  [displayWith]="getItemBrandOption"
+                  #item_brand="matAutocomplete"
                   (optionSelected)="setFilter()"
                 >
                   <mat-option
                     *ngFor="let option of filteredItemBrandList | async"
-                    [value]="option"
+                    [value]="option.brand"
                   >
                     {{ option.brand }}
                   </mat-option>
                 </mat-autocomplete>
-                <mat-error *ngIf="f.excel_item_brand.hasError('falseValse')">
+                <mat-error *ngIf="f.item_brand.hasError('falseValse')">
                   You should select a value from dropdown only.
-                  <strong>'{{f.excel_item_brand.value}}'</strong> is not
-                  allowed.
+                  <strong>'{{f.item_brand.value}}'</strong> is not allowed.
                 </mat-error>
               </mat-form-field>
 
-              <mat-checkbox (change)="setFilter()" formControlName="actual_qty">
+              <mat-checkbox (change)="setFilter()" formControlName="zero_stock">
                 Show Zero Stock
               </mat-checkbox>
 
@@ -174,12 +171,7 @@
       </form>
 
       <div class="example-container mat-elevation-z8">
-        <table
-          mat-table
-          class="full-width"
-          [dataSource]="dataSource"
-          matSort
-        >
+        <table mat-table class="full-width" [dataSource]="dataSource" matSort>
           <ng-container matColumnDef="sr_no">
             <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
             <mat-cell *matCellDef="let row;let i=index ">
@@ -187,7 +179,7 @@
             </mat-cell>
           </ng-container>
 
-          <ng-container matColumnDef="excel_item_name">
+          <ng-container matColumnDef="item_name">
             <mat-header-cell *matHeaderCellDef> Item name </mat-header-cell>
             <mat-cell *matCellDef="let row">
               {{ row.item.item_name }}
@@ -196,24 +188,24 @@
 
           <ng-container matColumnDef="item_code">
             <mat-header-cell *matHeaderCellDef> Item code </mat-header-cell>
-            <mat-cell *matCellDef="let row"> {{ row._id.item_code }} </mat-cell>
+            <mat-cell *matCellDef="let row"> {{ row.item_code }} </mat-cell>
           </ng-container>
 
-          <ng-container matColumnDef="excel_item_group">
+          <ng-container matColumnDef="item_group">
             <mat-header-cell *matHeaderCellDef> Item group </mat-header-cell>
             <mat-cell *matCellDef="let row">
               {{ row.item.item_group }}
             </mat-cell>
           </ng-container>
 
-          <ng-container matColumnDef="excel_item_brand">
+          <ng-container matColumnDef="item_brand">
             <mat-header-cell *matHeaderCellDef> Item brand </mat-header-cell>
             <mat-cell *matCellDef="let row"> {{ row.item.brand }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="warehouse">
             <mat-header-cell *matHeaderCellDef> Warehouse </mat-header-cell>
-            <mat-cell *matCellDef="let row"> {{ row._id.warehouse }} </mat-cell>
+            <mat-cell *matCellDef="let row"> {{ row.warehouse }} </mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="actual_qty">
@@ -221,7 +213,7 @@
               Actual quantity
             </mat-header-cell>
             <mat-cell *matCellDef="let row">
-              {{ row.stockAvailability }}
+              {{ row.stock_availability }}
             </mat-cell>
           </ng-container>
 
@@ -237,7 +229,7 @@
           class="mat-paginator-sticky"
           (page)="getUpdate($event)"
           [length]="dataSource.length"
-          [pageSizeOptions]="[30, 50, 100, 500,1000]"
+          [pageSizeOptions]="[30, 50, 100, 500, 1000]"
         >
         </mat-paginator>
       </mat-card-actions>
