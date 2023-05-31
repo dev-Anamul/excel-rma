@@ -172,8 +172,8 @@ export class AssignSerialNoPoliciesService {
     return from(payload.items).pipe(
       mergeMap(item => {
         return from(
-          this.stockLedgerService.listLedgerReport(
-            undefined,
+          this.stockLedgerService.listStockLedger(
+            0,
             1,
             { item_code: item.item_code, warehouse: payload.set_warehouse },
             undefined,
@@ -181,7 +181,7 @@ export class AssignSerialNoPoliciesService {
         ).pipe(
           map((res: any) => res.docs[0]),
           switchMap(doc => {
-            if (doc.balance_qty <= item.qty) {
+            if (doc.stock_availability < item.qty) {
               return throwError(
                 new BadRequestException(
                   `Insufficient stock for ${doc.item.item_name} at ${doc.warehouse}`,
