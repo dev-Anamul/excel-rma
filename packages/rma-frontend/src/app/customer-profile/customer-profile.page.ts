@@ -124,7 +124,7 @@ export class CustomerProfilePage implements OnInit {
 
   setFilter() {
     this.filters = [];
-    this.countFilter =[];
+    this.countFilter = [];
 
     if (this.f.customer.value) {
       this.filters.push([

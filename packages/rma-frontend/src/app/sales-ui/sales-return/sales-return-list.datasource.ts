@@ -65,7 +65,7 @@ export class SalesReturnListDataSource extends DataSource<ListingData> {
 
   calculateTotal(items: ListingData[]) {
     let total = 0;
-    items.forEach(item => {
+    items?.forEach(item => {
       total += item.total;
     });
     this.totalSubject.next(total);

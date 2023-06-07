@@ -13,6 +13,12 @@ export interface ListingData {
   modified_by: string;
 }
 
+export interface ListResponse {
+  docs: ListingData[];
+  length: number;
+  offset: number;
+}
+
 export class SalesReturnDataSource extends DataSource<ListingData> {
   data: ListingData[];
   length: number;
@@ -39,16 +45,24 @@ export class SalesReturnDataSource extends DataSource<ListingData> {
   loadItems(sales_invoice: string, pageIndex = 0, pageSize = 30) {
     this.loadingSubject.next(true);
     this.salesReturnService
-      .getSalesReturnList(pageIndex, pageSize, [
-        ['against_sales_invoice', '=', `${sales_invoice}`],
-        ['is_return', '=', '1'],
-      ])
+      .getSalesReturnList(
+        pageIndex,
+        pageSize,
+        [
+          ['against_sales_invoice', '=', `${sales_invoice}`],
+          ['is_return', '=', '1'],
+        ],
+        [
+          ['Delivery Note', 'against_sales_invoice', '=', `${sales_invoice}`],
+          ['Delivery Note', 'is_return', '=', '1'],
+        ],
+      )
       .pipe(
-        map((items: ListingData[]) => {
-          this.data = items;
-          this.offset = (pageIndex + 1) * pageSize;
-          this.length = items.length;
-          return items;
+        map((res: ListResponse) => {
+          this.data = res.docs;
+          this.offset = res.offset;
+          this.length = res.length;
+          return res.docs;
         }),
         catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
