@@ -39,7 +39,7 @@ export class PurchaseInvoiceDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(sortOrder?, pageIndex = 0, pageSize = 30, query?) {
+  loadItems(pageIndex = 0, pageSize = 30, query?: any, sortOrder?: any) {
     this.loadingSubject.next(true);
     this.purchaseService
       .getPurchaseInvoiceList(sortOrder, pageIndex, pageSize, query)

@@ -376,8 +376,8 @@ export class SalesInvoiceAggregateService extends AggregateRoot {
                 },
               },
             )
-            .then(updated => {})
-            .catch(error => {});
+            .then(() => {})
+            .catch(() => {});
           return throwError(
             new BadRequestException(err.response ? err.response.data.exc : err),
           );

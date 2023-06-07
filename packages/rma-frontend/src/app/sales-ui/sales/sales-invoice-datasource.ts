@@ -64,7 +64,7 @@ export class SalesInvoiceDataSource extends DataSource<ListingData> {
           this.length = res.length;
           return res.docs;
         }),
-        catchError(error => of([])),
+        catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
         switchMap(items => {
           return from(items).pipe(

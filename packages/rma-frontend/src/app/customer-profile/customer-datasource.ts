@@ -12,7 +12,7 @@ export interface ListingData {
   credit_limit: string;
 }
 
-export interface ItemListResponse {
+export interface ListResponse {
   docs: ListingData[];
   length: number;
   offset: number;
@@ -40,25 +40,21 @@ export class CustomerDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(pageIndex = 0, pageSize = 30, filters = [], countFilter = []) {
+  loadItems(pageIndex = 0, pageSize = 30, filters: any[], countFilter: any[]) {
     this.loadingSubject.next(true);
     this.salesService
-      .relayCustomerList(pageIndex, pageSize, filters)
+      .relayCustomerList(pageIndex, pageSize, filters, countFilter)
       .pipe(
-        map((items: ListingData[]) => {
-          this.data = items;
-          return items;
+        map((res: ListResponse) => {
+          this.data = res.docs;
+          this.offset = res.offset;
+          this.length = res.length;
+          return res.docs;
         }),
         catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
       )
       .subscribe(items => this.itemSubject.next(items));
-
-    this.salesService.getDoctypeCount('Customer', countFilter).subscribe({
-      next: res => {
-        this.length = res;
-      },
-    });
   }
 
   getData() {

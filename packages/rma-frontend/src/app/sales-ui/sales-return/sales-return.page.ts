@@ -40,10 +40,10 @@ export class SalesReturnPage implements OnInit {
     'modified_by',
   ];
   filters: any = [['is_return', '=', '1']];
-  countFilter: any = { is_return: ['=', '1'] };
+  countFilter: any = [['Delivery Note', 'is_return', '=', '1']];
   salesReturnForm: FormGroup = new FormGroup({
-    fromDateFormControl: new FormControl(),
-    toDateFormControl: new FormControl(),
+    start_date: new FormControl(),
+    end_date: new FormControl(),
     customer: new FormControl(),
     name: new FormControl(),
     status: new FormControl(),
@@ -65,10 +65,7 @@ export class SalesReturnPage implements OnInit {
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
-    this.dataSource = new SalesReturnListDataSource(
-      this.salesReturnService,
-      this.salesService,
-    );
+    this.dataSource = new SalesReturnListDataSource(this.salesReturnService);
     this.dataSource.loadItems(
       this.paginator.pageIndex,
       this.paginator.pageSize,
@@ -95,6 +92,52 @@ export class SalesReturnPage implements OnInit {
   }
 
   getUpdate(event) {
+    this.filters = [];
+    this.countFilter = [];
+    this.filters.push(['Delivery Note', 'is_return', '=', '1']);
+    this.countFilter.push(['Delivery Note', 'is_return', '=', '1']);
+
+    if (this.f.customer.value) {
+      this.filters.push(['customer_name', 'like', `${this.f.customer.value}`]);
+      this.countFilter.push([
+        'Delivery Note',
+        'customer_name',
+        'like',
+        `${this.f.customer.value}`,
+      ]);
+    }
+    if (this.f.name.value) {
+      this.filters.push(['name', 'like', `%${this.f.name.value}%`]);
+      this.countFilter.push([
+        'Delivery Note',
+        'name',
+        'like',
+        `${this.f.name.value}`,
+      ]);
+    }
+
+    if (this.f.status.value) {
+      this.filters.push(['docstatus', '=', this.getStatus()]);
+      this.countFilter.push([
+        'Delivery Note',
+        'docstatus',
+        '=',
+        this.getStatus(),
+      ]);
+    }
+
+    if (this.f.start_date.value && this.f.end_date.value) {
+      const fromDate = this.getParsedDate(this.f.start_date.value);
+      const toDate = this.getParsedDate(this.f.end_date.value);
+      this.filters.push(['creation', 'Between', [fromDate, toDate]]);
+      this.countFilter.push([
+        'Delivery Note',
+        'creation',
+        'Between',
+        [fromDate, toDate],
+      ]);
+    }
+
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
 
@@ -108,29 +151,51 @@ export class SalesReturnPage implements OnInit {
 
   setFilter() {
     this.filters = [];
-    this.countFilter = {};
-    this.filters.push(['is_return', '=', '1']);
-    this.countFilter.is_return = ['=', '1'];
+    this.countFilter = [];
+    this.filters.push(['Delivery Note', 'is_return', '=', '1']);
+    this.countFilter.push(['Delivery Note', 'is_return', '=', '1']);
+
     if (this.f.customer.value) {
       this.filters.push(['customer_name', 'like', `${this.f.customer.value}`]);
-      this.countFilter.customer_name = ['like', `%${this.f.customer.value}%`];
+      this.countFilter.push([
+        'Delivery Note',
+        'customer_name',
+        '=',
+        `${this.f.customer.value}`,
+      ]);
     }
     if (this.f.name.value) {
       this.filters.push(['name', 'like', `%${this.f.name.value}%`]);
-      this.countFilter.name = ['like', `%${this.f.name.value}%`];
+      this.countFilter.push([
+        'Delivery Note',
+        'name',
+        'like',
+        `${this.f.name.value}`,
+      ]);
     }
 
     if (this.f.status.value) {
       this.filters.push(['docstatus', '=', this.getStatus()]);
-      this.countFilter.docstatus = ['=', this.getStatus()];
+      this.countFilter.push([
+        'Delivery Note',
+        'docstatus',
+        '=',
+        this.getStatus(),
+      ]);
     }
 
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
-      const fromDate = this.getParsedDate(this.f.fromDateFormControl.value);
-      const toDate = this.getParsedDate(this.f.toDateFormControl.value);
+    if (this.f.start_date.value && this.f.end_date.value) {
+      const fromDate = this.getParsedDate(this.f.start_date.value);
+      const toDate = this.getParsedDate(this.f.end_date.value);
       this.filters.push(['creation', 'Between', [fromDate, toDate]]);
-      this.countFilter.creation = ['Between', `${fromDate} ${toDate}`];
+      this.countFilter.push([
+        'Delivery Note',
+        'creation',
+        'Between',
+        [fromDate, toDate],
+      ]);
     }
+
     this.paginator.pageIndex = 0;
     this.paginator.pageSize = 30;
 
@@ -146,12 +211,7 @@ export class SalesReturnPage implements OnInit {
     return this.f.status.value === 'Canceled' ? 2 : 1;
   }
 
-  dateFilter() {
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value)
-      this.setFilter();
-  }
-
-  getParsedDate(value) {
+  getParsedDate(value: string) {
     const date = new Date(value);
     return [
       date.getFullYear(),

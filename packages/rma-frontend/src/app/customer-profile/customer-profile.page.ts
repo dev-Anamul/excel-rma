@@ -39,7 +39,8 @@ export class CustomerProfilePage implements OnInit {
     'remaining_balance',
     'remaining_credit',
   ];
-  countFilter: any = {};
+  filters: any = [];
+  countFilter: any = [];
   customerProfileForm: FormGroup = new FormGroup({
     customer: new FormControl(),
   });
@@ -80,6 +81,7 @@ export class CustomerProfilePage implements OnInit {
 
   clearFilters() {
     this.customerProfileForm.reset();
+
     this.paginator.pageIndex = 0;
     this.paginator.pageSize = 30;
 
@@ -92,41 +94,59 @@ export class CustomerProfilePage implements OnInit {
   }
 
   getUpdate(event: any) {
-    const filters = [];
+    this.filters = [];
     this.countFilter = {};
+
+    if (this.f.customer.value) {
+      this.filters.push([
+        'customer_name',
+        'like',
+        `%${this.f.customer.value}%`,
+      ]);
+      this.countFilter.push([
+        'Customer',
+        'customer_name',
+        'like',
+        `%${this.f.customer.value}%`,
+      ]);
+    }
 
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
 
-    if (this.f.customer.value) {
-      filters.push(['customer_name', 'like', `%${this.f.customer.value}%`]);
-      this.countFilter.customer_name = ['like', `%${this.f.customer.value}%`];
-    }
-
     this.dataSource.loadItems(
       this.paginator.pageIndex,
       this.paginator.pageSize,
-      filters,
+      this.filters,
       this.countFilter,
     );
   }
 
   setFilter() {
-    const filters = [];
-    this.countFilter = {};
+    this.filters = [];
+    this.countFilter = [];
+
+    if (this.f.customer.value) {
+      this.filters.push([
+        'customer_name',
+        'like',
+        `%${this.f.customer.value}%`,
+      ]);
+      this.countFilter.push([
+        'Customer',
+        'customer_name',
+        'like',
+        `%${this.f.customer.value}%`,
+      ]);
+    }
 
     this.paginator.pageIndex = 0;
     this.paginator.pageSize = 30;
 
-    if (this.f.customer.value) {
-      filters.push(['customer_name', 'like', `%${this.f.customer.value}%`]);
-      this.countFilter.customer_name = ['like', `%${this.f.customer.value}%`];
-    }
-
     this.dataSource.loadItems(
       this.paginator.pageIndex,
       this.paginator.pageSize,
-      filters,
+      this.filters,
       this.countFilter,
     );
   }

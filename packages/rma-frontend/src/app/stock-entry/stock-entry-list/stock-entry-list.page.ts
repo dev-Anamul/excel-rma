@@ -68,10 +68,10 @@ export class StockEntryListPage implements OnInit {
     key => STOCK_TRANSFER_STATUS[key],
   );
   search: string = '';
+  sortQuery: any = {};
   stockEntryForm: FormGroup = new FormGroup({
-    fromDateFormControl: new FormControl(),
-    toDateFormControl: new FormControl(),
-    singleDateFormControl: new FormControl(),
+    start_date: new FormControl(),
+    end_date: new FormControl(),
     status: new FormControl(),
     stockEntryType: new FormControl(),
     from_warehouse: new FormControl(),
@@ -84,14 +84,15 @@ export class StockEntryListPage implements OnInit {
     return this.stockEntryForm.controls;
   }
   constructor(
-    private location: Location,
+    private readonly location: Location,
     private readonly stockEntryService: StockEntryService,
     private readonly salesService: SalesService,
-    private router: Router,
-    private route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
+    this.setAutoComplete();
     this.route.params.subscribe(() => {
       this.paginator.firstPage();
     });
@@ -104,10 +105,10 @@ export class StockEntryListPage implements OnInit {
           return event;
         }),
       )
-      .subscribe({
-        next: () => {},
-        error: () => {},
-      });
+      .subscribe();
+  }
+
+  setAutoComplete() {
     this.filteredFromWarehouseList = this.stockEntryForm
       .get('from_warehouse')
       .valueChanges.pipe(
@@ -116,6 +117,7 @@ export class StockEntryListPage implements OnInit {
           return this.salesService.getStore().getItemAsync(WAREHOUSES, value);
         }),
       );
+
     this.filteredToWarehouseList = this.stockEntryForm
       .get('to_warehouse')
       .valueChanges.pipe(
@@ -141,111 +143,52 @@ export class StockEntryListPage implements OnInit {
     this.setFilter();
   }
 
-  dateFilter() {
-    this.f.singleDateFormControl.setValue('');
-    this.setFilter();
-  }
-
-  getUpdate(event) {
+  getUpdate(event: any) {
     const query: any = this.filterState;
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
-      query.fromDate = new Date(this.f.fromDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.toDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
-    if (this.f.singleDateFormControl.value) {
-      query.fromDate = new Date(this.f.singleDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.singleDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
     if (this.search) query.search = this.search;
+    if (this.f.start_date.value && this.f.end_date.value) {
+      query.fromDate = new Date(this.f.start_date.value).setHours(0, 0, 0, 0);
+      query.toDate = new Date(this.f.end_date.value).setHours(23, 59, 59, 59);
+    }
+
+    this.paginator.pageIndex = event?.pageIndex || 0;
+    this.paginator.pageSize = event?.pageSize || 30;
+
     this.dataSource.loadItems(
-      undefined,
       event.pageIndex,
       event.pageSize,
       query,
+      this.sortQuery,
     );
   }
 
-  fromWarehouseChange(value) {
+  fromWarehouseChange(value: string) {
     this.filterState.s_warehouse = value;
     this.setFilter();
   }
 
-  toWarehouseChange(value) {
+  toWarehouseChange(value: string) {
     this.filterState.t_warehouse = value;
-    this.setFilter();
-  }
-
-  singleDateFilter() {
-    this.f.fromDateFormControl.setValue('');
-    this.f.toDateFormControl.setValue('');
     this.setFilter();
   }
 
   clearFilters() {
     this.filterState = {};
     this.stockEntryForm.reset();
+
     this.paginator.pageIndex = 0;
     this.paginator.pageSize = 30;
+
     this.dataSource.loadItems(
-      undefined,
       this.paginator.pageIndex,
       this.paginator.pageSize,
       undefined,
+      this.sortQuery,
     );
   }
 
-  setFilter(event?) {
+  setFilter(event?: any) {
     const query: any = this.filterState;
-    let sortQuery = {};
-
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
-      query.fromDate = new Date(this.f.fromDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.toDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
-    if (this.f.singleDateFormControl.value) {
-      query.fromDate = new Date(this.f.singleDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.singleDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
 
     if (this.f.names.value) {
       if (
@@ -259,32 +202,35 @@ export class StockEntryListPage implements OnInit {
         query.names = this.f.names.value;
       }
     }
-
-    sortQuery = { _id: -1 };
+    if (this.f.start_date.value && this.f.end_date.value) {
+      query.fromDate = new Date(this.f.start_date.value).setHours(0, 0, 0, 0);
+      query.toDate = new Date(this.f.end_date.value).setHours(23, 59, 59, 59);
+    }
 
     if (event) {
       for (const key of Object.keys(event)) {
         if (key === 'active' && event.direction !== '') {
-          sortQuery[event[key]] = event.direction;
+          this.sortQuery[event[key]] = event.direction;
         }
       }
     }
+    this.sortQuery =
+      Object.keys(this.sortQuery).length === 0
+        ? { createdOn: 'DESC' }
+        : this.sortQuery;
 
-    this.paginator.pageIndex = event?.pageIndex || 0;
-    this.paginator.pageSize = event?.pageSize || 30;
+    this.paginator.pageIndex = 0;
+    this.paginator.pageSize = 30;
+
     this.dataSource.loadItems(
-      sortQuery,
-      event?.pageIndex || undefined,
-      event?.pageSize || undefined,
+      this.paginator.pageIndex,
+      this.paginator.pageSize,
       query,
+      this.sortQuery,
     );
   }
 
   navigateBack() {
     this.location.back();
-  }
-
-  getOption(option) {
-    if (option) return option.name;
   }
 }

@@ -85,9 +85,8 @@ export class SalesPage implements OnInit {
 
   salesForm: FormGroup = new FormGroup({
     customer_name: new FormControl(),
-    fromDateFormControl: new FormControl(),
-    toDateFormControl: new FormControl(),
-    singleDateFormControl: new FormControl(),
+    start_date: new FormControl(),
+    end_date: new FormControl(),
     salesPerson: new FormControl(),
     invoice_number: new FormControl(),
     branch: new FormControl(),
@@ -214,33 +213,9 @@ export class SalesPage implements OnInit {
         query.isCampaign = false;
       }
     }
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
-      query.fromDate = new Date(this.f.fromDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.toDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
-    if (this.f.singleDateFormControl.value) {
-      query.fromDate = new Date(this.f.singleDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.singleDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
+    if (this.f.start_date.value && this.f.end_date.value) {
+      query.fromDate = new Date(this.f.start_date.value).setHours(0, 0, 0, 0);
+      query.toDate = new Date(this.f.end_date.value).setHours(23, 59, 59, 59);
     }
 
     this.paginator.pageIndex = event?.pageIndex || 0;
@@ -252,17 +227,6 @@ export class SalesPage implements OnInit {
       this.paginator.pageSize,
       query,
     );
-  }
-
-  dateFilter() {
-    this.f.singleDateFormControl.setValue('');
-    this.setFilter();
-  }
-
-  singleDateFilter() {
-    this.f.fromDateFormControl.setValue('');
-    this.f.toDateFormControl.setValue('');
-    this.setFilter();
   }
 
   getStringTime(stringTime: string) {
@@ -309,34 +273,11 @@ export class SalesPage implements OnInit {
         query.isCampaign = false;
       }
     }
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
-      query.fromDate = new Date(this.f.fromDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.toDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
+    if (this.f.start_date.value && this.f.end_date.value) {
+      query.fromDate = new Date(this.f.start_date.value).setHours(0, 0, 0, 0);
+      query.toDate = new Date(this.f.end_date.value).setHours(23, 59, 59, 59);
     }
-    if (this.f.singleDateFormControl.value) {
-      query.fromDate = new Date(this.f.singleDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.singleDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
+
     this.sortQuery = {};
     if (event) {
       for (const key of Object.keys(event)) {

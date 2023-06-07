@@ -39,7 +39,7 @@ export class StockEntryListDataSource extends DataSource<ListingData> {
     this.loadingSubject.complete();
   }
 
-  loadItems(sortOrder?, pageIndex = 0, pageSize = 30, query?) {
+  loadItems(pageIndex = 0, pageSize = 30, query?: any, sortOrder?: any) {
     query = query ? query : {};
     query.warrantyClaimUuid = { $exists: false };
     this.loadingSubject.next(true);

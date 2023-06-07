@@ -53,7 +53,6 @@ import {
   UPDATE_SALES_INVOICE_ITEM_MRP,
   RELAY_LIST_SALES_RETURN_ENDPOINT,
   GET_STOCK_BALANCE_ENDPOINT,
-  GET_DOCTYPE_COUNT_METHOD,
   GET_STOCK_ENTRY,
   SYNC_STOCK_PRINT_ENDPOINT,
   PRINT_SALES_INVOICE_PDF_METHOD,
@@ -69,6 +68,7 @@ import {
   EXCEL_STOCK_PRINT,
 } from '../../constants/app-string';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { SalesReturnService } from '../view-sales-invoice/sales-return/sales-return.service';
 
 @Injectable({
   providedIn: 'root',
@@ -81,6 +81,7 @@ export class SalesService {
     private readonly http: HttpClient,
     private readonly storage: StorageService,
     private readonly snackBar: MatSnackBar,
+    private readonly salesReturnService: SalesReturnService,
   ) {
     this.salesInvoiceList = [];
 
@@ -510,22 +511,36 @@ export class SalesService {
     );
   }
 
-  relayCustomerList(pageIndex = 0, pageSize = 30, filters) {
+  relayCustomerList(
+    pageIndex = 0,
+    pageSize = 30,
+    filters: any[],
+    countFilter: any[],
+  ) {
     const url = CUSTOMER_ENDPOINT;
+    const params = new HttpParams()
+      .set('fields', '["*"]')
+      .set('filters', JSON.stringify(filters) || '[]')
+      .set('limit_page_length', pageSize.toString())
+      .set('limit_start', (pageIndex * pageSize).toString());
 
-    const params = new HttpParams({
-      fromObject: {
-        fields: '["*"]',
-        filters: JSON.stringify(filters),
-        limit_page_length: pageSize.toString(),
-        limit_start: (pageIndex * pageSize).toString(),
-      },
-    });
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.get<any>(url, { headers, params });
+        return forkJoin({
+          data: this.http.get(url, { headers, params }),
+          length: this.salesReturnService.getDoctypeCount(
+            'Customer',
+            countFilter,
+          ),
+        });
       }),
-      map(res => res.data),
+      map((res: any) => {
+        return {
+          docs: res.data.data,
+          length: res.length,
+          offset: pageIndex,
+        };
+      }),
     );
   }
 
@@ -536,23 +551,6 @@ export class SalesService {
         return this.http.get<any>(url, { headers });
       }),
       map(res => res.data),
-    );
-  }
-
-  getDoctypeCount(doctype: string, filters) {
-    const url = GET_DOCTYPE_COUNT_METHOD;
-    const params = new HttpParams({
-      fromObject: {
-        doctype,
-        filters: JSON.stringify(filters),
-      },
-    });
-
-    return this.getHeaders().pipe(
-      switchMap(headers => {
-        return this.http.get<any>(url, { headers, params });
-      }),
-      map(res => res.message),
     );
   }
 

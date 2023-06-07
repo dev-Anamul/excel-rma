@@ -135,11 +135,6 @@ export const SERVICE_INVOICE_DOWNLOAD_HEADERS = [
   'total',
 ];
 
-export enum SORT_ORDER {
-  ASCENDING = 'ASC',
-  DESCENDING = 'DESC',
-}
-
 export enum DATE_TYPE {
   RECEIVED_DATE = 'Received Date',
   DELIVERED_DATE = 'Delivery Date',
