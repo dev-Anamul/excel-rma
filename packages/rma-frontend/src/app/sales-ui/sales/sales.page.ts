@@ -277,7 +277,7 @@ export class SalesPage implements OnInit {
       query.fromDate = new Date(this.f.start_date.value).setHours(0, 0, 0, 0);
       query.toDate = new Date(this.f.end_date.value).setHours(23, 59, 59, 59);
     }
-    
+
     this.sortQuery = {};
     if (event) {
       for (const key of Object.keys(event)) {
