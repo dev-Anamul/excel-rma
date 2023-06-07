@@ -2,7 +2,6 @@ import { DataSource, CollectionViewer } from '@angular/cdk/collections';
 import { map, catchError, finalize } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { SalesReturnService } from '../view-sales-invoice/sales-return/sales-return.service';
-import { SalesService } from '../services/sales.service';
 
 export interface ListingData {
   name: string;
@@ -14,19 +13,23 @@ export interface ListingData {
   modified_by: string;
 }
 
+export interface ListResponse {
+  docs: ListingData[];
+  length: number;
+  offset: number;
+}
+
 export class SalesReturnListDataSource extends DataSource<ListingData> {
   data: ListingData[];
   length: number;
+  offset: number;
 
   itemSubject = new BehaviorSubject<ListingData[]>([]);
   loadingSubject = new BehaviorSubject<boolean>(false);
   totalSubject = new BehaviorSubject<number>(0);
   loading$ = this.loadingSubject.asObservable();
 
-  constructor(
-    private salesReturnService: SalesReturnService,
-    private readonly salesService: SalesService,
-  ) {
+  constructor(private readonly salesReturnService: SalesReturnService) {
     super();
   }
 
@@ -41,12 +44,15 @@ export class SalesReturnListDataSource extends DataSource<ListingData> {
 
   loadItems(pageIndex = 0, pageSize = 30, filters: any[], countFilter: any) {
     this.loadingSubject.next(true);
+
     this.salesReturnService
-      .getSalesReturnList(pageIndex, pageSize, filters)
+      .getSalesReturnList(pageIndex, pageSize, filters, countFilter)
       .pipe(
-        map((items: ListingData[]) => {
-          this.data = items;
-          return items;
+        map((res: ListResponse) => {
+          this.data = res.docs;
+          this.offset = res.offset;
+          this.length = res.length;
+          return res.docs;
         }),
         catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),
@@ -55,12 +61,6 @@ export class SalesReturnListDataSource extends DataSource<ListingData> {
         this.calculateTotal(items);
         this.itemSubject.next(items);
       });
-
-    this.salesService.getDoctypeCount('Delivery Note', countFilter).subscribe({
-      next: res => {
-        this.length = res;
-      },
-    });
   }
 
   calculateTotal(items: ListingData[]) {

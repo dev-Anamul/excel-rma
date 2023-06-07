@@ -36,21 +36,21 @@ export class ServiceInvoicesDataSource extends DataSource<ServiceInvoiceDetails>
     this.loadingSubject.complete();
   }
 
-  loadItems(filter: any = {}, sortOrder?, pageIndex = 0, pageSize = 30) {
+  loadItems(pageIndex = 0, pageSize = 30, filter: any = {}, sortOrder?: any) {
     this.loadingSubject.next(true);
     try {
       filter = JSON.stringify(filter);
     } catch {
-      filter = JSON.stringify({});
+      filter = {};
     }
     this.serviceInvoice
       .getServiceInvoiceList(filter as string, sortOrder, pageIndex, pageSize)
       .pipe(
-        map((serviceInvoice: ListResponse) => {
-          this.data = serviceInvoice?.docs;
-          this.offset = serviceInvoice?.offset;
-          this.length = serviceInvoice?.length;
-          return serviceInvoice?.docs;
+        map((res: ListResponse) => {
+          this.data = res.docs;
+          this.offset = res.offset;
+          this.length = res.length;
+          return res.docs;
         }),
         catchError(() => of([])),
         finalize(() => this.loadingSubject.next(false)),

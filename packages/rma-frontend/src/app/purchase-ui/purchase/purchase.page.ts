@@ -6,7 +6,14 @@ import { MatPaginator } from '@angular/material/paginator';
 import { Location } from '@angular/common';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { filter, map, startWith, switchMap } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  startWith,
+  switchMap,
+} from 'rxjs/operators';
 import {
   DateAdapter,
   MAT_DATE_LOCALE,
@@ -53,9 +60,8 @@ export class PurchasePage implements OnInit {
     invoice_number: new FormControl(),
     supplier: new FormControl(),
     status: new FormControl(),
-    fromDateFormControl: new FormControl(),
-    toDateFormControl: new FormControl(),
-    singleDateFormControl: new FormControl(),
+    start_date: new FormControl(),
+    end_date: new FormControl(),
   });
   validateInput: any = ValidateInputSelected;
   filteredSupplierList: Observable<any[]>;
@@ -97,6 +103,8 @@ export class PurchasePage implements OnInit {
       .get('supplier')
       .valueChanges.pipe(
         startWith(''),
+        distinctUntilChanged(),
+        debounceTime(1000),
         switchMap(value => {
           return this.purchaseService.getSupplierList(value);
         }),
@@ -108,44 +116,19 @@ export class PurchasePage implements OnInit {
     if (this.f.supplier.value) query.supplier = this.f.supplier.value;
     if (this.f.status.value) query.status = this.f.status.value;
     if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
-
-    if (this.f.singleDateFormControl.value) {
-      query.fromDate = new Date(this.f.singleDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.singleDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
-      query.fromDate = new Date(this.f.fromDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.toDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
+    if (this.f.start_date.value && this.f.end_date.value) {
+      query.fromDate = new Date(this.f.start_date.value).setHours(0, 0, 0, 0);
+      query.toDate = new Date(this.f.end_date.value).setHours(23, 59, 59, 59);
     }
 
     this.paginator.pageIndex = event?.pageIndex || 0;
     this.paginator.pageSize = event?.pageSize || 30;
 
     this.dataSource.loadItems(
-      this.sortQuery,
       this.paginator.pageIndex,
       this.paginator.pageSize,
       query,
+      this.sortQuery,
     );
   }
 
@@ -157,44 +140,16 @@ export class PurchasePage implements OnInit {
     });
   }
 
-  dateFilter() {
-    this.f.singleDateFormControl.setValue('');
-    this.setFilter();
-  }
-
   setFilter(event?: any) {
     const query: any = {};
     if (this.f.supplier.value) query.supplier = this.f.supplier.value;
     if (this.f.status.value) query.status = this.f.status.value;
     if (this.f.invoice_number.value) query.name = this.f.invoice_number.value;
-    if (this.f.fromDateFormControl.value && this.f.toDateFormControl.value) {
-      query.fromDate = new Date(this.f.fromDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.toDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
+    if (this.f.start_date.value && this.f.end_date.value) {
+      query.fromDate = new Date(this.f.start_date.value).setHours(0, 0, 0, 0);
+      query.toDate = new Date(this.f.end_date.value).setHours(23, 59, 59, 59);
     }
-    if (this.f.singleDateFormControl.value) {
-      query.fromDate = new Date(this.f.singleDateFormControl.value).setHours(
-        0,
-        0,
-        0,
-        0,
-      );
-      query.toDate = new Date(this.f.singleDateFormControl.value).setHours(
-        23,
-        59,
-        59,
-        59,
-      );
-    }
+
     if (event) {
       for (const key of Object.keys(event)) {
         if (key === 'active' && event.direction !== '') {
@@ -212,17 +167,11 @@ export class PurchasePage implements OnInit {
     this.paginator.pageSize = event?.pageSize || 30;
 
     this.dataSource.loadItems(
-      this.sortQuery,
       this.paginator.pageIndex,
       this.paginator.pageSize,
       query,
+      this.sortQuery,
     );
-  }
-
-  singleDateFilter() {
-    this.f.fromDateFormControl.setValue('');
-    this.f.toDateFormControl.setValue('');
-    this.setFilter();
   }
 
   clearFilters() {
@@ -231,11 +180,12 @@ export class PurchasePage implements OnInit {
     this.f.status.setValue('All');
     this.paginator.pageIndex = 0;
     this.paginator.pageSize = 30;
+
     this.dataSource.loadItems(
-      this.sortQuery,
       this.paginator.pageIndex,
       this.paginator.pageSize,
       undefined,
+      this.sortQuery,
     );
   }
 

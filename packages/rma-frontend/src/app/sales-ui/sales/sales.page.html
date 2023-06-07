@@ -155,12 +155,14 @@
                 </mat-select>
               </mat-form-field>
             </ion-col>
+          </ion-row>
 
+          <ion-row>
             <ion-col>
               <mat-form-field class="full-width">
                 <input
                   matInput
-                  placeholder="Select Sales Person"
+                  placeholder="Sales Person"
                   formControlName="salesPerson"
                   (focusout)="validateInput(f.salesPerson, filteredSalesPersonList)"
                   [matAutocomplete]="salesPerson"
@@ -183,64 +185,42 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
+
+            <ion-col class="ion-text-center">
+              <mat-form-field appearance="fill" class="mat-input-wrapper">
+                <mat-label> Enter a date range </mat-label>
+                <mat-date-range-input
+                  [formGroup]="salesForm"
+                  [rangePicker]="picker"
+                >
+                  <input
+                    matStartDate
+                    formControlName="start_date"
+                    placeholder="Start date"
+                  />
+                  <input
+                    matEndDate
+                    formControlName="end_date"
+                    placeholder="End date"
+                    (dateChange)="setFilter()"
+                  />
+                </mat-date-range-input>
+                <mat-hint> MM/DD/YYYY – MM/DD/YYYY </mat-hint>
+                <mat-datepicker-toggle matSuffix [for]="picker">
+                </mat-datepicker-toggle>
+                <mat-date-range-picker #picker> </mat-date-range-picker>
+                <mat-error *ngIf="f.start_date.hasError('matStartDateInvalid')">
+                  Invalid start date
+                </mat-error>
+                <mat-error *ngIf="f.end_date.hasError('matEndDateInvalid')">
+                  Invalid end date
+                </mat-error>
+              </mat-form-field>
+            </ion-col>
           </ion-row>
 
           <ion-row>
-            <ion-col class="ion-text-center">
-              <ion-text color="medium" class="date-filter-text">
-                Range Date
-              </ion-text>
-              <mat-form-field class="full-width">
-                <input
-                  matInput
-                  [matDatepicker]="fromDate"
-                  placeholder="From Date"
-                  readonly
-                  formControlName="fromDateFormControl"
-                  (dateChange)="dateFilter()"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="fromDate"
-                ></mat-datepicker-toggle>
-                <mat-datepicker #fromDate disabled="false"></mat-datepicker>
-              </mat-form-field>
-              <mat-form-field class="full-width">
-                <input
-                  matInput
-                  [matDatepicker]="toDate"
-                  placeholder="To Date"
-                  readonly
-                  formControlName="toDateFormControl"
-                  (dateChange)="dateFilter()"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="toDate"
-                ></mat-datepicker-toggle>
-                <mat-datepicker #toDate disabled="false"></mat-datepicker>
-              </mat-form-field>
-            </ion-col>
-
-            <ion-col class="ion-text-center">
-              <ion-text color="medium" class="date-filter-text">
-                Single Date
-              </ion-text>
-              <mat-form-field class="full-width">
-                <input
-                  matInput
-                  [matDatepicker]="singleDate"
-                  placeholder="Select Date"
-                  readonly
-                  formControlName="singleDateFormControl"
-                  (dateChange)="singleDateFilter()"
-                />
-                <mat-datepicker-toggle
-                  matSuffix
-                  [for]="singleDate"
-                ></mat-datepicker-toggle>
-                <mat-datepicker #singleDate disabled="false"></mat-datepicker>
-              </mat-form-field>
+            <ion-col class="ion-text-right">
               <ion-button
                 color="tertiary"
                 (click)="clearFilters()"

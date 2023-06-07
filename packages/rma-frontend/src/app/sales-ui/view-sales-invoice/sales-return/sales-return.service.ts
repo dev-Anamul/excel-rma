@@ -7,30 +7,47 @@ import {
   ACCESS_TOKEN,
 } from '../../../constants/storage';
 import { map, switchMap } from 'rxjs/operators';
-import { from } from 'rxjs';
-import { RELAY_GET_DELIVERY_NOTE_ENDPOINT } from '../../../constants/url-strings';
+import { forkJoin, from } from 'rxjs';
+import {
+  GET_DOCTYPE_COUNT_METHOD,
+  RELAY_GET_DELIVERY_NOTE_ENDPOINT,
+} from '../../../constants/url-strings';
 @Injectable({
   providedIn: 'root',
 })
 export class SalesReturnService {
-  constructor(private http: HttpClient, private storage: StorageService) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly storage: StorageService,
+  ) {}
 
-  getSalesReturnList(pageIndex = 0, pageSize = 30, filters: any[]) {
+  getSalesReturnList(
+    pageIndex = 0,
+    pageSize = 30,
+    filters: any[],
+    countFilter: any[],
+  ) {
     const url = RELAY_GET_DELIVERY_NOTE_ENDPOINT;
+    const params = new HttpParams()
+      .set('fields', '["*"]')
+      .set('filters', JSON.stringify(filters))
+      .set('limit_page_length', pageSize.toString())
+      .set('limit_start', (pageIndex * pageSize).toString());
 
-    const params = new HttpParams({
-      fromObject: {
-        fields: '["*"]',
-        filters: JSON.stringify(filters),
-        limit_page_length: pageSize.toString(),
-        limit_start: (pageIndex * pageSize).toString(),
-      },
-    });
     return this.getHeaders().pipe(
       switchMap(headers => {
-        return this.http.get<any>(url, { headers, params });
+        return forkJoin({
+          data: this.http.get(url, { headers, params }),
+          length: this.getDoctypeCount('Delivery Note', countFilter),
+        });
       }),
-      map(res => res.data),
+      map((res: any) => {
+        return {
+          docs: res.data.data,
+          length: res.length,
+          offset: pageIndex,
+        };
+      }),
     );
   }
 
@@ -55,6 +72,21 @@ export class SalesReturnService {
           [AUTHORIZATION]: BEARER_TOKEN_PREFIX + token,
         };
       }),
+    );
+  }
+
+  getDoctypeCount(doctype: string, filters: any[]) {
+    const url = GET_DOCTYPE_COUNT_METHOD;
+    const params = new HttpParams()
+      .set('doctype', doctype)
+      .set('filters', JSON.stringify(filters) || '[]')
+      .set('fields', '["count( `tab' + doctype + '`.`name`) AS total_count"]');
+
+    return this.getHeaders().pipe(
+      switchMap(headers => {
+        return this.http.get<any>(url, { headers, params });
+      }),
+      map(res => res.message.values[0][0]),
     );
   }
 }

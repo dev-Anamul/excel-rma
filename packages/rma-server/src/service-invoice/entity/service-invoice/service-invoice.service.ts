@@ -53,11 +53,11 @@ export class ServiceInvoiceService {
   async list(skip, take, search, sort) {
     let dateQuery = {};
     let service_vouchers = {};
-    let sortQuery;
+    let sortQuery = {};
     try {
       sortQuery = JSON.parse(sort);
     } catch {
-      sortQuery = { creation: 'desc' };
+      sortQuery = { posting_date: 'desc' };
     }
 
     for (const key of Object.keys(sortQuery)) {
@@ -71,9 +71,10 @@ export class ServiceInvoiceService {
     } catch {
       search = {};
     }
+
     if (search?.fromDate && search?.toDate) {
       dateQuery = {
-        creation: {
+        posting_date: {
           $gte: search.fromDate,
           $lte: search.toDate,
         },

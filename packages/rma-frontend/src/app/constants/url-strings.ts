@@ -101,7 +101,7 @@ export const ERPNEXT_ACCOUNT_ENDPOINT =
 export const ERPNEXT_WAREHOUSE_ENDPOINT =
   '/api/command/user/api/resource/Warehouse';
 export const GET_DOCTYPE_COUNT_METHOD =
-  '/api/command/user/api/method/frappe.client.get_count';
+  '/api/command/user/api/method/frappe.desk.reportview.get';
 export const RELAY_GET_FULL_ITEM_ENDPOINT =
   '/api/command/user/api/resource/Item/';
 export const RELAY_GET_ITEM_STOCK_ENDPOINT =

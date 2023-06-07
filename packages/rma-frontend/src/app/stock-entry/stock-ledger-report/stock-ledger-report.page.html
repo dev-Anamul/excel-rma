@@ -146,7 +146,9 @@
                 </mat-select>
               </mat-form-field>
             </ion-col>
+          </ion-row>
 
+          <ion-row>
             <ion-col>
               <mat-form-field class="mat-input-wrapper">
                 <input
@@ -176,9 +178,7 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
-          </ion-row>
 
-          <ion-row>
             <ion-col>
               <mat-form-field appearance="fill" class="mat-input-wrapper">
                 <mat-label> Enter a date range </mat-label>
@@ -210,21 +210,25 @@
                 </mat-error>
               </mat-form-field>
             </ion-col>
+          </ion-row>
 
-            <ion-button
-              (click)="clearFilters()"
-              fill="outline"
-              color="tertiary"
-            >
-              Clear
-            </ion-button>
-            <ion-button
-              color="tertiary"
-              (click)="downloadStockLedgerReport()"
-              fill="outline"
-            >
-              Download CSV
-            </ion-button>
+          <ion-row>
+            <ion-col class="ion-text-right">
+              <ion-button
+                (click)="clearFilters()"
+                fill="outline"
+                color="tertiary"
+              >
+                Clear
+              </ion-button>
+              <ion-button
+                color="tertiary"
+                (click)="downloadStockLedgerReport()"
+                fill="outline"
+              >
+                Download CSV
+              </ion-button>
+            </ion-col>
           </ion-row>
         </ion-grid>
       </form>
