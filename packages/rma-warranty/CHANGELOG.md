@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.5](https://gitlab.com/castlecraft/excel-rma/compare/rma-warranty@2.0.0-alpha.4...rma-warranty@2.0.0-alpha.5) (2023-06-17)
+
+
+### Bug Fixes
+
+* Fixed all pages date fields ([a268a4f](https://gitlab.com/castlecraft/excel-rma/commit/a268a4f2b146f69986009bbc4c0158691ef2efe8))
+* Fixed Brand filter ([59b48e0](https://gitlab.com/castlecraft/excel-rma/commit/59b48e0852d3a3c20477dc02ede5c4cee6213047))
+* Fixed ERP Serial push issue ([37e925c](https://gitlab.com/castlecraft/excel-rma/commit/37e925c26f54fe3c6cf533229a0eb5690e09725a))
+* Fixed filters on warranty page ([d335016](https://gitlab.com/castlecraft/excel-rma/commit/d3350162b428567ad948690da2577db41e004af9))
+* Fixed Finalize Warranty Stock Entry ([a944b25](https://gitlab.com/castlecraft/excel-rma/commit/a944b2578f59c8080a5b1a7886b417b5d405557f))
+* Fixed Import issues ([fa622c3](https://gitlab.com/castlecraft/excel-rma/commit/fa622c3f913b51aec71e839d999137c5200f69a5))
+* Fixed naming issue in serial no history ([754d078](https://gitlab.com/castlecraft/excel-rma/commit/754d078388a22e60477872de833c217f1308c57b))
+* Fixed pagination and filters on Serial Quantity Page ([fbafb03](https://gitlab.com/castlecraft/excel-rma/commit/fbafb035b69da6a047c5026aedb51ea68e2015ca))
+* Fixed routing after form submission ([3547777](https://gitlab.com/castlecraft/excel-rma/commit/354777716cdaa3916fc887fa7695aa8c1dba53ec))
+* Fixed Sales Invoice flow ([0aa34e0](https://gitlab.com/castlecraft/excel-rma/commit/0aa34e019fd13487f4c8f65106902f95ed859fe4))
+* Fixed serial info delivery note ([11dd240](https://gitlab.com/castlecraft/excel-rma/commit/11dd240d192497e7afc37f33d23b669c8235912b))
+* Fixed UI pages ([3f4592b](https://gitlab.com/castlecraft/excel-rma/commit/3f4592ba42a2fc73c4bba5a69fe1dc4cdb3fef2c))
+* Fixed Warranty claim cancellation ([98715d0](https://gitlab.com/castlecraft/excel-rma/commit/98715d075ff3011eeef1ce6b17ceb622e5381870))
+* Fixed Warranty Stock Entry Validation ([4724f36](https://gitlab.com/castlecraft/excel-rma/commit/4724f360b4ae223b8763fb9c2238ef1d9b2467e6))
+* optimized stock entry removal ([e38143d](https://gitlab.com/castlecraft/excel-rma/commit/e38143d425767e9a0744b40a3cc3fee0086ba688))
+
+
+### Features
+
+* Added links to create entries in menu ([393b20c](https://gitlab.com/castlecraft/excel-rma/commit/393b20cbfd6e5faa954cf29243b2c9a15d02f812))
+* Added Serial Availability Page ([b2f65ba](https://gitlab.com/castlecraft/excel-rma/commit/b2f65bacaff18c7cdcb36e9353c1cacc782583ec))
+* Added serial_no and stock_id to prints ([b3968aa](https://gitlab.com/castlecraft/excel-rma/commit/b3968aadcd59dd5b4430ddc5914df2cff485efda))
+* Added update stock controls ([4dd1cab](https://gitlab.com/castlecraft/excel-rma/commit/4dd1cab6c3a975e2b725538ea0100c1dfd216722))
+* Afixed test ([0894fec](https://gitlab.com/castlecraft/excel-rma/commit/0894fecaea5933eb62a7df173248b91c53a6e61a))
+* Serial Search page updated ([67eb572](https://gitlab.com/castlecraft/excel-rma/commit/67eb57241698dd9dca498a566366785cf6e3fe90))
+* Updated permissions on Item Price Page ([c4007bf](https://gitlab.com/castlecraft/excel-rma/commit/c4007bfd31dd7247b81fb8398093df16034e95ab))
+
+
+
+
+
 # [2.0.0-alpha.4](https://gitlab.com/castlecraft/excel-rma/compare/rma-warranty@2.0.0-alpha.3...rma-warranty@2.0.0-alpha.4) (2022-10-12)
 
 

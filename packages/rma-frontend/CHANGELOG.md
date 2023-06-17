@@ -3,6 +3,45 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.5](https://gitlab.com/castlecraft/excel-rma/compare/rma-frontend@2.0.0-alpha.4...rma-frontend@2.0.0-alpha.5) (2023-06-17)
+
+
+### Bug Fixes
+
+* Fixed Add Sales Invoice Page ([aebee5f](https://gitlab.com/castlecraft/excel-rma/commit/aebee5fe232976748c511b53cc87c1d84b2b0d01))
+* Fixed all pages date fields ([a268a4f](https://gitlab.com/castlecraft/excel-rma/commit/a268a4f2b146f69986009bbc4c0158691ef2efe8))
+* Fixed Credit Note tab in Sales Invoice ([3c0b732](https://gitlab.com/castlecraft/excel-rma/commit/3c0b7324a5a2cff045554585c1080a8527bd642e))
+* Fixed ERP Non Serial push issue ([4bd1e1c](https://gitlab.com/castlecraft/excel-rma/commit/4bd1e1ccf787085e3ff30d97289528e2f7d73fc2))
+* Fixed ERP Serial push issue ([37e925c](https://gitlab.com/castlecraft/excel-rma/commit/37e925c26f54fe3c6cf533229a0eb5690e09725a))
+* Fixed naming issue in serial no history ([754d078](https://gitlab.com/castlecraft/excel-rma/commit/754d078388a22e60477872de833c217f1308c57b))
+* Fixed Non Serial Invoice creation ([418ce87](https://gitlab.com/castlecraft/excel-rma/commit/418ce876de55bd3249670f00f0e12752b0aba7db))
+* Fixed pagination and filters on Serial Quantity Page ([fbafb03](https://gitlab.com/castlecraft/excel-rma/commit/fbafb035b69da6a047c5026aedb51ea68e2015ca))
+* Fixed Pagination on Item Price Page ([858ab56](https://gitlab.com/castlecraft/excel-rma/commit/858ab5695bc6bbae117cd4d369d45b08b9749053))
+* Fixed permission on Item Price Page ([0489e44](https://gitlab.com/castlecraft/excel-rma/commit/0489e444ca2469651bcf4c8566d5261fac92c046))
+* Fixed Returns tab in Invoice ([c7582ee](https://gitlab.com/castlecraft/excel-rma/commit/c7582eec5a12819f2c6d8f2aebaa6d7d5be70848))
+* Fixed sales invoice ([5139525](https://gitlab.com/castlecraft/excel-rma/commit/5139525b9743d4d32c35d969fdd69953d5ddff37))
+* Fixed Sales Invoice flow ([0aa34e0](https://gitlab.com/castlecraft/excel-rma/commit/0aa34e019fd13487f4c8f65106902f95ed859fe4))
+* Fixed UI pages ([3f4592b](https://gitlab.com/castlecraft/excel-rma/commit/3f4592ba42a2fc73c4bba5a69fe1dc4cdb3fef2c))
+* Fixed warehouse issue in return stock entry cancellation ([1dc82d5](https://gitlab.com/castlecraft/excel-rma/commit/1dc82d50c3a77f01d8ad457f760053a372c64cd5))
+* Fixed warehouse issue in stock entry ([683071f](https://gitlab.com/castlecraft/excel-rma/commit/683071fa28e1e95d5363b5a697806d8f497ae570))
+* Fixed Warranty Stock Entry Validation ([4724f36](https://gitlab.com/castlecraft/excel-rma/commit/4724f360b4ae223b8763fb9c2238ef1d9b2467e6))
+* lint fix ([8dd06b6](https://gitlab.com/castlecraft/excel-rma/commit/8dd06b684d9b607f0cae71a7d7910cbf4a137899))
+
+
+### Features
+
+* Added feature to check stock before submitting invoice ([9ab66b8](https://gitlab.com/castlecraft/excel-rma/commit/9ab66b8fa314c8ba85632ddee894bcc1963da46e))
+* Added links to create entries in menu ([393b20c](https://gitlab.com/castlecraft/excel-rma/commit/393b20cbfd6e5faa954cf29243b2c9a15d02f812))
+* Added permission on Item Price Page ([dfc2574](https://gitlab.com/castlecraft/excel-rma/commit/dfc2574c29053deed234e78dd3c4afa19466645e))
+* Added Serial Availability Page ([b2f65ba](https://gitlab.com/castlecraft/excel-rma/commit/b2f65bacaff18c7cdcb36e9353c1cacc782583ec))
+* Added stock validation for sales invoice ([2d10f9d](https://gitlab.com/castlecraft/excel-rma/commit/2d10f9dc1f21affdbf8ba39a305907b7e94c3a02))
+* Added update stock controls ([4dd1cab](https://gitlab.com/castlecraft/excel-rma/commit/4dd1cab6c3a975e2b725538ea0100c1dfd216722))
+* Updated permissions on Item Price Page ([c4007bf](https://gitlab.com/castlecraft/excel-rma/commit/c4007bfd31dd7247b81fb8398093df16034e95ab))
+
+
+
+
+
 # [2.0.0-alpha.4](https://gitlab.com/castlecraft/excel-rma/compare/rma-frontend@2.0.0-alpha.3...rma-frontend@2.0.0-alpha.4) (2022-10-12)
 
 
